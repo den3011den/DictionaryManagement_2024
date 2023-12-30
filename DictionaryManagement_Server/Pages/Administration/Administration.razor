@@ -1,0 +1,67 @@
+﻿@page "/administration"
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels;
+@inject DialogService _dialogService
+@inject NavigationManager _navigationManager
+@inject IVersionRepository _versionRepository
+@attribute [Authorize]
+
+<h4 class="card-title text-primary">Администрирование</h4>
+
+
+<br />
+
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration/User">Пользователи</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration/ADGroup">Группы AD</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration/Role">Роли</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration/MesDepartment">Производства</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration/Smena">Смены</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration/Settings">Настройки</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration/Scheduler">Расписания авторасчётов (AutoCalc)</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="" @onclick="@(() => EditVersion())" @onclick:preventDefault>@DBVersionLinkText</a>
+
+@code {
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public string DBVersionLinkText { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        DBVersionLinkText = "Версия БД СИР";// - " + (await _versionRepository.Get()).version;
+    }
+
+
+
+    async Task EditVersion()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsLoading = true;
+
+            VersionDTO dialogResult;
+
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<AddEditVersion>("Редактирование версии БД СИР", new Dictionary<string, object>() { { "version", "" } }, new DialogOptions() { Width = $"{500}px", Left = $"{300}px" });
+            DBVersionLinkText = "Версия БД СИР"; // + dialogResult.version;
+            _navigationManager.NavigateTo("/administration");
+        }
+
+    }
+}

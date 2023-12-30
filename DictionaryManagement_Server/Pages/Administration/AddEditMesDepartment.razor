@@ -1,0 +1,238 @@
+﻿@page "/administration/MesDepartment/AddEditMesDepartment/{MesDepartmentId}"
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Common;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+
+@inject IMesDepartmentRepository _mesDepartmentRepository
+@inject DialogService _dialogService
+@inject ILogEventRepository _logEventRepository
+
+@*@inject NavigationManager _navigationManager*@
+
+
+<div class="row my-2">
+
+    <div class="col-md-10">
+        @if (IsLoading)
+        {
+            <div class="text-center">
+                <img src="/images/loading.gif">
+            </div>
+        }
+        else
+        {
+            <EditForm Model="ActiveMesDepartmentDTO" OnValidSubmit="AddEditMesDepartmentProcedure">
+                <DataAnnotationsValidator />
+
+                <RadzenRow Gap="1rem">
+                    <RadzenColumn Size="12">
+                        <RadzenStack>
+
+                            @if (MesDepartmentId > 0)
+                            {
+                                <RadzenFormField Text="ИД записи" Variant="@variant" Style="width: 100%; max-width: 1100px;">
+                                    <RadzenNumeric @bind-Value="@ActiveMesDepartmentDTO.Id" ReadOnly="true" />
+                                </RadzenFormField>
+                            }
+
+                            <RadzenFormField Text="Код производства" Variant="@variant" Style="width: 100%; max-width: 1100px;">
+                                <RadzenNumeric @bind-Value="@ActiveMesDepartmentDTO.MesCode" />
+                            </RadzenFormField>
+                            <ValidationMessage For="()=>ActiveMesDepartmentDTO.MesCode"></ValidationMessage>
+
+                            <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 1100px;">
+                                <RadzenTextBox @bind-Value="@ActiveMesDepartmentDTO.Name" />
+                            </RadzenFormField>
+                            <ValidationMessage For="()=>ActiveMesDepartmentDTO.Name"></ValidationMessage>
+                            <RadzenFormField Text="Сокр. наименование" Variant="@variant" Style="width: 100%; max-width: 1100px;">
+                                <RadzenTextBox @bind-Value="@ActiveMesDepartmentDTO.ShortName" />
+                            </RadzenFormField>
+                            <ValidationMessage For="()=>ActiveMesDepartmentDTO.ShortName"></ValidationMessage>
+
+                            <RadzenFormField Text="Родительское производство" Variant="@variant" Style="width: 100%; max-width: 1100px;">
+                                <RadzenDropDown @ref=@mesDepartmentDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                Data=@MesDepartmentDTOList TextProperty="ToStringHierarchyShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesDepartmentDTO.ParentDepartmentId" Style="width: 100%; max-width: 1100px;" />
+                            </RadzenFormField>
+                            <ValidationMessage For="()=>ActiveMesDepartmentDTO.ParentDepartmentId"></ValidationMessage>
+                            @* </div>*@
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+
+                <div class="form-group py-2">
+                    <button class="btn btn-primary">@Title</button>
+                    <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+
+
+
+
+@code {
+
+    [Parameter]
+    public int MesDepartmentId { get; set; }
+
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+
+    public MesDepartmentDTO ActiveMesDepartmentDTO { get; set; }
+
+    IEnumerable<MesDepartmentDTO> MesDepartmentDTOList { get; set; } = new List<MesDepartmentDTO>();
+
+    public IEnumerable<object> CheckedValues { get; set; } = new List<object>();
+
+    private string Title { get; set; } = "Создать производство";
+
+    RadzenDropDown<int?> mesDepartmentDropDown;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+        if (MesDepartmentId <= 0)
+        {
+            ActiveMesDepartmentDTO = new MesDepartmentDTO();
+        }
+        else
+        {
+            ActiveMesDepartmentDTO = await _mesDepartmentRepository.GetById(MesDepartmentId);
+            Title = "Изменить производство";
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+
+        //employees = dbContext.Employees.Where(e => e.ReportsTo == null);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+            IsLoading = true;
+            StateHasChanged();
+
+            if (MesDepartmentId <= 0)
+            {
+                ActiveMesDepartmentDTO = new MesDepartmentDTO();
+            }
+            else
+            {
+                ActiveMesDepartmentDTO = await _mesDepartmentRepository.GetById(MesDepartmentId);
+                Title = "Изменить производство";
+            }
+            MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
+
+            IsLoading = false;
+            StateHasChanged();
+        }
+
+        //base.OnAfterRender(firstRender);
+    }
+
+    private async Task AddEditMesDepartmentProcedure()
+    {
+
+        if (MesDepartmentId <= 0)
+        { // создание
+            var foundByCode = await _mesDepartmentRepository.GetByCode(ActiveMesDepartmentDTO.MesCode);
+            if (foundByCode != null)
+            {
+                if (foundByCode.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
+                {
+                    await _jsRuntime.ToastrError("Уже есть производcтво с кодом " + foundByCode.MesCode.ToString() + " внутри родительского производства (наименование: " + foundByCode.ShortName + " ИД: " + foundByCode.Id.ToString() + ")");
+                    return;
+                }
+            }
+            var foundByName = await _mesDepartmentRepository.GetByName(ActiveMesDepartmentDTO.Name);
+            if (foundByName != null)
+            {
+                if (foundByName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
+                {
+                    await _jsRuntime.ToastrError("Уже есть производcтво с наименованием " + foundByName.Name + " внутри родительского производства (Код: " + foundByName.MesCode.ToString() + " ИД: " + foundByName.Id.ToString() + ")");
+                    return;
+                }
+            }
+
+            var foundByShortName = await _mesDepartmentRepository.GetByShortName(ActiveMesDepartmentDTO.ShortName);
+            if (foundByShortName != null)
+            {
+                if (foundByShortName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
+                {
+                    await _jsRuntime.ToastrError("Уже есть производcтво с сокр. наименованием внутри родительского производства " + foundByShortName.ShortName + " (Код: " + foundByShortName.MesCode.ToString() + " ИД: " + foundByShortName.Id.ToString() + ")");
+                    return;
+                }
+            }            
+            MesDepartmentDTO addedMesDepartmentDTO = await _mesDepartmentRepository.Create(ActiveMesDepartmentDTO);
+            await _logEventRepository.ToLog<MesDepartmentDTO>(oldObject: null, newObject: addedMesDepartmentDTO, "Добавление производства", "Производство: ", _authorizationRepository);
+            await _jsRuntime.ToastrSuccess("Производство \"" + ActiveMesDepartmentDTO.ShortName + "\" создано");
+            _dialogService.Close(ActiveMesDepartmentDTO);
+
+        }
+        else
+        { // изменение производства
+
+            var foundByCode = await _mesDepartmentRepository.GetByCode(ActiveMesDepartmentDTO.MesCode);
+            if ((foundByCode != null) && (foundByCode.Id != ActiveMesDepartmentDTO.Id))
+            {
+                if (foundByCode.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
+                {
+                    await _jsRuntime.ToastrError("Уже есть производcтво с кодом " + foundByCode.MesCode.ToString() + " внутри родительского производства (наименование: " + foundByCode.ShortName + " ИД: " + foundByCode.Id.ToString() + ")");
+                    return;
+                }
+            }
+            var foundByName = await _mesDepartmentRepository.GetByName(ActiveMesDepartmentDTO.Name);
+            if ((foundByName != null) && (foundByName.Id != ActiveMesDepartmentDTO.Id))
+            {
+                if (foundByName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
+                {
+                    await _jsRuntime.ToastrError("Уже есть производcтво с наименованием " + foundByName.Name + " внутри родительского производства (Код: " + foundByName.MesCode.ToString() + " ИД: " + foundByName.Id.ToString() + ")");
+                    return;
+                }
+            }
+
+            var foundByShortName = await _mesDepartmentRepository.GetByShortName(ActiveMesDepartmentDTO.ShortName);
+            if ((foundByShortName != null) && (foundByShortName.Id != ActiveMesDepartmentDTO.Id))
+            {
+                if (foundByShortName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
+                {
+                    await _jsRuntime.ToastrError("Уже есть производcтво с сокр. наименованием " + foundByShortName.ShortName + " внутри родительского производства (Код: " + foundByShortName.MesCode.ToString() + " ИД: " + foundByShortName.Id.ToString() + ")");
+                    return;
+                }
+            }
+
+            MesDepartmentDTO oldMesDepartmentDTO = await _mesDepartmentRepository.GetById(ActiveMesDepartmentDTO.Id);
+            MesDepartmentDTO newMesDepartmentDTO = await _mesDepartmentRepository.Update(ActiveMesDepartmentDTO);
+            await _logEventRepository.ToLog<MesDepartmentDTO>(oldObject: oldMesDepartmentDTO, newObject: newMesDepartmentDTO, "Изменение производства", "Производство: ", _authorizationRepository);
+            await _jsRuntime.ToastrSuccess("Производство \"" + ActiveMesDepartmentDTO.ShortName + "\" изменено");
+
+            _dialogService.Close(ActiveMesDepartmentDTO);
+
+
+        }
+
+    }
+
+
+    private async Task OnClickCancel()
+    {
+        _dialogService.Close(null);
+    }
+
+
+}

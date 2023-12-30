@@ -1,0 +1,66 @@
+﻿@* @using Microsoft.Data.SqlClient
+@inject NavigationManager _navigationManager *@
+@attribute [Authorize]
+@* <ErrorBoundary>
+    <ChildContent> *@
+        <CascadingAuthenticationState>
+            <Router AppAssembly="@typeof(App).Assembly">
+                <Found Context="routeData">
+                    <AuthorizeRouteView RouteData="@routeData"
+                                        DefaultLayout="@typeof(MainLayout)">
+                        <NotAuthorized>
+                            <PageTitle>Авторизация не пройдена. Доступа нет</PageTitle>
+                            @* <LayoutView Layout="@typeof(MainLayout)"> *@
+                            <p role="alert">Вы не авторизованы. Доступ без авторизации запрещён.</p>
+                            @* </LayoutView> *@
+                        </NotAuthorized>
+                        <Authorizing>
+                            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+                            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+                        </Authorizing>
+                    </AuthorizeRouteView>
+                </Found>
+                <NotFound>
+                    <PageTitle>Страница не найдена</PageTitle>
+                    <LayoutView Layout="@typeof(MainLayout)">
+                        <p role="alert">По этому адресу нет страницы.</p>
+                    </LayoutView>
+                </NotFound>
+            </Router>
+        </CascadingAuthenticationState>
+@*     </ChildContent>    
+    <ErrorContent Context="errorexception">
+        @if (errorexception.InnerException.GetBaseException() is SqlException)  
+        {
+            <div class="blazor-error-boundary-without-after">
+                Ошибка запроса к БД. Возможно не удаётся подключиться к базе данных!
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="refresh" class="mt-2 mb-4" Text="Вернуться на главную страницу" Click="@(args => GoToMainPage())" />
+            </div>
+        }
+        else
+        {
+            <div class="blazor-error-boundary-without-after">
+                Произошла ошибка! Сообщение ошибки: @errorexception.Message
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="refresh" class="mt-2 mb-4" Text="Вернуться на главную страницу" Click="@(args => GoToMainPage())" />
+            </div>
+
+        }
+
+    </ErrorContent>
+</ErrorBoundary> *@
+
+
+@* @code {
+    ErrorBoundary errorBoundary;
+
+    // protected override void OnParametersSet()
+    // {
+    //     errorBoundary?.Recover();
+    // }
+
+    public async Task GoToMainPage()
+    {
+        _navigationManager.NavigateTo(_navigationManager.BaseUri, true);
+    }
+
+} *@

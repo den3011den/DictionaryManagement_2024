@@ -1,0 +1,566 @@
+﻿@page "/dataarchive/MesNdoStocks"
+@attribute [Authorize]
+
+@using System.Text.Json;
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels;
+
+
+@inject IJSRuntime _jsRuntime
+@inject IMesNdoStocksRepository _mesNdoStocksRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/MesNdoStocks">Архив данных НДО</a></h6>
+        </div>
+
+
+        @if (IsLoading != true)
+        {
+
+            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+                <RadzenColumn Size="12" SizeMD="12">
+                    <RadzenStack>
+                        <RadzenStack Gap="1rem">
+                            <RadzenRow AlignItems="AlignItems.Center">
+                                <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
+                                    <Items>
+                                        <RadzenRadioButtonListItem Text="По времени значения" Value="1" />
+                                        <RadzenRadioButtonListItem Text="По времени добавления" Value="2" />
+                                    </Items>
+                                </RadzenRadioButtonList>
+                                <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" />
+                            </RadzenRow>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+
+
+            <RadzenDataGridApp @bind-Settings="@MesNdoStocksGridSettings" SettingsName="MesNdoStocksGridSettings" @ref="mesNdoStocksDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               Data="@mesNdoStocksDTOs" TItem="MesNdoStocksDTO"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               Density=Density.Compact
+                               ShowPagingSummary="true"
+                               EmptyText="Нет записей для отображения"
+                               AllowVirtualization="true"
+                               AllowColumnReorder="true"
+                               AllowColumnResize="true"
+                               Style=@(iconMenuActive ? "height:calc(100vh - 170px); width:1760px" : "height:calc(100vh - 170px); width:1600px")
+                               ColumnWidth="200px"
+                               AllowColumnPicking="true"
+                               GridLines="DataGridGridLines.Both"
+                               ShowCleanGridSettingsHeaderButton="false"
+                               ShowCleanGridFiltersHeaderButton="false"
+                               ShowCleanGridSortsHeaderButton="false">
+                <HeaderTemplate>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
+                    </RadzenButton>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все фильтры" Icon="filter_alt"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllFiltersCustom()">
+                    </RadzenButton>
+
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
+                    </RadzenButton>
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
+                                             FilterProperty="Id" SortProperty="Id">
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                @data1.ToStringId
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="MesParamDTOFK.ToStringId" Title="ИД тэга СИР"
+                                             FilterProperty="MesParamDTOFK.Id" SortProperty="MesParamDTOFK.Id" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.MesParamDTOFK.ToStringId
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="MesParamDTOFK.Code" Title="Код тэга СИР" FilterProperty="MesParamDTOFK.Code" SortProperty="MesParamDTOFK.Code" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                <strong>
+                                    @data1.MesParamDTOFK.Code
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="MesParamDTOFK.Name" Title="Наименование тэга СИР" FilterProperty="MesParamDTOFK.Name" SortProperty="MesParamDTOFK.Name" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.MesParamDTOFK.Name
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="AddTime" Title="Время добавления" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                <strong>
+                                    @data1.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff")
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Title="Кто добaвил" Property="AddUserDTOFK.UserName" Type="typeof(IEnumerable<string>)"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true"
+                                             FilterValue="@selectedAddUsers" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedAddUsers
+                                            Change=OnSelectedAddUsersChange Data="@(distinctAddUsersInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                @data1.AddUserDTOFK.UserName
+                            </div>
+
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ValueTime" Title="Время значения" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                <strong>
+                                    @data1.ValueTime.ToString("dd.MM.yyyy HH:mm:ss.fff")
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ToStringValue" Title="Значение" TextAlign="TextAlign.Center" Filterable="true" Sortable="true"
+                                             FilterProperty="Value" SortProperty="Value" FilterOperator="FilterOperator.Equals">
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                <strong>
+                                    @data1.ToStringValue
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ToStringValueDifference" Title="Разность" TextAlign="TextAlign.Center" Filterable="true" Sortable="true"
+                                             FilterProperty="ValueDifference" SortProperty="ValueDifference" FilterOperator="FilterOperator.Equals">
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                <strong>
+                                    @data1.ToStringValueDifference
+                                </strong>
+                            </div>
+                        </Template>
+
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ReportEntityDTOFK.ToStringId" Title="ИД экземпляра отчёта" FilterProperty="ReportEntityDTOFK.ToStringId" SortProperty="ReportEntityDTOFK.ToStringId" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (data1.ReportEntityDTOFK != null)
+                            {
+                                <div style="white-space:pre-wrap; font-size: 12px">
+                                    @data1.ReportEntityDTOFK.ToStringId
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapNdoOUTDTOFK.ToStringId" Title="ИД записи в витрине" TextAlign="TextAlign.Center"
+                                             FilterProperty="SapNdoOUTDTOFK.Id" SortProperty="SapNdoOUTDTOFK.Id">
+                        <Template Context="data1">
+                            @if (data1.SapNdoOutId != null)
+                            {
+                                @if (data1.SapNdoOUTDTOFK != null)
+                                {
+                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                        <strong>
+                                            @data1.SapNdoOUTDTOFK.ToStringId
+                                        </strong>
+                                    </div>
+                                }
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapGoneBool" Title="Sap забрал" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.SapGoneBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapNdoOUTDTOFK.SapGoneTime" Title="Время Sap забрал" TextAlign="TextAlign.Center"
+                                             FilterProperty="SapNdoOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Equals" SortProperty="SapNdoOUTDTOFK.SapGoneTime">
+                        <Template Context="data1">
+                            @if (data1.SapNdoOutId != null)
+                            {
+                                @if (data1.SapNdoOUTDTOFK.SapGoneTime != null)
+                                {
+                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                        <strong>
+                                            @data1.SapNdoOUTDTOFK.SapGoneTime
+                                        </strong>
+                                    </div>
+                                }
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp Title="Действия" TItem="MesNdoStocksDTO" Context="mesNdoStocksDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+                        <Template Context="mesNdoStocksDTO">
+                            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesNdoStocksDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesNdoStocksDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+
+    </div>
+}
+
+<style>
+    .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
+        font-size: 0.75rem;
+    }
+</style>
+
+
+@code {
+
+    [CascadingParameter]
+    bool iconMenuActive { get; set; }
+
+    _Dialogs? _dialogs { get; set; }
+
+    IEnumerable<MesNdoStocksDTO>? mesNdoStocksDTOs;
+
+    IEnumerable<string> selectedAddUsers;
+
+    RadzenDataGrid<MesNdoStocksDTO> mesNdoStocksDTOGrid;
+
+    List<string> distinctAddUsersInList = new List<string>();
+
+    DateTime startDate = DateTime.Today.AddDays(-7);
+    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+    DateTime minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+
+    bool excelExportFlag = false;
+
+    int applyRadioGroupValue = 1;
+
+    bool ApplyButtonDisabled = true;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                applyRadioGroupValue = 1;
+                ApplyButtonDisabled = false;
+
+                startDate = DateTime.Today.AddDays(-7);
+                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+
+                await GetRows();
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/dataarchive");
+    }
+
+
+    DataGridSettings _mesNdoStocksGridSettings;
+    public DataGridSettings MesNdoStocksGridSettings
+    {
+        get
+        {
+            return _mesNdoStocksGridSettings;
+        }
+        set
+        {
+            if (_mesNdoStocksGridSettings != value)
+            {
+                _mesNdoStocksGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("MesNdoStocksGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "MesNdoStocksGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _mesNdoStocksGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+            if (_mesNdoStocksGridSettings != null)
+            {
+                var col_var = _mesNdoStocksGridSettings.Columns.Where(c => c.Property == "AddUserDTOFK.UserName").FirstOrDefault();
+                if (col_var.FilterValue != null)
+                {
+                    selectedAddUsers = JsonSerializer.Deserialize<List<string>>(col_var.FilterValue.ToString());
+                }
+            }
+
+        }
+    }
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('MesNdoStocksGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(MesNdoStocksGridSettings)}')");
+        await SD.SetPageSettingsVersion("MesNdoStocksGridSettings", _jsRuntime);
+    }
+
+
+    private async Task ChangeStartDate()
+    {
+        ApplyButtonDisabled = false;
+        maxEndDate = startDate.AddMonths(1).AddSeconds(-1);
+        minEndDate = startDate.AddDays(-1);
+        if (endDate > maxEndDate)
+            endDate = maxEndDate;
+
+    }
+
+    private async Task ChangeEndDate()
+    {
+
+        ApplyButtonDisabled = false;
+    }
+
+
+    async Task GetRows()
+    {
+        IsLoading = true;
+        await LoadStateAsync();
+        StateHasChanged();
+        if (applyRadioGroupValue == 1)
+            mesNdoStocksDTOs = await _mesNdoStocksRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
+        else
+            mesNdoStocksDTOs = await _mesNdoStocksRepository.GetAllByTimeInterval(startDate, endDate, "ADDTIME");
+
+        List<string> distinctAddUsersInList = new List<string>();
+        await GetDistincts();
+
+        ApplyButtonDisabled = true;
+        IsLoading = false;
+        StateHasChanged();
+
+    }
+
+
+    async Task EditRow(MesNdoStocksDTO? mesNdoStocksDTO)
+    {
+        await _jsRuntime.ToastrSuccess("Не реализовано");
+    }
+
+
+    async Task DeleteRow(MesNdoStocksDTO mesNdoStocksDTO)
+    {
+        await _jsRuntime.ToastrSuccess("Не реализовано");
+    }
+
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+
+        int viewCount = mesNdoStocksDTOGrid.View.Count();
+
+        // запас 100 строк на заголовки например
+        if (viewCount > (SD.MaxAllowedExcelRows - 100))
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "В выборке " + viewCount.ToString()
+                + " записей, что близко или превышает максимально доступное для Excel количество записей в "
+                + SD.MaxAllowedExcelRows.ToString() + " строк." +
+                "\n\n\n Установите фильтры или уменьшите интервал дат, чтобы количество выгружаемых строк не превышало этот предел.");
+        }
+        else
+        {
+
+
+            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            {
+                string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+                string filename = "MesNdoStocks_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+                await _simpleExcelExportRepository.GenerateExcelMesNdoStocks(filename, (IEnumerable<MesNdoStocksDTO>)mesNdoStocksDTOGrid.View);
+
+                await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+            }
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task GetDistincts()
+    {
+        if (mesNdoStocksDTOs != null)
+        {
+            distinctAddUsersInList = (List<string>)mesNdoStocksDTOs.Where(u => u.AddUserDTOFK != null).OrderBy(u => u.AddUserDTOFK.UserName)
+                .Select(u => u.AddUserDTOFK.UserName).Distinct().ToList();
+        }
+    }
+
+    void OnSelectedAddUsersChange(object value)
+    {
+        if (selectedAddUsers != null && !selectedAddUsers.Any())
+        {
+            selectedAddUsers = null;
+        }
+    }
+
+
+    private async Task CleanPageSettingsCustom()
+    {
+        await Task.CompletedTask;
+        var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        var result = await _jsRuntime.InvokeAsync<string>
+            ("window.localStorage.removeItem", "MesNdoStocksGridSettings");
+
+        MesNdoStocksGridSettings = null;
+
+        selectedAddUsers = null;
+
+        if (mesNdoStocksDTOs != null)
+        {
+            await GetDistincts();
+        }
+
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    async Task CleanAllFiltersCustom()
+    {
+        var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (MesNdoStocksGridSettings != null)
+        {
+            foreach (var c in MesNdoStocksGridSettings.Columns)
+            {
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+            }
+
+        }
+
+        selectedAddUsers = null;
+
+        if (mesNdoStocksDTOs != null)
+        {
+            await GetDistincts();
+        }
+
+        await InvokeAsync(SaveStateAsync);
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    async Task CleanAllOrdersCustom()
+    {
+
+        var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (MesNdoStocksGridSettings != null)
+        {
+            foreach (var c in MesNdoStocksGridSettings.Columns)
+            {
+                c.SortOrder = null;
+            }
+            await InvokeAsync(SaveStateAsync);
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}
+
+

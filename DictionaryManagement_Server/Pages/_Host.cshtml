@@ -1,0 +1,82 @@
+﻿@*@page "/"
+@namespace DictionaryManagement_Server.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_Layout";
+}
+
+<component type="typeof(App)" render-mode="ServerPrerendered" />
+*@
+
+@page "/"
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@inject NavigationManager _navigationManager
+@namespace DictionaryManagement_Server.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    @*  <base href="http://localhost/1_Dict" />*@
+    <base href="~/" />
+
+    <link rel="stylesheet" href="_content/Radzen.Blazor/css/material-base.css">
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/bootstrap-icons-1.10.5/font/bootstrap-icons.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="css/toastr/toastr.css" rel="stylesheet" />
+    <link href="DictionaryManagement_Server.styles.css" rel="stylesheet" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    @*@RenderBody()*@
+
+
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+@*     <div id="blazor-error-ui">        
+        <environment include="Staging,Production">
+            Произошла ошибка. Это приложение больше не будет отвечать пока не будет перезагружено.
+        </environment>
+        <environment include="Development">
+            Произошло не отслеживаемое исключение. Смотрите инструменты разработчика в браузере для подробностей.
+        </environment>
+        <a href="" class="reload">Перезагрузить</a>
+        <a class="dismiss">🗙</a>
+    </div> *@
+
+    <div id="blazor-error-ui">
+        <p>
+            Возникла проблема в работе приложения. Нажмите <a href="" class="reload" style="color: dodgerblue;">ЗДЕСЬ</a> для обновления страницы.<br />
+            <span style="font-size: 0.7em;">Если данное окно продолжит появляться обратитесь в техподдержку.</span>
+        </p>
+        <a class="dismiss" style="color: white;">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script src="js/jquery/jquery.min.js"></script>
+    <script src="js/toastr/toastr.js"></script>
+    <script src="js/sweetalert/sweetalert.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        // Wait until a reload button appears
+        new MutationObserver((mutations, observer) => {
+            if (document.querySelector('#components-reconnect-modal h5 a')) {
+                // Now every 10 seconds, see if the server appears to be back, and if so, reload
+                async function attemptReload() {
+                    await fetch(''); // Check the server really is back
+                    location.reload();
+                }
+                observer.disconnect();
+                attemptReload();
+                setInterval(attemptReload, 2000);
+            }
+        }).observe(document.body, { childList: true, subtree: true });
+    </script>
+
+</body>
+</html>

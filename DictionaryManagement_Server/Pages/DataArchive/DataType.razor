@@ -1,0 +1,471 @@
+﻿@page "/dataarchive/DataType"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json
+
+
+@inject DialogService DialogService
+
+@inject IJSRuntime _jsRuntime
+@inject IDataTypeRepository _dataTypeRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/DataType">Виды данных</a></h6>
+        </div>
+
+        @if (IsLoading != true)
+        {
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый вид данных" Click="@InsertRow" Disabled=@(dataTypeDTOToInsert != null || dataTypeDTOToUpdate != null) />
+                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+            <RadzenDataGridApp @ref="dataTypeDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               @bind-Settings="@DataTypeGridSettings" SettingsName="DataTypeGridSettings"
+                               Data="@dataTypeDTOs" TItem="DataTypeDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               AllowColumnResize="false"
+                               AllowVirtualization="true"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 190px)">
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
+                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Name" Title="Наименование" Width="200px">
+                        <EditTemplate Context="dataTypeDTO">
+                            <RadzenTextBox @bind-Value="dataTypeDTO.Name" Style="width:100%; display: block" Name="Name" />
+                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
+                            <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Priority" Title="Приоритет передачи в SAP (чем больше число - тем выше приоритет)" Width="150px" TextAlign="TextAlign.Center">
+                        <EditTemplate Context="dataTypeDTO">
+                            <RadzenNumeric @bind-Value="dataTypeDTO.Priority" Style="width:100%; display: block" Name="Priority" />
+                            @* <RadzenNumericRangeValidator Min=1 Max=@(int.MaxValue) Text="Приоритет передачи в SAP не может быть меньше 1" Component="Priority" Popup="true" /> *@
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="IsAutoCalcDestDataType" Title="Результирующий тип авторасчёта" Width="150px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsAutoCalcDestDataType ReadOnly="true" TriState="false" TValue="bool?" />
+                        </Template>
+                        <EditTemplate Context="data">
+                            <strong>
+                                |
+                                <RadzenCheckBox @bind-Value=data.IsAutoCalcDestDataType TriState="false" TValue="bool?" />
+                                |
+                            </strong>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+
+
+                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="90px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="true" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp Title="Действия" TItem="DataTypeDTO" Context="dataTypeDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                        <Template Context="dataTypeDTO">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(dataTypeDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            @if (!dataTypeDTO.IsArchive)
+                            {
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                            else
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                        </Template>
+                        <EditTemplate Context="dataTypeDTO">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(dataTypeDTO))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(dataTypeDTO))">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataTypeDTO))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+
+    </div>
+}
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+    public string DeleteMessage { get; set; } = "";
+
+    RadzenDataGrid<DataTypeDTO> dataTypeDTOGrid;
+
+    IEnumerable<DataTypeDTO> dataTypeDTOs;
+
+    DataTypeDTO dataTypeDTOToInsert;
+    DataTypeDTO dataTypeDTOToUpdate;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+    public bool excelExportFlag { get; set; } = false;
+
+    DataGridSettings _dataTypeGridSettings;
+    public DataGridSettings DataTypeGridSettings
+    {
+        get
+        {
+            return _dataTypeGridSettings;
+        }
+        set
+        {
+            if (_dataTypeGridSettings != value)
+            {
+                _dataTypeGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("DataTypeGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "DataTypeGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _dataTypeGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+        }
+    }
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('DataTypeGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(DataTypeGridSettings)}')");
+        await SD.SetPageSettingsVersion("DataTypeGridSettings", _jsRuntime);
+    }
+
+
+
+    void Reset()
+    {
+        dataTypeDTOToInsert = null;
+        dataTypeDTOToUpdate = null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                dataTypeDTOs = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/dataarchive");
+    }
+
+    async Task EditRow(DataTypeDTO dataTypeDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            dataTypeDTOToUpdate = dataTypeDTO;
+            await dataTypeDTOGrid.EditRow(dataTypeDTO);
+        }
+    }
+
+    async Task OnUpdateRow(DataTypeDTO dataTypeDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (dataTypeDTO == dataTypeDTOToInsert)
+            {
+                dataTypeDTOToInsert = null;
+            }
+
+            dataTypeDTOToUpdate = null;
+
+            var objectForCheckName = await _dataTypeRepository.GetByName(dataTypeDTO.Name);
+            if (objectForCheckName != null)
+            {
+                if (objectForCheckName.Id != dataTypeDTO.Id)
+                {
+                    var objectForRestore = await _dataTypeRepository.Get(dataTypeDTO.Id);
+                    dataTypeDTO.Name = objectForRestore.Name;
+                    dataTypeDTO.Priority = objectForRestore.Priority;
+                    dataTypeDTO.IsAutoCalcDestDataType = objectForRestore.IsAutoCalcDestDataType;
+                    await dataTypeDTOGrid.UpdateRow(dataTypeDTO);
+                    await dataTypeDTOGrid.Reload();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись вида данных с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                    return;
+                }
+            }
+
+            var objectForCheckPriority = await _dataTypeRepository.GetByPriority(dataTypeDTO.Priority);
+            if (objectForCheckPriority != null)
+            {
+                if (objectForCheckPriority.Id != dataTypeDTO.Id)
+                {
+                    var objectForRestore = await _dataTypeRepository.Get(dataTypeDTO.Id);
+                    dataTypeDTO.Name = objectForRestore.Name;
+                    dataTypeDTO.Priority = objectForRestore.Priority;
+                    dataTypeDTO.IsAutoCalcDestDataType = objectForRestore.IsAutoCalcDestDataType;
+                    await dataTypeDTOGrid.UpdateRow(dataTypeDTO);
+                    await dataTypeDTOGrid.Reload();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с приоритетом передачи в SAP равным " + objectForCheckPriority.Priority.ToString() +
+                        " Наименование: \"" + objectForCheckPriority.Name + "\" ИД записи = " + objectForCheckPriority.Id.ToString());
+                    return;
+                }
+            }
+
+            DataTypeDTO oldDataTypeDTO = await _dataTypeRepository.Get(dataTypeDTO.Id);
+            DataTypeDTO newDataTypeDTO = await _dataTypeRepository.Update(dataTypeDTO, SD.UpdateMode.Update);
+            await _logEventRepository.ToLog<DataTypeDTO>(oldObject: oldDataTypeDTO, newObject: newDataTypeDTO, "Изменение вида данных", "Вид данных: ", _authorizationRepository);
+            if (dataTypeDTO.IsAutoCalcDestDataType == true)
+            {
+                var tmpList = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
+                foreach (var item in tmpList)
+                {
+                    if (dataTypeDTO.Id != item.Id)
+                        if (item.IsAutoCalcDestDataType == true)
+                        {
+                            oldDataTypeDTO = await _dataTypeRepository.Get(item.Id);
+                            item.IsAutoCalcDestDataType = false;                            
+                            newDataTypeDTO = await _dataTypeRepository.Update(item, SD.UpdateMode.Update);
+                            await _logEventRepository.ToLog<DataTypeDTO>(oldObject: oldDataTypeDTO, newObject: newDataTypeDTO, "Изменение вида данных", "Вид данных: ", _authorizationRepository);
+                        }
+                }
+                IsLoading = true;
+                StateHasChanged();
+                dataTypeDTOs = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    async Task SaveRow(DataTypeDTO dataTypeDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await dataTypeDTOGrid.UpdateRow(dataTypeDTO);
+        }
+    }
+
+    void CancelEdit(DataTypeDTO dataTypeDTO)
+    {
+        if (dataTypeDTO == dataTypeDTOToInsert)
+        {
+            dataTypeDTOToInsert = null;
+        }
+
+        dataTypeDTOToUpdate = null;
+
+        var objectForRestore = _dataTypeRepository.Get(dataTypeDTO.Id).GetAwaiter().GetResult();
+        if (objectForRestore != null)
+        {
+            dataTypeDTO.Name = objectForRestore.Name;
+            dataTypeDTOGrid.UpdateRow(dataTypeDTO);
+            dataTypeDTOGrid.Reload();
+        }
+
+        dataTypeDTOGrid.CancelEditRow(dataTypeDTO);
+
+    }
+
+    async Task DeleteRow(DataTypeDTO dataTypeDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+            {
+                if (dataTypeDTO.IsArchive != true)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление вида данных", "Удалить вид данных \"" + dataTypeDTO.Name + "\" в архив ?", "Удалить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена удаления");
+                        return;
+                    }
+                }
+                else
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление вида данных", "Восстановить вид данных \"" + dataTypeDTO.Name + "\" из архива ?", "Восстановить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                        return;
+                    }
+                }
+            }
+
+            if (dataTypeDTO == dataTypeDTOToInsert)
+            {
+                dataTypeDTOToInsert = null;
+            }
+
+            if (dataTypeDTO == dataTypeDTOToUpdate)
+            {
+                dataTypeDTOToUpdate = null;
+            }
+
+            if (dataTypeDTOs.Contains(dataTypeDTO))
+            {
+                DataTypeDTO oldDataTypeDTO = await _dataTypeRepository.Get(dataTypeDTO.Id);
+                DataTypeDTO newDataTypeDTO = new DataTypeDTO();
+                string logEventTypeName = "";
+                if (dataTypeDTO.IsArchive)
+                {
+                    newDataTypeDTO = await _dataTypeRepository.Update(dataTypeDTO, SD.UpdateMode.RestoreFromArchive);
+                    dataTypeDTO.IsArchive = false;
+                    await _jsRuntime.ToastrSuccess("Вид данных " + dataTypeDTO.Name + " восстановлен из архива");
+                    logEventTypeName = "Восстановление из архива вида данных";
+                }
+                else
+                {
+                    newDataTypeDTO = await _dataTypeRepository.Update(dataTypeDTO, SD.UpdateMode.MoveToArchive);
+                    dataTypeDTO.IsArchive = true;
+                    await _jsRuntime.ToastrSuccess("Вид данных " + dataTypeDTO.Name + " удален в архив");
+                    logEventTypeName = "Удаление в архив вида данных";
+                }
+                await _logEventRepository.ToLog<DataTypeDTO>(oldObject: oldDataTypeDTO, newObject: newDataTypeDTO, logEventTypeName, "Вид данных: ", _authorizationRepository);
+                await dataTypeDTOGrid.UpdateRow(dataTypeDTO);
+                //await sapEquipmentDTOGrid.Reload();
+            }
+            else
+            {
+                dataTypeDTOGrid.CancelEditRow(dataTypeDTO);
+                await dataTypeDTOGrid.Reload();
+            }
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            dataTypeDTOToInsert = new DataTypeDTO();
+            dataTypeDTOToInsert.IsAutoCalcDestDataType = false;
+            await dataTypeDTOGrid.InsertRow(dataTypeDTOToInsert);
+        }
+    }
+
+    async Task OnCreateRow(DataTypeDTO dataTypeDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            dataTypeDTOToInsert = null;
+
+            var objectForCheckName = await _dataTypeRepository.GetByName(dataTypeDTO.Name);
+            if (objectForCheckName != null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись вида данных с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                dataTypeDTOGrid.CancelEditRow(dataTypeDTO);
+                await dataTypeDTOGrid.Reload();
+                return;
+            }
+
+            var objectForCheckPriority = await _dataTypeRepository.GetByPriority(dataTypeDTO.Priority);
+            if (objectForCheckPriority != null)
+            {
+                if (objectForCheckPriority.Id != dataTypeDTO.Id)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с приоритетом передачи в SAP равным " + objectForCheckPriority.Priority.ToString() +
+                        " Наименование: \"" + objectForCheckPriority.Name + "\" ИД записи = " + objectForCheckPriority.Id.ToString());
+                    dataTypeDTOGrid.CancelEditRow(dataTypeDTO);
+                    await dataTypeDTOGrid.Reload();
+                    return;
+                }
+            }
+
+            var newDTO = await _dataTypeRepository.Create(dataTypeDTO);
+            await _logEventRepository.ToLog<DataTypeDTO>(oldObject: null, newObject: newDTO, "Добавление вида данных", "Вид данных: ", _authorizationRepository);
+
+            if (newDTO.IsAutoCalcDestDataType == true)                        
+            {
+
+                DataTypeDTO oldDataTypeDTO = new DataTypeDTO();
+                DataTypeDTO newDataTypeDTO = new DataTypeDTO();
+                var tmpList = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
+                foreach (var item in tmpList)
+                {
+                    if (newDTO.Id != item.Id)
+                        if (item.IsAutoCalcDestDataType == true)
+                        {
+                            oldDataTypeDTO = await _dataTypeRepository.Get(item.Id);
+                            item.IsAutoCalcDestDataType = false;
+                            newDataTypeDTO = await _dataTypeRepository.Update(item, SD.UpdateMode.Update);
+                            await _logEventRepository.ToLog<DataTypeDTO>(oldObject: oldDataTypeDTO, newObject: newDataTypeDTO, "Изменение вида данных", "Вид данных: ", _authorizationRepository);
+                        }
+                }
+                IsLoading = true;
+                StateHasChanged();
+                dataTypeDTOs = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+
+            //dataTypeDTOToInsert.Id = newDTO.Id;
+            //await dataTypeDTOGrid.UpdateRow(dataTypeDTOToInsert);
+
+            await OnAfterRenderAsync(true);
+        }
+    }
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "DataType_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelDataType(filename, (IEnumerable<DataTypeDTO>)dataTypeDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+}
+
+

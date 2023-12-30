@@ -1,0 +1,622 @@
+﻿@page "/tags/MesParam/AddEditMesParam/{MesParamId}/{Mode}"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+
+@inject IMesParamRepository _mesParamRepository
+@inject IMesParamSourceTypeRepository _mesParamSourceTypeRepository
+@inject IMesDepartmentRepository _mesDepartmentRepository
+@inject ISapEquipmentRepository _sapEquipmentRepository
+@inject IMesMaterialRepository _mesMaterialRepository
+@inject ISapMaterialRepository _sapMaterialRepository
+@inject ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository
+@inject IMesUnitOfMeasureRepository _mesUnitOfMeasureRepository
+@inject ILogEventRepository _logEventRepository
+
+@inject DialogService _dialogService
+
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+
+    @*<div class="row my-10">
+
+
+    <div class="col-md-12">*@
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <img src="/images/loading.gif">
+        </div>
+    }
+    else
+    {
+        <EditForm Model="ActiveMesParamDTO" OnValidSubmit="AddEditMesParamProcedure">
+            <DataAnnotationsValidator />
+            @*                <RadzenRow Gap="1rem">
+    <RadzenColumn Size="12">
+    <RadzenStack>*@
+
+            <RadzenRow Gap="1rem">
+                <RadzenColumn Size="12" SizeMD="5">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Карточка тэга СИР">
+                            <RadzenStack Gap="1rem">
+
+                                @if (@ActiveMesParamDTO.Id != null && @ActiveMesParamDTO.Id != 0)
+                                {
+                                    <RadzenFormField Text="ИД тэга СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                        <RadzenNumeric @bind-Value="@ActiveMesParamDTO.Id" Disabled/>
+                                    </RadzenFormField>
+                                }
+                                <RadzenFormField Text="Код тэга СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.Code" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.Code"></ValidationMessage>
+
+                                <RadzenFormField Text="Наименование тэга СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.Name" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.Name"></ValidationMessage>
+
+                                <RadzenFormField Text="Описание" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.Description" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.Description"></ValidationMessage>
+
+                                <RadzenFormField Text="Источник" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenDropDown @ref=@mesParamSourceTypeDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@MesParamSourceTypeDTOList TextProperty="Name" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.MesParamSourceType" Style="width: 100%; max-width: 900px;" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.MesParamSourceType"></ValidationMessage>
+
+                                <RadzenFormField Text="Тэг/ИД источника" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.MesParamSourceLink" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.MesParamSourceLink"></ValidationMessage>
+
+                                <RadzenFormField Text="Производство" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenDropDown @ref=@mesDepartmentDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@MesDepartmentDTOList TextProperty="ToStringHierarchyShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.DepartmentId" Style="width: 100%; max-width: 900px;" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.DepartmentId"></ValidationMessage>
+
+                                <RadzenFormField Text="Источник SAP" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenDropDown @ref=@sapEquipmentSourceDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@SapEquipmentDTOList ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.SapEquipmentIdSource" Style="width: 100%; max-width: 900px;" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.SapEquipmentIdSource"></ValidationMessage>
+
+                                <RadzenFormField Text="Приёмник SAP" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenDropDown @ref=@sapEquipmentDestDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@SapEquipmentDTOList ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.SapEquipmentIdDest" Style="width: 100%; max-width: 900px;" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.SapEquipmentIdDest"></ValidationMessage>
+
+                                @*                                 @if (SD.AppFactoryMode == SD.FactoryMode.NKNH)
+                        {
+                        <RadzenFormField Text="Материал MES" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                        <RadzenDropDown @ref=@mesMaterialDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                        Data=@MesMaterialDTOList ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.MesMaterialId" Style="width: 100%; max-width: 900px;" />
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveMesParamDTO.MesMaterialId"></ValidationMessage>
+
+                        <RadzenFormField Text="Ед.изм. MES" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                        <RadzenDropDown @ref=@mesUnitOfMeasureDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                        Data=@MesUnitOfMeasureDTOList TextProperty="ShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.MesUnitOfMeasureId" Style="width: 100%; max-width: 900px;" />
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveMesParamDTO.MesUnitOfMeasureId"></ValidationMessage>
+                        }
+
+                        @if (SD.AppFactoryMode == SD.FactoryMode.KOS)
+                        { *@
+                                <RadzenFormField Text="Материал SAP" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenDropDown @ref=@sapMaterialDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@SapMaterialDTOList ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.SapMaterialId" Style="width: 100%; max-width: 900px;" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.SapMaterialId"></ValidationMessage>
+
+                                <RadzenFormField Text="Ед.изм. SAP" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenDropDown @ref=@sapUnitOfMeasureDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@SapUnitOfMeasureDTOList TextProperty="ShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.SapUnitOfMeasureId" Style="width: 100%; max-width: 900px;" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.SapUnitOfMeasureId"></ValidationMessage>
+                                @*                                 } *@
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+
+                <RadzenColumn Size="12" SizeMD="5">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Карточка тэга СИР - дополнительные параметры">
+
+                            <RadzenStack Gap="1rem">
+                                <RadzenFormField Text="Глубина опроса (в днях)" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenNumeric @bind-Value="@ActiveMesParamDTO.DaysRequestInPast" />
+                                </RadzenFormField>
+
+                                <RadzenFormField Text="Точка измерения" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.TI" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.TI"></ValidationMessage>
+
+                                <RadzenFormField Text="Наименование точки измерения" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.NameTI" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.NameTI"></ValidationMessage>
+
+                                <RadzenFormField Text="Технологическое место" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.TM" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.TI"></ValidationMessage>
+
+                                <RadzenFormField Text="Наименование технологического места" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenTextBox @bind-Value="@ActiveMesParamDTO.NameTM" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveMesParamDTO.NameTM"></ValidationMessage>
+
+                                <RadzenFormField Text="Коэффициент пересчёта данных по тэгу из ед. изм. MES в ед. изм. СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                    <RadzenNumeric @bind-Value="@ActiveMesParamDTO.MesToSirUnitOfMeasureKoef" />
+                                </RadzenFormField>
+
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+
+
+
+
+                <RadzenColumn Size="12" SizeMD="2">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Cмежные системы">
+                            <RadzenStack Gap="1rem">
+                                <RadzenLabel Text="Передавать в SAP:" Component="CheckBox1" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveMesParamDTO.NeedWriteToSap" TValue="bool?" class="mb-4" Name="CheckBox1"
+                                                 Disabled="@NeedWriteToSapDisabled" Change=@(() => OnChangeNeedWriteToSap())>
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
+
+                                <RadzenLabel Text="Читать из SAP:" Component="CheckBox2" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveMesParamDTO.NeedReadFromSap" TValue="bool?" class="mb-4" Name="CheckBox2"
+                                                 Disabled="@NeedReadFromSapDisabled" Change=@(() => OnChangeNeedReadFromSap())>
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
+
+
+                                <RadzenLabel Text="Читать из MES:" Component="CheckBox3" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveMesParamDTO.NeedReadFromMes" TValue="bool?" class="mb-4" Name="CheckBox3"
+                                                 Disabled="@NeedReadFromMesDisabled" Change=@(() => OnChangeNeedReadFromMes())>
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
+
+
+                                <RadzenLabel Text="Передавать в MES:" Component="CheckBox4" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveMesParamDTO.NeedWriteToMes" TValue="bool?" class="mb-4" Name="CheckBox4"
+                                                 Disabled="@NeedWriteToMesDisabled" Change=@(() => OnChangeNeedWriteToMes())>
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
+
+
+                                <RadzenLabel Text="Параметр НДО:" Component="CheckBox5" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveMesParamDTO.IsNdo" TValue="bool?" class="mb-4" Name="CheckBox5"
+                                                 Disabled="@IsNdoDiasabled" Change=@(() => OnChangeIsNdo())>
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+
+            </RadzenRow>
+
+            <div class="form-group py-2">
+                <button class="btn btn-primary">@Title</button>
+                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+            </div>
+        </EditForm>
+    }
+    @*    </div>
+</div>*@
+}
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    [Parameter]
+    public int MesParamId { get; set; }
+    [Parameter]
+    public SD.EditMode Mode { get; set; }
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public bool IsNdoDiasabled { get; set; } = false;
+    public bool NeedReadFromSapDisabled { get; set; } = false;
+    public bool NeedWriteToSapDisabled { get; set; } = false;
+    public bool NeedReadFromMesDisabled { get; set; } = false;
+    public bool NeedWriteToMesDisabled { get; set; } = false;
+
+    IEnumerable<MesDepartmentDTO>? MesDepartmentDTOList { get; set; } = new List<MesDepartmentDTO>();
+    IEnumerable<MesParamSourceTypeDTO>? MesParamSourceTypeDTOList { get; set; } = new List<MesParamSourceTypeDTO>();
+    IEnumerable<SapEquipmentDTO>? SapEquipmentDTOList { get; set; } = new List<SapEquipmentDTO>();
+    IEnumerable<MesMaterialDTO>? MesMaterialDTOList { get; set; } = new List<MesMaterialDTO>();
+    IEnumerable<SapMaterialDTO>? SapMaterialDTOList { get; set; } = new List<SapMaterialDTO>();
+    IEnumerable<SapUnitOfMeasureDTO>? SapUnitOfMeasureDTOList { get; set; } = new List<SapUnitOfMeasureDTO>();
+    IEnumerable<MesUnitOfMeasureDTO>? MesUnitOfMeasureDTOList { get; set; } = new List<MesUnitOfMeasureDTO>();
+
+    public MesParamDTO ActiveMesParamDTO { get; set; }
+
+    private string Title { get; set; } = "Создать тэг СИР";
+
+    RadzenDropDown<int?> mesDepartmentDropDown;
+    RadzenDropDown<int?> mesParamSourceTypeDropDown;
+    RadzenDropDown<int?> sapEquipmentSourceDropDown;
+    RadzenDropDown<int?> sapEquipmentDestDropDown;
+    RadzenDropDown<int?> mesMaterialDropDown;
+    RadzenDropDown<int?> sapMaterialDropDown;
+    RadzenDropDown<int?> sapUnitOfMeasureDropDown;
+    RadzenDropDown<int?> mesUnitOfMeasureDropDown;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+
+        switch (Mode)
+        {
+            case SD.EditMode.Create:
+                ActiveMesParamDTO = new MesParamDTO();
+                break;
+            case SD.EditMode.Edit:
+                ActiveMesParamDTO = await _mesParamRepository.GetById(MesParamId);
+                Title = "Изменить тэг СИР";
+                break;
+            case SD.EditMode.CreateBasedOnRow:
+                ActiveMesParamDTO = await _mesParamRepository.GetById(MesParamId);
+                ActiveMesParamDTO.Id = 0;
+                Title = "Создать тэг СИР на основании";
+                break;
+            default:
+                ActiveMesParamDTO = new MesParamDTO();
+                break;
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                StateHasChanged();
+
+                switch (Mode)
+                {
+                    case SD.EditMode.Create:
+                        ActiveMesParamDTO = new MesParamDTO();
+                        break;
+                    case SD.EditMode.Edit:
+                        ActiveMesParamDTO = await _mesParamRepository.GetById(MesParamId);
+                        Title = "Изменить тэг СИР";
+                        break;
+                    case SD.EditMode.CreateBasedOnRow:
+                        ActiveMesParamDTO = await _mesParamRepository.GetById(MesParamId);
+                        ActiveMesParamDTO.Id = 0;
+                        Title = "Создать тэг СИР на основании";
+                        break;
+                    default:
+                        ActiveMesParamDTO = new MesParamDTO();
+                        break;
+                }
+
+                MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
+                MesParamSourceTypeDTOList = await _mesParamSourceTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                SapEquipmentDTOList = await _sapEquipmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                // if (SD.AppFactoryMode == SD.FactoryMode.NKNH)
+                // {
+                //     MesMaterialDTOList = await _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                //     MesUnitOfMeasureDTOList = await _mesUnitOfMeasureRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                // }
+                // if (SD.AppFactoryMode == SD.FactoryMode.KOS)
+                // {
+                SapMaterialDTOList = await _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                SapUnitOfMeasureDTOList = await _sapUnitOfMeasureRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                // }
+
+                if (ActiveMesParamDTO.IsNdo == true)
+                {
+                    IsNdoDiasabled = false;
+                    NeedReadFromSapDisabled = true;
+                    NeedWriteToSapDisabled = false;
+                    NeedReadFromMesDisabled = false;
+                    NeedWriteToMesDisabled = true;
+                }
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+
+            //base.OnAfterRender(firstRender);
+        }
+        else
+            _navigationManager.NavigateTo("/tags/MesParam");
+    }
+
+
+    private async Task AddEditMesParamProcedure()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if ((Mode == SD.EditMode.Create) || (Mode == SD.EditMode.CreateBasedOnRow))
+            { // создание
+                var foundByCode = await _mesParamRepository.GetByCode(ActiveMesParamDTO.Code);
+                if (foundByCode != null)
+                {
+                    await _jsRuntime.ToastrError("Уже есть тэг СИР с кодом " + " ( КОД: " + foundByCode.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundByCode.Name + " ИД: " + foundByCode.Id.ToString() + ")");
+                    return;
+                }
+
+                if ((ActiveMesParamDTO.SapEquipmentIdSource != null) || (ActiveMesParamDTO.SapEquipmentIdDest != null) || (ActiveMesParamDTO.SapMaterialId != null))
+                {
+                    if ((ActiveMesParamDTO.SapEquipmentIdSource != null) && (ActiveMesParamDTO.SapEquipmentIdDest != null) && (ActiveMesParamDTO.SapMaterialId != null))
+                    {
+                        var foundBySapMapping = await _mesParamRepository.GetBySapMappingNotInArchive(ActiveMesParamDTO.SapEquipmentIdSource, ActiveMesParamDTO.SapEquipmentIdDest, ActiveMesParamDTO.SapMaterialId, 0);
+                        if (foundBySapMapping != null)
+                        {
+                            await _jsRuntime.ToastrError("Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + ")");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        await _jsRuntime.ToastrError("Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
+                        return;
+                    }
+                }
+
+
+                if (ActiveMesParamDTO.MesParamSourceLink != null && ActiveMesParamDTO.MesParamSourceLink.Trim().ToUpper() != "")
+                {
+                    var foundByMesParamSourceLink = await _mesParamRepository.GetByMesParamSourceLink(ActiveMesParamDTO.MesParamSourceLink);
+                    if (foundByMesParamSourceLink != null)
+                    {
+                        bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Добавление тэга СИР", "Уже есть тэг СИР с тэгом источника " + foundByMesParamSourceLink.MesParamSourceLink + " (Код: " + foundByMesParamSourceLink.Code.ToString() + " ИД: " + foundByMesParamSourceLink.Id.ToString() + ")" +
+                                    "   Всё равно добавить ?", "Добавить", "Отмена");
+                        if (selectionResult == false)
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                if (ActiveMesParamDTO.MesParamSourceType != null && (ActiveMesParamDTO.MesParamSourceLink == null || ActiveMesParamDTO.MesParamSourceLink.Trim() == ""))
+                {
+                    await _jsRuntime.ToastrError("Выбран \"Источник\", но не введён \"Тэг/ИД источника\"");
+                    return;
+                }
+
+                var addedDTO = await _mesParamRepository.Create(ActiveMesParamDTO);                
+
+                await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: addedDTO, "Добавление тэга СИР", "Тэг: ", _authorizationRepository);
+
+                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Name + "\" создан");
+                _dialogService.Close(ActiveMesParamDTO);
+
+            }
+            else
+            { // изменение
+
+                var foundByCode = await _mesParamRepository.GetByCode(ActiveMesParamDTO.Code);
+                if ((foundByCode != null) && (foundByCode.Id != ActiveMesParamDTO.Id))
+                {
+                    await _jsRuntime.ToastrError("Уже есть тэг СИР с кодом ( КОД: " + foundByCode.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundByCode.Name + " ИД: " + foundByCode.Id.ToString() + ")");
+                    return;
+                }
+
+                if (ActiveMesParamDTO.MesParamSourceLink != null)
+                {
+
+                    if ((ActiveMesParamDTO.SapEquipmentIdSource != null) || (ActiveMesParamDTO.SapEquipmentIdDest != null) || (ActiveMesParamDTO.SapMaterialId != null))
+                    {
+                        if ((ActiveMesParamDTO.SapEquipmentIdSource != null) && (ActiveMesParamDTO.SapEquipmentIdDest != null) && (ActiveMesParamDTO.SapMaterialId != null))
+                        {
+                            var foundBySapMapping = await _mesParamRepository.GetBySapMappingNotInArchive(ActiveMesParamDTO.SapEquipmentIdSource, ActiveMesParamDTO.SapEquipmentIdDest, ActiveMesParamDTO.SapMaterialId, ActiveMesParamDTO.Id);
+                            if (foundBySapMapping != null)
+                            {
+                                await _jsRuntime.ToastrError("Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + ")");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await _jsRuntime.ToastrError("Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
+                            return;
+                        }
+                    }
+
+                    if (ActiveMesParamDTO.MesParamSourceLink != null && ActiveMesParamDTO.MesParamSourceLink.Trim().ToUpper() != "NULL")
+                    {
+                        var foundByMesParamSourceLink = await _mesParamRepository.GetByMesParamSourceLink(ActiveMesParamDTO.MesParamSourceLink);
+                        if ((foundByMesParamSourceLink != null) && (foundByMesParamSourceLink.Id != ActiveMesParamDTO.Id))
+                        {
+                            bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение тэга СИР", "Уже есть тэг СИР с тэгом источника " + foundByMesParamSourceLink.MesParamSourceLink + " (Код: " + foundByMesParamSourceLink.Code.ToString() + " ИД: " + foundByMesParamSourceLink.Id.ToString() + ")" +
+                                        "    Всё равно сохранить ?", "Сохранить", "Отмена");
+                            if (selectionResult == false)
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                if (ActiveMesParamDTO.MesParamSourceType != null && (ActiveMesParamDTO.MesParamSourceLink == null || ActiveMesParamDTO.MesParamSourceLink.Trim() == ""))
+                {
+                    await _jsRuntime.ToastrError("Выбран \"Источник\", но не введён \"Тэг/ИД источника\"");
+                    return;
+                }
+
+                if (ActiveMesParamDTO.Name == null)
+                    ActiveMesParamDTO.Name = "";
+
+                MesParamDTO oldMesParamDTO = await _mesParamRepository.GetById(ActiveMesParamDTO.Id);
+
+                MesParamDTO newMesParamDTO = await _mesParamRepository.Update(ActiveMesParamDTO);
+
+                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Name + "\" изменён");
+
+                await GetFKForActiveMesParamDTO();
+
+                await _logEventRepository.ToLog<MesParamDTO>(oldObject: oldMesParamDTO, newObject: newMesParamDTO, "Изменение тэга СИР", "Тэг: ", _authorizationRepository);
+
+
+                _dialogService.Close(ActiveMesParamDTO);
+            }
+        }
+    }
+
+
+    private async Task GetFKForActiveMesParamDTO()
+    {
+
+        if (ActiveMesParamDTO.MesParamSourceType != null)
+            ActiveMesParamDTO.MesParamSourceTypeDTOFK = await _mesParamSourceTypeRepository.Get((int)ActiveMesParamDTO.MesParamSourceType);
+        else
+            ActiveMesParamDTO.MesParamSourceTypeDTOFK = null;
+
+        if (ActiveMesParamDTO.DepartmentId != null)
+            ActiveMesParamDTO.MesDepartmentDTOFK = await _mesDepartmentRepository.GetById((int)ActiveMesParamDTO.DepartmentId);
+        else
+            ActiveMesParamDTO.MesDepartmentDTOFK = null;
+
+        if (ActiveMesParamDTO.SapEquipmentIdSource != null)
+            ActiveMesParamDTO.SapEquipmentSourceDTOFK = await _sapEquipmentRepository.Get((int)ActiveMesParamDTO.SapEquipmentIdSource);
+        else
+            ActiveMesParamDTO.SapEquipmentSourceDTOFK = null;
+
+        if (ActiveMesParamDTO.SapEquipmentIdDest != null)
+            ActiveMesParamDTO.SapEquipmentDestDTOFK = await _sapEquipmentRepository.Get((int)ActiveMesParamDTO.SapEquipmentIdDest);
+        else
+            ActiveMesParamDTO.SapEquipmentDestDTOFK = null;
+
+        if (ActiveMesParamDTO.MesMaterialId != null)
+            ActiveMesParamDTO.MesMaterialDTOFK = await _mesMaterialRepository.Get((int)ActiveMesParamDTO.MesMaterialId);
+        else
+            ActiveMesParamDTO.MesMaterialDTOFK = null;
+
+        if (ActiveMesParamDTO.SapMaterialId != null)
+            ActiveMesParamDTO.SapMaterialDTOFK = await _sapMaterialRepository.Get((int)ActiveMesParamDTO.SapMaterialId);
+        else
+            ActiveMesParamDTO.SapMaterialDTOFK = null;
+
+        if (ActiveMesParamDTO.MesUnitOfMeasureId != null)
+            ActiveMesParamDTO.MesUnitOfMeasureDTOFK = await _mesUnitOfMeasureRepository.Get((int)ActiveMesParamDTO.MesUnitOfMeasureId);
+        else
+            ActiveMesParamDTO.MesUnitOfMeasureDTOFK = null;
+
+        if (ActiveMesParamDTO.SapUnitOfMeasureId != null)
+            ActiveMesParamDTO.SapUnitOfMeasureDTOFK = await _sapUnitOfMeasureRepository.Get((int)ActiveMesParamDTO.SapUnitOfMeasureId);
+        else
+            ActiveMesParamDTO.SapUnitOfMeasureDTOFK = null;
+
+    }
+
+    private async Task OnClickCancel()
+    {
+        _dialogService.Close(null);
+    }
+
+    private async Task OnChangeIsNdo()
+    {
+        if (ActiveMesParamDTO.IsNdo == true)
+        {
+            IsNdoDiasabled = false;
+            NeedReadFromSapDisabled = true;
+            NeedWriteToSapDisabled = false;
+            NeedReadFromMesDisabled = false;
+            NeedWriteToMesDisabled = true;
+            ActiveMesParamDTO.NeedReadFromSap = false;
+            ActiveMesParamDTO.NeedWriteToMes = false;
+            ActiveMesParamDTO.NeedWriteToSap = true;
+            ActiveMesParamDTO.NeedReadFromMes = true;
+        }
+        else
+        {
+            IsNdoDiasabled = false;
+            NeedReadFromSapDisabled = false;
+            NeedWriteToSapDisabled = false;
+            NeedReadFromMesDisabled = false;
+            NeedWriteToMesDisabled = false;
+        }
+    }
+
+    private async Task OnChangeNeedWriteToSap()
+    {
+        if (ActiveMesParamDTO.NeedWriteToSap == true)
+        {
+            ActiveMesParamDTO.NeedReadFromSap = false;
+            ActiveMesParamDTO.NeedWriteToMes = false;
+        }
+    }
+
+    private async Task OnChangeNeedReadFromSap()
+    {
+        if (ActiveMesParamDTO.NeedReadFromSap == true)
+        {
+            ActiveMesParamDTO.NeedWriteToSap = false;
+            ActiveMesParamDTO.NeedReadFromMes = false;
+        }
+    }
+
+    private async Task OnChangeNeedWriteToMes()
+    {
+        if (ActiveMesParamDTO.NeedWriteToMes == true)
+        {
+            ActiveMesParamDTO.NeedWriteToSap = false;
+            ActiveMesParamDTO.NeedReadFromMes = false;
+        }
+    }
+
+    private async Task OnChangeNeedReadFromMes()
+    {
+        if (ActiveMesParamDTO.NeedReadFromMes == true)
+        {
+            ActiveMesParamDTO.NeedReadFromSap = false;
+            ActiveMesParamDTO.NeedWriteToMes = false;
+        }
+    }
+}

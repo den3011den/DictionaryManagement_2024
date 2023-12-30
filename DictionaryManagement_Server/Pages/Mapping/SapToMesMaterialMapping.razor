@@ -1,0 +1,304 @@
+﻿@page "/mapping/SapToMesMaterialMapping"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_DataAccess.Data.IntDB;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+
+
+
+@inject IJSRuntime _jsRuntime
+@inject ISapToMesMaterialMappingRepository _sapToMesMaterialMappingRepository
+@inject ISapMaterialRepository _sapMaterialRepository
+@inject IMesMaterialRepository _mesMaterialRepository
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/mapping">Маппинг</a> - <a href="/mapping/SapToMesMaterialMapping">Материалы</a></h6>
+        </div>
+
+        <font color="red">
+            <hr />
+            <h3>НЕ ИСПОЛЬЗУЕТСЯ</h3>
+            <hr />
+        </font>
+
+        @if (IsLoading != true)
+        {
+@*             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку материалов" Click="@InsertRow" Disabled=@(sapToMesMaterialMappingDTOToInsert != null || sapToMesMaterialMappingDTOToUpdate != null) /> *@
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку материалов" Click="@InsertRow" Disabled=true />
+            <RadzenDataGridApp @ref="sapToMesMaterialMappingDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                            Data="@sapToMesMaterialMappingDTOs" TItem="SapToMesMaterialMappingDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            EmptyText="Нет записей для отображения"
+                            FilterMode="FilterMode.Simple"
+                            AllowColumnResize="false"
+                            AllowVirtualization="true"
+                            GridLines="DataGridGridLines.Both"
+                            Style="height:calc(100vh - 170px)"
+                            ShowCleanGridSettingsHeaderButton="false"
+                            ShowCleanGridFiltersHeaderButton="false"
+                            ShowCleanGridSortsHeaderButton="false">
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="SapToMesMaterialMappingDTO" Property="SapMaterialDTO" FilterProperty="SapMaterialDTO.ToStringValue" Title="Материал SAP" Width="280px" Filterable="true">
+                        <Template Context="sapToMesMaterialMappingDTO">
+                            <div style="white-space:pre-wrap">
+                                @sapToMesMaterialMappingDTO.SapMaterialDTO.ShortName
+                            </div>
+                        </Template>
+
+                        <EditTemplate Context="sapToMesMaterialMappingDTO">
+                            <RadzenDropDown Data="@sapMaterialDTOs" @bind-Value="sapToMesMaterialMappingDTO.SapMaterialDTO" Style="width:100%; display: block;" Name="SapMat" AllowFiltering="true"
+                                            FilterOperator="StringFilterOperator.Contains" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
+                            <RadzenRequiredValidator Text="Материал SAP обязателен к выбору" Component="SapMat" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapToMesMaterialMappingDTO" Property="MesMaterialDTO" Title="Материал MES" Width="280px" FilterProperty="MesMaterialDTO.ToStringValue" Filterable="true">
+                        <Template Context="sapToMesMaterialMappingDTO">
+                            <div style="white-space:pre-wrap">
+                                @sapToMesMaterialMappingDTO.MesMaterialDTO.ShortName
+                            </div>
+                        </Template>
+                        <EditTemplate Context="sapToMesMaterialMappingDTO">
+                            <RadzenDropDown Data="@mesMaterialDTOs" @bind-Value="sapToMesMaterialMappingDTO.MesMaterialDTO" Style="width:100%; display: block;" Name="MesMat" AllowFiltering="true"
+                                            FilterOperator="StringFilterOperator.Contains" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
+                            <RadzenRequiredValidator Text="Материал MES обязателен к выбору" Component="MesMat" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SapToMesMaterialMappingDTO" Context="SapToMesMaterialMappingDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                        <Template Context="SapToMesMaterialMappingDTO">
+                            @* <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true"> *@
+                            <RadzenButton Icon="edit" Disabled=true ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+@*                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true"> *@
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Disabled=true Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                        <EditTemplate Context="SapToMesMaterialMappingDTO">
+@*                             <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(SapToMesMaterialMappingDTO))"> *@
+                            <RadzenButton Disabled=true Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(SapToMesMaterialMappingDTO))">
+                            </RadzenButton>
+                            @* <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(SapToMesMaterialMappingDTO))"> *@
+                            <RadzenButton Disabled=true Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(SapToMesMaterialMappingDTO))">
+                            </RadzenButton>
+                            @* <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))"> *@
+                            <RadzenButton Disabled=true ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+            }
+        }
+    </div>
+}
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    RadzenDataGrid<SapToMesMaterialMappingDTO> sapToMesMaterialMappingDTOGrid;
+
+    IEnumerable<SapToMesMaterialMappingDTO>? sapToMesMaterialMappingDTOs;
+    IEnumerable<SapMaterialDTO> sapMaterialDTOs;
+    IEnumerable<MesMaterialDTO> mesMaterialDTOs;
+
+    SapToMesMaterialMappingDTO sapToMesMaterialMappingDTOToInsert;
+    SapToMesMaterialMappingDTO sapToMesMaterialMappingDTOToUpdate;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    void Reset()
+    {
+        sapToMesMaterialMappingDTOToInsert = null;
+        sapToMesMaterialMappingDTOToUpdate = null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                StateHasChanged();
+                sapToMesMaterialMappingDTOs = _sapToMesMaterialMappingRepository.GetAll().Result;
+                sapMaterialDTOs = _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
+                mesMaterialDTOs = _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/mapping");
+    }
+
+    async Task EditRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapToMesMaterialMappingDTOToUpdate = sapToMesMaterialMappingDTO;
+            await sapToMesMaterialMappingDTOGrid.EditRow(sapToMesMaterialMappingDTO);
+        }
+    }
+
+    async Task OnUpdateRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if ((sapToMesMaterialMappingDTO.SapMaterialId != sapToMesMaterialMappingDTO.SapMaterialDTO.Id) || (sapToMesMaterialMappingDTO.MesMaterialId != sapToMesMaterialMappingDTO.MesMaterialDTO.Id))
+            {
+                var forCheck = _sapToMesMaterialMappingRepository.Get(sapToMesMaterialMappingDTO.SapMaterialDTO.Id, sapToMesMaterialMappingDTO.MesMaterialDTO.Id).Result;
+                if (forCheck != null)
+                {
+
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть маппинг между материалом SAP \"" + sapToMesMaterialMappingDTO.SapMaterialDTO.ShortName
+                        + "\" и материалом MES \"" + sapToMesMaterialMappingDTO.MesMaterialDTO.ShortName + "\"");
+
+                    sapToMesMaterialMappingDTOToUpdate.SapMaterialDTO = _sapMaterialRepository.Get(sapToMesMaterialMappingDTO.SapMaterialId).Result;
+                    sapToMesMaterialMappingDTOToUpdate.MesMaterialDTO = _mesMaterialRepository.Get(sapToMesMaterialMappingDTO.MesMaterialId).Result;
+                    await sapToMesMaterialMappingDTOGrid.UpdateRow(sapToMesMaterialMappingDTOToUpdate);
+                    sapToMesMaterialMappingDTOToUpdate = null;
+                    return;
+                }
+            }
+
+            if (sapToMesMaterialMappingDTO == sapToMesMaterialMappingDTOToInsert)
+            {
+                sapToMesMaterialMappingDTOToInsert = null;
+            }
+
+            sapToMesMaterialMappingDTOToUpdate = null;
+
+            sapToMesMaterialMappingDTO.SapMaterialId = sapToMesMaterialMappingDTO.SapMaterialDTO.Id;
+            sapToMesMaterialMappingDTO.MesMaterialId = sapToMesMaterialMappingDTO.MesMaterialDTO.Id;
+            await _sapToMesMaterialMappingRepository.Update(sapToMesMaterialMappingDTO);
+        }
+    }
+
+    async Task SaveRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await sapToMesMaterialMappingDTOGrid.UpdateRow(sapToMesMaterialMappingDTO);
+        }
+    }
+
+    void CancelEdit(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
+    {
+        if (sapToMesMaterialMappingDTO == sapToMesMaterialMappingDTOToInsert)
+        {
+            sapToMesMaterialMappingDTOToInsert = null;
+        }
+
+        sapToMesMaterialMappingDTOToUpdate = null;
+
+        sapToMesMaterialMappingDTOGrid.CancelEditRow(sapToMesMaterialMappingDTO);
+
+    }
+
+    async Task DeleteRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+            {
+                bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление маппинга материалов", "Удалить маппинг MES : \"" + sapToMesMaterialMappingDTO.SapMaterialDTO.ShortName +
+                                "\" MES: \" " + sapToMesMaterialMappingDTO.MesMaterialDTO.ShortName + "\" ? ", "Удалить", "Отмена");
+                if (selectionResult == false)
+                {
+                    await _jsRuntime.ToastrSuccess("Отмена удаления");
+                    return;
+                }
+            }
+
+            if (sapToMesMaterialMappingDTO == sapToMesMaterialMappingDTOToInsert)
+            {
+                sapToMesMaterialMappingDTOToInsert = null;
+            }
+
+            if (sapToMesMaterialMappingDTO == sapToMesMaterialMappingDTOToUpdate)
+            {
+                sapToMesMaterialMappingDTOToUpdate = null;
+            }
+
+            if (sapToMesMaterialMappingDTOs.Contains(sapToMesMaterialMappingDTO))
+            {
+                await _sapToMesMaterialMappingRepository.Delete(sapToMesMaterialMappingDTO.Id);
+
+                sapToMesMaterialMappingDTOs = sapToMesMaterialMappingDTOs.Where(u => (u.Id != sapToMesMaterialMappingDTO.Id));
+
+                await sapToMesMaterialMappingDTOGrid.Reload();
+            }
+            else
+            {
+                sapToMesMaterialMappingDTOGrid.CancelEditRow(sapToMesMaterialMappingDTO);
+                await sapToMesMaterialMappingDTOGrid.Reload();
+            }
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapToMesMaterialMappingDTOToInsert = new SapToMesMaterialMappingDTO();
+            await sapToMesMaterialMappingDTOGrid.InsertRow(sapToMesMaterialMappingDTOToInsert);
+        }
+    }
+
+    async Task OnCreateRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            var forCheck = _sapToMesMaterialMappingRepository.Get(sapToMesMaterialMappingDTO.SapMaterialDTO.Id, sapToMesMaterialMappingDTO.MesMaterialDTO.Id).Result;
+
+            if (forCheck != null)
+            {
+
+                sapToMesMaterialMappingDTOToInsert = null;
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть маппинг материалов SAP: \"" + sapToMesMaterialMappingDTO.SapMaterialDTO.ShortName
+                            + "\" и MES: " + sapToMesMaterialMappingDTO.MesMaterialDTO.ShortName);
+                sapToMesMaterialMappingDTOGrid.CancelEditRow(sapToMesMaterialMappingDTO);
+                await sapToMesMaterialMappingDTOGrid.Reload();
+                return;
+            }
+
+            sapToMesMaterialMappingDTO.SapMaterialId = sapToMesMaterialMappingDTO.SapMaterialDTO.Id;
+            sapToMesMaterialMappingDTO.MesMaterialId = sapToMesMaterialMappingDTO.MesMaterialDTO.Id;
+
+            var newDTO = await _sapToMesMaterialMappingRepository.Create(sapToMesMaterialMappingDTO);
+
+            sapToMesMaterialMappingDTOToInsert = null;
+            await OnAfterRenderAsync(true);
+        }
+    }
+
+
+}

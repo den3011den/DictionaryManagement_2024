@@ -1,0 +1,257 @@
+﻿@page "/administration/Smena/AddEditSmena/{SmenaId}"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+
+@inject ISmenaRepository _smenaRepository
+@inject IMesDepartmentRepository _mesDepartmentRepository
+@inject ILogEventRepository _logEventRepository
+
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <img src="/images/loading.gif">
+        </div>
+    }
+    else
+    {
+        <EditForm Model="ActiveSmenaDTO" OnValidSubmit="AddEditSmenaProcedure">
+            <DataAnnotationsValidator />
+
+            <RadzenRow Gap="1rem">
+                <RadzenColumn Size="12">
+                    <RadzenStack>
+
+                        @if (SmenaId != 0)
+                        {
+                            <RadzenFormField Text="ИД записи" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                <RadzenNumeric @bind-Value="@ActiveSmenaDTO.Id" ReadOnly="true" />
+                            </RadzenFormField>
+                        }
+
+                        <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                            <RadzenTextBox @bind-Value="@ActiveSmenaDTO.Name" />
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveSmenaDTO.Name"></ValidationMessage>
+
+                        <RadzenFormField Text="Производство" Variant="@variant" Style="width: 100%;">
+                            <RadzenDropDown @ref=@mesDepartmentDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                            Data=@MesDepartmentDTOList TextProperty="ToStringHierarchyShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveSmenaDTO.DepartmentId" Style="width: 100%; max-width: 900px;"
+                                            Change=@(args => FillDepartment()) />
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveSmenaDTO.DepartmentDTOFK"></ValidationMessage>
+
+                        <RadzenFormField Text="Время начала смены" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                            <RadzenDatePicker TValue="DateTime" @bind-Value="@ActiveSmenaDTO.StartTimeDateTime"
+                                              ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Change=@(args => OnChangeStartTime()) />
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveSmenaDTO.StartTime"></ValidationMessage>
+
+                        <RadzenFormField Text="Продолжительность в часах" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                            <RadzenNumeric @bind-Value="@ActiveSmenaDTO.HoursDuration" />
+                            @*Min="1" Max="24"*@
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveSmenaDTO.HoursDuration"></ValidationMessage>
+
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+
+
+
+            <div class="form-group py-2">
+                <button class="btn btn-primary">@Title</button>
+                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+            </div>
+        </EditForm>
+    }
+}
+
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    [Parameter]
+    public int SmenaId { get; set; }
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    IEnumerable<MesDepartmentDTO>? MesDepartmentDTOList { get; set; } = new List<MesDepartmentDTO>();
+
+    public SmenaDTO ActiveSmenaDTO { get; set; }
+
+    private string Title { get; set; } = "Добавить смену ";
+
+    RadzenDropDown<int> mesDepartmentDropDown;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+
+        if (SmenaId == null || SmenaId == 0)
+        {
+            ActiveSmenaDTO = new SmenaDTO();
+            ActiveSmenaDTO.StartTimeDateTime = DateTime.MinValue;
+        }
+        else
+        {
+            ActiveSmenaDTO = await _smenaRepository.GetById(SmenaId);
+            ActiveSmenaDTO.StartTimeDateTime = DateTime.MinValue + ActiveSmenaDTO.StartTime;
+            Title = "Изменить смену";
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;            
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                StateHasChanged();
+
+                if (SmenaId == null || SmenaId == 0)
+                {
+                    ActiveSmenaDTO = new SmenaDTO();
+                    ActiveSmenaDTO.StartTimeDateTime = DateTime.MinValue;
+                }
+                else
+                {
+                    ActiveSmenaDTO = await _smenaRepository.GetById(SmenaId);
+                    ActiveSmenaDTO.StartTimeDateTime = DateTime.MinValue + ActiveSmenaDTO.StartTime;
+                    Title = "Изменить смену";
+                }
+
+                MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration/Smena");
+    }
+
+
+    private async Task AddEditSmenaProcedure()
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (SmenaId == null || SmenaId == 0)
+            { // создание
+
+                // проверка на не привышение обшей продолжительности смен для одного производства 24-х часов
+                int departmentSmenaHoursSum = (await _smenaRepository.GetAllByDepartmentId(ActiveSmenaDTO.DepartmentId)).Sum(sm => sm.HoursDuration);
+                departmentSmenaHoursSum = departmentSmenaHoursSum + ActiveSmenaDTO.HoursDuration;
+
+                if (departmentSmenaHoursSum > 24)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Продолжительность всех смен по производству, с учётом добавляемой, превышает 24 часа!");
+                    return;
+                }
+
+                // проверка на не пересечение смен по интревалам времени
+                var departmentSmenaList = (await _smenaRepository.GetAllByDepartmentId(ActiveSmenaDTO.DepartmentId)).OrderBy(st => st.StartTime);
+
+                TimeSpan inerationSmenaTimeSpanEnd;
+                TimeSpan activeSmenaTimeSpanEnd = ActiveSmenaDTO.StartTime + new TimeSpan(ActiveSmenaDTO.HoursDuration, 0, 0);
+                foreach (var smena in departmentSmenaList)
+                {
+                    inerationSmenaTimeSpanEnd = (smena.StartTime) + new TimeSpan(smena.HoursDuration, 0, 0);
+                    if ((ActiveSmenaDTO.StartTime < inerationSmenaTimeSpanEnd) && (activeSmenaTimeSpanEnd > smena.StartTime))
+                    {
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error",
+                            "Добавляемая смена пересекается по временному интервалу со сменой \"" + smena.Name + "\"" + " данного производства!");
+                        return;
+                    }
+                }
+
+                SmenaDTO createdSmenaDTO = await _smenaRepository.Create(ActiveSmenaDTO);
+                await _logEventRepository.ToLog<SmenaDTO>(oldObject: null, newObject: createdSmenaDTO, "Добавление смены", "Смена: ", _authorizationRepository);
+
+                await _jsRuntime.ToastrSuccess("Смена \"" + ActiveSmenaDTO.Name + "\" создана");
+                _dialogService.Close(ActiveSmenaDTO);
+
+            }
+            else
+            { // изменение
+
+                int departmentSmenaHoursSum = (await _smenaRepository.GetAllByDepartmentId(ActiveSmenaDTO.DepartmentId))
+                        .Where(u => u.Id != ActiveSmenaDTO.Id).Sum(sm => sm.HoursDuration);
+                departmentSmenaHoursSum = departmentSmenaHoursSum + ActiveSmenaDTO.HoursDuration;
+
+                if (departmentSmenaHoursSum > 24)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Продолжительность всех смен по производству, с учётом изменяемой, превышает 24 часа!");
+                    return;
+                }
+
+                // проверка на не пересечение смен по интревалам времени
+                var departmentSmenaList = (await _smenaRepository.GetAllByDepartmentId(ActiveSmenaDTO.DepartmentId))
+                        .Where(u => u.Id != ActiveSmenaDTO.Id).OrderBy(st => st.StartTime);
+
+                TimeSpan inerationSmenaTimeSpanEnd;
+                TimeSpan activeSmenaTimeSpanEnd = ActiveSmenaDTO.StartTime + new TimeSpan(ActiveSmenaDTO.HoursDuration, 0, 0);
+                foreach (var smena in departmentSmenaList)
+                {
+                    inerationSmenaTimeSpanEnd = (smena.StartTime) + new TimeSpan(smena.HoursDuration, 0, 0);
+                    if ((ActiveSmenaDTO.StartTime < inerationSmenaTimeSpanEnd) && (activeSmenaTimeSpanEnd > smena.StartTime))
+                    {
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error",
+                            "Изменяемая смена пересекается по временному интревалу со сменой \"" + smena.Name + "\"" + "данного производства!");
+                        return;
+                    }
+                }
+
+                SmenaDTO oldSmenaDTO = await _smenaRepository.GetById(ActiveSmenaDTO.Id);
+                SmenaDTO newSmenaDTO = await _smenaRepository.Update(ActiveSmenaDTO);
+                await _logEventRepository.ToLog<SmenaDTO>(oldObject: oldSmenaDTO, newObject: newSmenaDTO, "Изменение смены", "Смена: ", _authorizationRepository);
+                await _jsRuntime.ToastrSuccess("Смена \"" + ActiveSmenaDTO.Id.ToString() + "\" изменена");
+
+                _dialogService.Close(ActiveSmenaDTO);
+            }
+
+        }
+    }
+
+    private async Task FillDepartment()
+    {
+        if (ActiveSmenaDTO.DepartmentId != null)
+        {
+            ActiveSmenaDTO.DepartmentDTOFK = await _mesDepartmentRepository.GetById(ActiveSmenaDTO.DepartmentId);
+        }
+        else
+            ActiveSmenaDTO.DepartmentDTOFK = null;
+    }
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+    private async Task OnChangeStartTime()
+    {
+        ActiveSmenaDTO.StartTime = ActiveSmenaDTO.StartTimeDateTime.TimeOfDay;
+    }
+}

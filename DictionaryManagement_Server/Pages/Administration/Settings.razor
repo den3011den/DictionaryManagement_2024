@@ -1,0 +1,377 @@
+﻿@page "/administration/Settings"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json
+
+
+
+@inject IJSRuntime _jsRuntime
+@inject ISettingsRepository _settingsRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Settings">Настройки</a></h6>
+
+        </div>
+
+        @if (IsLoading != true)
+        {            
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую настройку" Click="@InsertRow" Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null) />
+                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+            <RadzenDataGridApp @bind-Settings="@SettingsGridSettings" SettingsName="SettingsGridSettings" @ref="settingsDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                            Data="@settingsDTOs" TItem="SettingsDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            Density=Density.Compact
+                            AllowColumnResize="false"
+                            AllowVirtualization="true"
+                            GridLines="DataGridGridLines.Both"
+                            Style="height:calc(100vh - 190px)">
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Id" Title="Ид записи" Width="90px" />
+                    <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Name" Title="Наименование" Width="200px">
+                        <EditTemplate Context="settingsDTO">
+                            <RadzenTextBox @bind-Value="settingsDTO.Name" Style="width:100%; display: block" Name="Name"/>
+                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
+                            <RadzenLengthValidator Max=100 Text="Наименование не может быть больше 100 символов" Component="Name" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Description" Title="Описание" Width="200px">
+                        <Template Context="settingsDTO">
+                            <div style="white-space:pre-wrap">
+                                @settingsDTO.Description
+                            </div>
+                        </Template>
+                        <EditTemplate Context="settingsDTO">
+                            <RadzenTextBox @bind-Value="settingsDTO.Description" Style="width:100%; display: block" Name="Description" />
+                            <RadzenLengthValidator Max=300 Text="Описание не может быть больше 300 символов" Component="Description" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Value" Title="Значение настройки" Width="220px">
+                        <Template Context="settingsDTO">
+                            <div style="white-space:pre-wrap">
+                                @settingsDTO.Value
+                            </div>
+                        </Template>
+                        <EditTemplate Context="settingsDTO">
+                            <RadzenTextBox @bind-Value="settingsDTO.Value" Style="width:100%; display: block" Name="Value" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SettingsDTO" Context="SettingsDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                        <Template Context="SettingsDTO">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(SettingsDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton Tooltip="Удалить" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SettingsDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                        <EditTemplate Context="SettingsDTO">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(SettingsDTO))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(SettingsDTO))">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SettingsDTO))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+            }
+        }
+    </div>
+}
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    private int DeleteSettingsId { get; set; } = 0;
+    private string DeleteSettingsName { get; set; } = "";
+
+    RadzenDataGrid<SettingsDTO> settingsDTOGrid;
+
+    IEnumerable<SettingsDTO> settingsDTOs;
+
+    SettingsDTO settingsDTOToInsert;
+    SettingsDTO settingsDTOToUpdate;
+
+    bool firtsInsertRow = true;
+
+    public bool excelExportFlag { get; set; } = false;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    void Reset()
+    {
+        settingsDTOToInsert = null;
+        settingsDTOToUpdate = null;
+    }
+
+
+    DataGridSettings _settingsGridSettings;
+    public DataGridSettings SettingsGridSettings
+    {
+        get
+        {
+            return _settingsGridSettings;
+        }
+        set
+        {
+            if (_settingsGridSettings != value)
+            {
+                _settingsGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+
+        if (!(await SD.CheckPageSettingsVersion("SettingsGridSettings", _jsRuntime)))
+            return;
+
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "SettingsGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _settingsGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('SettingsGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(SettingsGridSettings)}')");
+        await SD.SetPageSettingsVersion("SettingsGridSettings", _jsRuntime);
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                settingsDTOs = _settingsRepository.GetAll().Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration");
+    }
+
+    async Task EditRow(SettingsDTO settingsDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            settingsDTOToUpdate = settingsDTO;
+            await settingsDTOGrid.EditRow(settingsDTO);
+        }
+    }
+
+    async Task OnUpdateRow(SettingsDTO settingsDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (settingsDTO == settingsDTOToInsert)
+            {
+                settingsDTOToInsert = null;
+            }
+
+            settingsDTOToUpdate = null;
+
+            var forNameCheck = _settingsRepository.GetByName(settingsDTO.Name).Result;
+
+            if (forNameCheck != null)
+            {
+                if (forNameCheck.Id != settingsDTO.Id)
+                {
+
+                    var objectForRestore = await _settingsRepository.Get(settingsDTO.Id);
+                    settingsDTO.Name = objectForRestore.Name;
+                    settingsDTO.Description = objectForRestore.Description;
+                    settingsDTO.Value = objectForRestore.Value;
+                    await settingsDTOGrid.UpdateRow(settingsDTO);
+                    await settingsDTOGrid.Reload();
+
+                    await settingsDTOGrid.UpdateRow(settingsDTO);
+
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть настройка с наименованием \"" + forNameCheck.Name + "\" (ИД записи: " + forNameCheck.Id.ToString() + ")");
+
+                    return;
+                }
+            }
+            SettingsDTO oldSettingsDTO = await _settingsRepository.Get(settingsDTO.Id);
+            SettingsDTO newSettingsDTO = await _settingsRepository.Update(settingsDTO);
+            await _logEventRepository.ToLog<SettingsDTO>(oldObject: oldSettingsDTO, newObject: newSettingsDTO, "Изменение настройки", "Настройка: ", _authorizationRepository);
+        }
+    }
+
+    async Task SaveRow(SettingsDTO settingsDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await settingsDTOGrid.UpdateRow(settingsDTO);
+        }
+    }
+
+    void CancelEdit(SettingsDTO settingsDTO)
+    {
+        if (settingsDTO == settingsDTOToInsert)
+        {
+            settingsDTOToInsert = null;
+        }
+
+        settingsDTOToUpdate = null;
+
+        settingsDTOGrid.CancelEditRow(settingsDTO);
+        
+        var objectForRestore = _settingsRepository.Get(settingsDTO.Id).GetAwaiter().GetResult();
+        if (objectForRestore != null)
+        {
+            settingsDTO.Name = objectForRestore.Name;
+            settingsDTO.Value = objectForRestore.Value;
+            settingsDTO.Description = objectForRestore.Description;
+            settingsDTOGrid.UpdateRow(settingsDTO);
+            settingsDTOGrid.Reload();
+        }
+
+    }
+
+    async Task DeleteRow(SettingsDTO settingsDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+            {
+                bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление настройки", "Удалить настройку \"" + settingsDTO.Name + "\" безвозвратно ?", "Удалить", "Отмена");
+                if (selectionResult == false)
+                {
+                    await _jsRuntime.ToastrSuccess("Отмена удаления");
+                    return;
+                }
+            }
+
+            if (settingsDTO == settingsDTOToInsert)
+            {
+                settingsDTOToInsert = null;
+            }
+
+            if (settingsDTO == settingsDTOToUpdate)
+            {
+                settingsDTOToUpdate = null;
+            }
+
+            if (settingsDTOs.Contains(settingsDTO))
+            {
+                Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
+                await _logEventRepository.AddRecord("Удаление настройки", addedUserId, "", "", false, "Удаление настройки: " + settingsDTO.ToString());
+
+                await _settingsRepository.Delete(settingsDTO.Id);
+
+                settingsDTOs = settingsDTOs.Where(u => u.Id != settingsDTO.Id);
+
+                await settingsDTOGrid.Reload();
+            }
+            else
+            {
+                settingsDTOGrid.CancelEditRow(settingsDTO);
+                await settingsDTOGrid.Reload();
+            }
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (firtsInsertRow)
+            {
+                firtsInsertRow = false;
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Добавление новой записи в справочник настроек не приведёт к использованию этой настройки приложениями СИР без внесения изменений в программный код приложений!");
+            }
+            settingsDTOToInsert = new SettingsDTO();
+            await settingsDTOGrid.InsertRow(settingsDTOToInsert);
+        }
+    }
+
+    async Task OnCreateRow(SettingsDTO settingsDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            settingsDTOToInsert = null;
+
+            string errorMessage = string.Empty;
+            var objectForCheckName = _settingsRepository.GetByName(settingsDTO.Name).Result;
+
+            if (objectForCheckName != null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись настройки с наименованием \"" + objectForCheckName.Name + "\" (ИД записи: " + objectForCheckName.Id.ToString() + ")");
+                settingsDTOGrid.CancelEditRow(settingsDTO);
+                await settingsDTOGrid.Reload();
+                return;
+            }
+
+            var newDTO = await _settingsRepository.Create(settingsDTO);
+            await _logEventRepository.ToLog<SettingsDTO>(oldObject: null, newObject: newDTO, "Добавление настройки", "Настройка: ", _authorizationRepository);
+            await OnAfterRenderAsync(true);
+
+        }
+    }
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "Settings_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelSettings(filename, (IEnumerable<SettingsDTO>)settingsDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+}
+
+

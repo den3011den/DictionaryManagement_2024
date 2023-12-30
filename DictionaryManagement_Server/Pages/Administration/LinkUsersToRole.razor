@@ -1,0 +1,200 @@
+﻿@page "/administration/Role/LinkUsersToRole/{RoleId}"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+
+@inject IJSRuntime _jsRuntime
+
+@inject IRoleVMRepository _roleVMRepository
+@inject DialogService _dialogService
+@inject ILogEventRepository _logEventRepository;
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row my-2">
+
+        <div class="col-md-12">
+            @if (IsLoading)
+            {
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+            }
+            else
+            {
+                <EditForm Model="ActiveRoleVMDTO" OnSubmit="AddUsersToRoleProcedure">
+
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn Size="12">
+                            <RadzenStack>
+                                <RadzenStack Gap="1rem">
+                                    <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="15" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                                                    Data="UserDTOList" TItem="UserDTO"
+                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                    FilterMode="FilterMode.Simple"
+                                                    Density=Density.Compact
+                                                    ShowPagingSummary="true"
+                                                    EmptyText="Нет записей для отображения"
+                                                    AllowVirtualization="true"
+                                                    ShowCleanGridSettingsHeaderButton="false"
+                                                    ShowCleanGridFiltersHeaderButton="false"
+                                                    ShowCleanGridSortsHeaderButton="false">
+                                        <Columns>
+
+                                            <RadzenDataGridColumnApp TItem="UserDTO" Property="Checked" Title=" " Filterable="true" Width="15px">
+                                                <Template Context="data">
+                                                    <RadzenCheckBox @bind-Value=data.Checked Disabled="false" TriState="false" TValue="bool" />
+                                                </Template>
+                                            </RadzenDataGridColumnApp>
+
+                                            <RadzenDataGridColumnApp TItem="UserDTO" Property="ToStringId" Filterable="true" FilterProperty="ToStringId" Title="Ид" Width="85px">
+                                            </RadzenDataGridColumnApp>
+                                            <RadzenDataGridColumnApp TItem="UserDTO" Property="Login" Title="Логин" Width="60px">
+                                            </RadzenDataGridColumnApp>
+                                            <RadzenDataGridColumnApp TItem="UserDTO" Property="UserName" Title="Наименование" Width="140px">
+                                            </RadzenDataGridColumnApp>
+                                        </Columns>
+                                    </RadzenDataGridApp>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <br />
+                    <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                        * в списке только НЕ архивные и НЕ автоматические пользователи и не включённые в роль @ActiveRoleVMDTO.Name
+                    </RadzenText>
+
+                    <div class="form-group py-2">
+                        <button class="btn btn-primary">@Title</button>
+                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+}
+
+
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    [Parameter]
+    public Guid RoleId { get; set; }
+
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    RoleVMDTO ActiveRoleVMDTO { get; set; }
+    IEnumerable<UserDTO> UserDTOList { get; set; } = new List<UserDTO>();
+
+    private string Title { get; set; } = "Привязать пользователей к роли";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+        // ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+        // Title = "Добавить пользователй к роли " + ActiveRoleVMDTO.Name;
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                StateHasChanged();
+
+                ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+                Title = "Добавить пользователей к роли";
+
+                UserDTOList = await _roleVMRepository.GetAllNotArchiveAndNotAutomaticUsersExceptAlreadyInRole(ActiveRoleVMDTO.Id);
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration/Role");
+    }
+
+    private async Task AddUsersToRoleProcedure()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+
+            var checkedUserDTOList = UserDTOList.Where(u => u.Checked);
+            if (checkedUserDTOList.Count() <= 0)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не отмечено ни одного пользователя для добавления к роли");
+                return;
+            }
+
+            bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Добавление пользователей к роли", "Количество отмеченных пользователей: " + checkedUserDTOList.Count().ToString()
+                + ". Добавить ? ", "Добавить", "Отмена");
+            if (selectionResult == false)
+            {
+                return;
+            }
+
+            UserToRoleDTO addedUserToRoleDTOItem = null;
+            int addedCount = 0;
+            foreach (var checkedUserDTOItem in checkedUserDTOList)
+            {
+                addedUserToRoleDTOItem = await _roleVMRepository.AddUserToRole(ActiveRoleVMDTO, checkedUserDTOItem);
+
+                if (addedUserToRoleDTOItem == null)
+                {
+                    await _jsRuntime.ToastrError("Не удалось добавить пользователя \"" + checkedUserDTOItem.UserName + " (" + checkedUserDTOItem.Login + "\"!");
+                }
+                else
+                {
+                    addedCount = addedCount + 1;
+                    Guid userId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
+                    await _logEventRepository.AddRecord("Добавление связки пользователя с ролью", userId, "<Пусто>",
+                        ActiveRoleVMDTO.Name + " --> " + checkedUserDTOItem.ToString(), false,
+                        "Роль: " + ActiveRoleVMDTO.Name + " Пользователь: " + checkedUserDTOItem.ToString());
+                }
+            }
+
+            if (addedCount == checkedUserDTOList.Count())
+            {
+                await _jsRuntime.ToastrSuccess("Добавлено пользователей " + addedCount.ToString() + " из " + checkedUserDTOList.Count().ToString());
+            }
+            else
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Добавлено пользователей " +
+                    addedCount.ToString() + " из " + checkedUserDTOList.Count().ToString() + ". НЕ ВСЕ ПОЛЬЗОВАТЕЛИ ДОБАВЛЕНЫ!");
+            }
+
+            ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+
+            _dialogService.Close(ActiveRoleVMDTO);
+
+        }
+
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+}

@@ -1,0 +1,175 @@
+﻿@page "/administration/Scheduler/AddEditScheduler/{SchedulerId}"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+
+@inject ISchedulerRepository _schedulerRepository
+@inject ILogEventRepository _logEventRepository
+
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <img src="/images/loading.gif">
+        </div>
+    }
+    else
+    {
+        <EditForm Model="ActiveSchedulerDTO" OnValidSubmit="AddEditSchedulerProcedure">
+            <DataAnnotationsValidator />
+
+            <RadzenRow Gap="1rem">
+                <RadzenColumn Size="12">
+                    <RadzenStack>
+
+                        @if (SchedulerId != 0)
+                        {
+                            <RadzenFormField Text="ИД записи" Variant="@variant" Style="width: 100%; max-width: 700px;">
+                                <RadzenNumeric @bind-Value="@ActiveSchedulerDTO.Id" ReadOnly="true" />
+                            </RadzenFormField>
+                        }
+
+                        <RadzenFormField Text="Наименование модуля" Variant="@variant" Style="width: 100%; max-width: 700px;">
+                            <RadzenTextBox @bind-Value="@ActiveSchedulerDTO.ModuleName" />
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveSchedulerDTO.ModuleName"></ValidationMessage>
+                        
+                        <RadzenFormField Text="Время старта задания" Variant="@variant" Style="width: 100%; max-width: 700px;">
+                            <RadzenDatePicker TValue="DateTime" @bind-Value="@ActiveSchedulerDTO.StartTimeDateTime"
+                                              ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Change=@(args => OnChangeStartTime()) />
+                        </RadzenFormField>
+                        <ValidationMessage For="()=>ActiveSchedulerDTO.StartTime"></ValidationMessage>
+
+                        <RadzenLabel Text="Время последнего выполнения задания" Style="margin-left: 8px; margin-top: 8px;" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value=@ActiveSchedulerDTO.LastExecuted ShowSeconds="true" ShowTime="true" HourFormat="24" DateFormat="dd.MM.yyyy hh:mm:ss" />
+
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+
+
+
+            <div class="form-group py-2">
+                <button class="btn btn-primary">@Title</button>
+                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+            </div>
+        </EditForm>
+    }
+}
+
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    [Parameter]
+    public int SchedulerId { get; set; }
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+    
+    public SchedulerDTO ActiveSchedulerDTO { get; set; }
+
+    private string Title { get; set; } = "Добавить задание ";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+
+        if (SchedulerId == null || SchedulerId == 0)
+        {
+            ActiveSchedulerDTO = new SchedulerDTO();
+            ActiveSchedulerDTO.StartTimeDateTime = DateTime.MinValue;
+        }
+        else
+        {
+            ActiveSchedulerDTO = await _schedulerRepository.GetById(SchedulerId);
+            ActiveSchedulerDTO.StartTimeDateTime = DateTime.MinValue + ActiveSchedulerDTO.StartTime;
+            Title = "Изменить задание";
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;            
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                StateHasChanged();
+
+                if (SchedulerId == null || SchedulerId == 0)
+                {
+                    ActiveSchedulerDTO = new SchedulerDTO();
+                    ActiveSchedulerDTO.StartTimeDateTime = DateTime.MinValue;
+                }
+                else
+                {
+                    ActiveSchedulerDTO = await _schedulerRepository.GetById(SchedulerId);
+                    ActiveSchedulerDTO.StartTimeDateTime = DateTime.MinValue + ActiveSchedulerDTO.StartTime;
+                    Title = "Изменить задание";
+                }
+                
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration/Scheduler");
+    }
+
+
+    private async Task AddEditSchedulerProcedure()
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (SchedulerId == null || SchedulerId == 0)
+            { // создание
+                SchedulerDTO createdSchedulerDTO = await _schedulerRepository.Create(ActiveSchedulerDTO);
+                await _logEventRepository.ToLog<SchedulerDTO>(oldObject: null, newObject: createdSchedulerDTO, "Добавление расписания", "Расписание: ", _authorizationRepository);
+                await _jsRuntime.ToastrSuccess("Задание для модуля \"" + ActiveSchedulerDTO.ModuleName + "\" создано");
+                _dialogService.Close(ActiveSchedulerDTO);
+
+            }
+            else
+            { // изменение
+                SchedulerDTO oldSchedulerDTO = await _schedulerRepository.GetById(ActiveSchedulerDTO.Id);
+                SchedulerDTO newSchedulerDTO = await _schedulerRepository.Update(ActiveSchedulerDTO);
+                await _logEventRepository.ToLog<SchedulerDTO>(oldObject: oldSchedulerDTO, newObject: newSchedulerDTO, "Изменение расписания", "Расписание: ", _authorizationRepository);
+                await _jsRuntime.ToastrSuccess("Задание для модуля \"" + ActiveSchedulerDTO.ModuleName + "\" изменено");
+
+                _dialogService.Close(ActiveSchedulerDTO);
+            }
+
+        }
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+    private async Task OnChangeStartTime()
+    {
+        ActiveSchedulerDTO.StartTime = ActiveSchedulerDTO.StartTimeDateTime.TimeOfDay;
+    }
+}

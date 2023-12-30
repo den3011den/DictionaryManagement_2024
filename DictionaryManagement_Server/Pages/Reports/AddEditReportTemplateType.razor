@@ -1,0 +1,171 @@
+﻿@page "/reports/ReportTemplateType/AddEditReportTemplateType/{ReportTemplateTypeId}"
+@attribute [Authorize]
+
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+
+@inject IReportTemplateTypeRepository _reportTemplateTypeRepository
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <div class="row my-2">
+
+        <div class="col-md-10">
+            @if (IsLoading)
+            {
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+            }
+            else
+            {
+                <EditForm Model="ActiveReportTemplateTypeDTO" OnValidSubmit="AddEditReportTemplateTypeProcedure">
+                    <DataAnnotationsValidator />
+
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn Size="12">
+                            <RadzenStack>
+
+                                @if (ReportTemplateTypeId != 0)
+                                {
+                                    <RadzenFormField Text="ИД" Variant="@variant" Style="width: 100%; max-width: 600px;">
+                                        <RadzenNumeric @bind-Value="@ActiveReportTemplateTypeDTO.Id" ReadOnly="true" />
+                                    </RadzenFormField>
+                                }
+
+                                <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 600px;">
+                                    <RadzenTextBox @bind-Value="@ActiveReportTemplateTypeDTO.Name" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveReportTemplateTypeDTO.Name"></ValidationMessage>
+
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <div class="form-group py-2">
+                        <button class="btn btn-primary">@Title</button>
+                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public int ReportTemplateTypeId { get; set; }
+
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public ReportTemplateTypeDTO ActiveReportTemplateTypeDTO { get; set; }
+
+    private string Title { get; set; } = "Создать тип шаблона отчёта";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+        if (ReportTemplateTypeId == 0)
+        {
+            ActiveReportTemplateTypeDTO = new ReportTemplateTypeDTO();
+        }
+        else
+        {
+            ActiveReportTemplateTypeDTO = await _reportTemplateTypeRepository.Get(ReportTemplateTypeId);
+            Title = "Изменить тип шаблона отчёта";
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                StateHasChanged();
+
+                if (ReportTemplateTypeId == 0)
+                {
+                    ActiveReportTemplateTypeDTO = new ReportTemplateTypeDTO();
+                }
+                else
+                {
+                    ActiveReportTemplateTypeDTO = await _reportTemplateTypeRepository.Get(ReportTemplateTypeId);
+                    Title = "Изменить тип шаблона отчёта";
+                }
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/reports/ReportTemplateType");
+    }
+
+    private async Task AddEditReportTemplateTypeProcedure()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (ReportTemplateTypeId == 0)
+            { // создание
+                var foundByName = await _reportTemplateTypeRepository.GetByName(ActiveReportTemplateTypeDTO.Name);
+                if (foundByName != null)
+                {
+                    await _jsRuntime.ToastrError("Уже есть тип шаблона отчёта с наименованием " + foundByName.Name + " (ИД: " + foundByName.Id.ToString() + ")");
+                    return;
+                }
+
+                await _reportTemplateTypeRepository.Create(ActiveReportTemplateTypeDTO);
+
+                await _jsRuntime.ToastrSuccess("Тип шаблона отчёта \"" + ActiveReportTemplateTypeDTO.Name + "\" создана");
+
+                _dialogService.Close(ActiveReportTemplateTypeDTO);
+
+            }
+            else
+            { // изменение типа шаблона отчёта
+
+                var foundByName = await _reportTemplateTypeRepository.GetByName(ActiveReportTemplateTypeDTO.Name);
+                if ((foundByName != null) && (foundByName.Id != ActiveReportTemplateTypeDTO.Id))
+                {
+                    await _jsRuntime.ToastrError("Уже есть тип шаблона отчёта с наименованием " + foundByName.Name + " (ИД: " + foundByName.Id.ToString() + ")");
+                    return;
+                }
+
+                await _reportTemplateTypeRepository.Update(ActiveReportTemplateTypeDTO);
+
+                await _jsRuntime.ToastrSuccess("Тип шаблона отчёта \"" + ActiveReportTemplateTypeDTO.Name + " \" изменен");
+
+                _dialogService.Close(ActiveReportTemplateTypeDTO);
+            }
+        }
+
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+
+}

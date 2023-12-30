@@ -1,0 +1,685 @@
+﻿@page "/dataarchive/MesMovements"
+@attribute [Authorize]
+
+@using System.Text.Json;
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels;
+
+
+@inject IJSRuntime _jsRuntime
+@inject IMesMovementsRepository _mesMovementsRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/MesMovements">Архив данных</a></h6>
+        </div>
+
+
+        @if (IsLoading != true)
+        {
+
+            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+                <RadzenColumn Size="12" SizeMD="12">
+                    <RadzenStack>
+                        <RadzenStack Gap="1rem">
+                            <RadzenRow AlignItems="AlignItems.Center">
+                                <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
+                                    <Items>
+                                        <RadzenRadioButtonListItem Text="По времени значения" Value="1" />
+                                        <RadzenRadioButtonListItem Text="По времени добавления" Value="2" />
+                                    </Items>
+                                </RadzenRadioButtonList>
+                                <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" />
+                            </RadzenRow>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenDataGridApp @bind-Settings="@MesMovementsGridSettings" SettingsName="MesMovementsGridSettings" @ref="mesMovementsDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               Data="@mesMovementsDTOs" TItem="MesMovementsDTO"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               Density=Density.Compact
+                               ShowPagingSummary="true"
+                               EmptyText="Нет записей для отображения"
+                               AllowVirtualization="true"
+                               AllowColumnReorder="true"
+                               AllowColumnResize="true"
+                               Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px")
+                               ColumnWidth="200px"
+                               AllowColumnPicking="true"
+                               GridLines="DataGridGridLines.Both"
+                               ShowCleanGridSettingsHeaderButton="false"
+                               ShowCleanGridFiltersHeaderButton="false"
+                               ShowCleanGridSortsHeaderButton="false">
+                <HeaderTemplate>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
+                    </RadzenButton>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все фильтры" Icon="filter_alt"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllFiltersCustom()">
+                    </RadzenButton>
+
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
+                    </RadzenButton>
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
+                                             FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.ToStringId
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="AddTime" Title="Время добавления" TextAlign="TextAlign.Center"
+                                             FilterOperator="FilterOperator.Equals" Filterable="true" Sortable="true">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                <strong>
+                                    @data1.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff")
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Title="Кто добавил"
+                                             Property="AddUserDTOFK.UserName" Type="typeof(IEnumerable<string>)"
+                                             Filterable="true" Sortable="true"
+                                             FilterValue="@selectedAddUsers" FilterOperator="FilterOperator.Contains"
+                                             LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedAddUsers
+                                            Change=OnSelectedAddUsersChange Data="@(distinctAddUsersInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.AddUserDTOFK.UserName
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Title="Источник"
+                                             Property="DataSourceDTOFK.Name" Type="typeof(IEnumerable<string>)"
+                                             Filterable="true" Sortable="true"
+                                             FilterValue="@selectedDataSources" FilterOperator="FilterOperator.Contains"
+                                             LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedDataSources
+                                            Change=OnSelectedDataSourcesChange Data="@(distinctDataSourcesInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <Template Context="data1">
+                            @if (data1.DataSourceDTOFK != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.DataSourceDTOFK.Name
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Title="Тип"
+                                             Property="DataTypeDTOFK.Name" Type="typeof(IEnumerable<string>)"
+                                             Filterable="true" Sortable="true"
+                                             FilterValue="@selectedDataTypes" FilterOperator="FilterOperator.Contains"
+                                             LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedDataTypes
+                                            Change=OnSelectedDataTypesChange Data="@(distinctDataTypesInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <Template Context="data1">
+                            @if (data1.DataTypeDTOFK != null)
+                            {
+
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.DataTypeDTOFK.Name
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="MesParamDTOFK.Code" Title="Тэг (code)"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.Code == null ? "" : data1.MesParamDTOFK.Code)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="MesParamDTOFK.Name" Title="Тэг (name)"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.Name == null ? "" : data1.MesParamDTOFK.Name)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ValueTime" Title="Время значения" TextAlign="TextAlign.Center" Filterable="true" Sortable="true">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                <strong>
+                                    @data1.ValueTime.ToString("dd.MM.yyyy HH:mm:ss.fff")
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringValue" Title="Значение" TextAlign="TextAlign.Center" Filterable="true" Sortable="true"
+                                             FilterProperty="Value" SortProperty="Value">
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                <strong>
+                                    @data1.ToStringValue
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ReportEntityDTOFK.ToStringId" Title="ИД экземпляра отчёта" FilterProperty="ReportEntityDTOFK.ToStringId" SortProperty="ReportEntityDTOFK.ToStringId" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (data1.ReportEntityDTOFK != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.ReportEntityDTOFK.ToStringId
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringPreviousRecordId" Title="ИД пред. записи" FilterProperty="ToStringPreviousRecordId" SortProperty="ToStringPreviousRecordId" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (data1.ToStringPreviousRecordId != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.ToStringPreviousRecordId
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="MesGoneBool" Title="MES забрал" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.MesGoneBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="MesGoneTime" Title="Время MES забрал" TextAlign="TextAlign.Center"
+                                             FilterProperty="MesGoneTime" FilterOperator="FilterOperator.Equals" SortProperty="MesGoneTime">
+                        <Template Context="data1">
+                            @if (data1.MesGoneTime != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    <strong>
+                                        @(((DateTime)data1.MesGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff"))
+                                    </strong>
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapGoneBool" Title="Sap забрал" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.SapGoneBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapMovementsOUTDTOFK.SapGoneTime" Title="Время Sap забрал" TextAlign="TextAlign.Center"
+                                             FilterProperty="SapMovementsOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Equals" SortProperty="SapMovementsOUTDTOFK.SapGoneTime">
+                        <Template Context="data1">
+                            @if (data1.SapMovementOutId != null)
+                            {
+                                @if (data1.SapMovementsOUTDTOFK.SapGoneTime != null)
+                                {
+                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                        <strong>
+                                            @(((DateTime)data1.SapMovementsOUTDTOFK.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff"))
+                                        </strong>
+                                    </div>
+                                }
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Title="Причина корректировки"
+                                             Property="ToStringCorrectionReason" Type="typeof(IEnumerable<string>)"
+                                             Filterable="true" Sortable="true"
+                                             FilterValue="@selectedCorrectionReasons" FilterOperator="FilterOperator.Contains"
+                                             LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedCorrectionReasons
+                                            Change=OnSelectedCorrectionReasonsChange Data="@(distinctCorrectionReasonsInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.ToStringCorrectionReason == null ? "" : data1.ToStringCorrectionReason)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringCorrectionComment" Title="Комментарий корректировки"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.ToStringCorrectionComment == null ? "" : data1.ToStringCorrectionComment)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp Title="Действия" TItem="MesMovementsDTO" Context="mesMovementsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+                        <Template Context="mesMovementsDTO">
+                            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesMovementsDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesMovementsDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+
+    </div>
+}
+
+<style>
+    .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
+        font-size: 0.75rem;
+    }
+</style>
+
+
+@code {
+
+    [CascadingParameter]
+    bool iconMenuActive { get; set; }
+
+    _Dialogs? _dialogs { get; set; }
+
+    IEnumerable<string> selectedAddUsers;
+    IEnumerable<string> selectedDataSources;
+    IEnumerable<string> selectedDataTypes;
+    IEnumerable<string> selectedCorrectionReasons;
+
+    IEnumerable<MesMovementsDTO>? mesMovementsDTOs;
+
+    List<string> distinctAddUsersInList = new List<string>();
+    List<string> distinctDataSourcesInList = new List<string>();
+    List<string> distinctDataTypesInList = new List<string>();
+    List<string> distinctCorrectionReasonsInList = new List<string>();
+
+    RadzenDataGrid<MesMovementsDTO> mesMovementsDTOGrid;
+
+    DateTime startDate = DateTime.Today.AddDays(-7);
+    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+    DateTime minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+
+    bool excelExportFlag = false;
+
+    int applyRadioGroupValue = 1;
+
+    bool ApplyButtonDisabled = true;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                applyRadioGroupValue = 1;
+                ApplyButtonDisabled = false;
+
+                startDate = DateTime.Today.AddDays(-7);
+                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+
+                await GetRows();
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/dataarchive");
+    }
+
+
+    DataGridSettings _mesMovementsGridSettings;
+    public DataGridSettings MesMovementsGridSettings
+    {
+        get
+        {
+            return _mesMovementsGridSettings;
+        }
+        set
+        {
+            if (_mesMovementsGridSettings != value)
+            {
+                _mesMovementsGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("MesMovementsGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "MesMovementsGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _mesMovementsGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+            if (_mesMovementsGridSettings != null)
+            {
+                var col_var = _mesMovementsGridSettings.Columns.Where(c => c.Property == "AddUserDTOFK.UserName").FirstOrDefault();
+                if (col_var.FilterValue != null)
+                {
+                    selectedAddUsers = JsonSerializer.Deserialize<List<string>>(col_var.FilterValue.ToString());
+                }
+                var col_var2 = _mesMovementsGridSettings.Columns.Where(c => c.Property == "DataSourceDTOFK.Name").FirstOrDefault();
+                if (col_var2.FilterValue != null)
+                {
+                    selectedDataSources = JsonSerializer.Deserialize<List<string>>(col_var2.FilterValue.ToString());
+                }
+                var col_var3 = _mesMovementsGridSettings.Columns.Where(c => c.Property == "DataTypeDTOFK.Name").FirstOrDefault();
+                if (col_var3.FilterValue != null)
+                {
+                    selectedDataTypes = JsonSerializer.Deserialize<List<string>>(col_var3.FilterValue.ToString());
+                }
+                var col_var4 = _mesMovementsGridSettings.Columns.Where(c => c.Property == "ToStringCorrectionReason").FirstOrDefault();
+                if (col_var4.FilterValue != null)
+                {
+                    selectedCorrectionReasons = JsonSerializer.Deserialize<List<string>>(col_var4.FilterValue.ToString());
+                }
+            }
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('MesMovementsGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(MesMovementsGridSettings)}')");
+        await SD.SetPageSettingsVersion("MesMovementsGridSettings", _jsRuntime);
+    }
+
+
+    private async Task ChangeStartDate()
+    {
+        ApplyButtonDisabled = false;
+        maxEndDate = startDate.AddMonths(1).AddSeconds(-1);
+        minEndDate = startDate.AddDays(-1);
+        if (endDate > maxEndDate)
+            endDate = maxEndDate;
+
+    }
+
+    private async Task ChangeEndDate()
+    {
+
+        ApplyButtonDisabled = false;
+    }
+
+
+    async Task GetRows()
+    {
+        IsLoading = true;
+        await LoadStateAsync();
+        StateHasChanged();
+        if (applyRadioGroupValue == 1)
+            mesMovementsDTOs = await _mesMovementsRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
+        else
+            mesMovementsDTOs = await _mesMovementsRepository.GetAllByTimeInterval(startDate, endDate, "ADDTIME");
+
+        List<string> distinctAddUsersInList = new List<string>();
+        List<string> distinctDataSourcesInList = new List<string>();
+        List<string> distinctDataTypesInList = new List<string>();
+        List<string> distinctCorrectionReasonsInList = new List<string>();
+        await GetDistincts();
+        ApplyButtonDisabled = true;
+        IsLoading = false;
+        StateHasChanged();
+
+    }
+
+
+    async Task EditRow(MesMovementsDTO? mesMovementsDTO)
+    {
+        await _jsRuntime.ToastrSuccess("Не реализовано");
+    }
+
+
+    async Task DeleteRow(MesMovementsDTO mesMovementsDTO)
+    {
+        await _jsRuntime.ToastrSuccess("Не реализовано");
+    }
+
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        int viewCount = mesMovementsDTOGrid.View.Count();
+
+        // запас 100 строк на заголовки например
+        if (viewCount > (SD.MaxAllowedExcelRows - 100))
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "В выборке " + viewCount.ToString()
+                + " записей, что близко или превышает максимально доступное для Excel количество записей в "
+                + SD.MaxAllowedExcelRows.ToString() + " строк." +
+                "\n\n\n Установите фильтры или уменьшите интервал дат, чтобы количество выгружаемых строк не превышало этот предел.");
+        }
+        else
+        {
+
+            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            {
+                string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+                string filename = "MesMovements_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+                await _simpleExcelExportRepository.GenerateExcelMesMovements(filename, (IEnumerable<MesMovementsDTO>)mesMovementsDTOGrid.View);
+
+                await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+            }
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task GetDistincts()
+    {
+        if (mesMovementsDTOs != null)
+        {
+            distinctAddUsersInList = (List<string>)mesMovementsDTOs.Where(u => u.AddUserDTOFK != null).OrderBy(u => u.AddUserDTOFK.UserName)
+                .Select(u => u.AddUserDTOFK.UserName).Distinct().ToList();
+            distinctDataSourcesInList = (List<string>)mesMovementsDTOs.Where(u => u.DataSourceDTOFK != null).OrderBy(u => u.DataSourceDTOFK.Name)
+                .Select(u => u.DataSourceDTOFK.Name).Distinct().ToList();
+            distinctDataTypesInList = (List<string>)mesMovementsDTOs.Where(u => u.DataTypeDTOFK != null).OrderBy(u => u.DataTypeDTOFK.Name)
+                .Select(u => u.DataTypeDTOFK.Name).Distinct().ToList();
+            distinctCorrectionReasonsInList = (List<string>)mesMovementsDTOs.Where(u => u.ToStringCorrectionReason != null).OrderBy(u => u.ToStringCorrectionReason)
+                .Select(u => u.ToStringCorrectionReason).Distinct().ToList();
+        }
+    }
+
+    void OnSelectedAddUsersChange(object value)
+    {
+        if (selectedAddUsers != null && !selectedAddUsers.Any())
+        {
+            selectedAddUsers = null;
+        }
+    }
+
+    void OnSelectedDataSourcesChange(object value)
+    {
+        if (selectedDataSources != null && !selectedDataSources.Any())
+        {
+            selectedDataSources = null;
+        }
+    }
+
+    void OnSelectedDataTypesChange(object value)
+    {
+        if (selectedDataTypes != null && !selectedDataTypes.Any())
+        {
+            selectedDataTypes = null;
+        }
+    }
+
+    void OnSelectedCorrectionReasonsChange(object value)
+    {
+        if (selectedCorrectionReasons != null && !selectedCorrectionReasons.Any())
+        {
+            selectedCorrectionReasons = null;
+        }
+    }
+
+    private async Task CleanPageSettingsCustom()
+    {
+        await Task.CompletedTask;
+        var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        var result = await _jsRuntime.InvokeAsync<string>
+            ("window.localStorage.removeItem", "MesMovementsGridSettings");
+
+        MesMovementsGridSettings = null;
+
+        selectedAddUsers = null;
+        selectedDataSources = null;
+        selectedDataTypes = null;
+        selectedCorrectionReasons = null;
+
+        if (mesMovementsDTOs != null)
+        {
+            await GetDistincts();
+        }
+
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    async Task CleanAllFiltersCustom()
+    {
+        var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (MesMovementsGridSettings != null)
+        {
+            foreach (var c in MesMovementsGridSettings.Columns)
+            {
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+            }
+
+        }
+
+        selectedAddUsers = null;
+        selectedDataSources = null;
+        selectedDataTypes = null;
+        selectedCorrectionReasons = null;
+
+        if (mesMovementsDTOs != null)
+        {
+            await GetDistincts();
+        }
+
+        await InvokeAsync(SaveStateAsync);
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    async Task CleanAllOrdersCustom()
+    {
+
+        var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (MesMovementsGridSettings != null)
+        {
+            foreach (var c in MesMovementsGridSettings.Columns)
+            {
+                c.SortOrder = null;
+            }
+            await InvokeAsync(SaveStateAsync);
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}
+

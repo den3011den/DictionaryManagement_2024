@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DictionaryManagement_Models": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable"
+    }
+  }
+}

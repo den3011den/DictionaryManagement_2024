@@ -1,0 +1,18 @@
+﻿@using System.Net.Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using DictionaryManagement_Server
+@using DictionaryManagement_Server.Shared
+@using DictionaryManagement_Server.Helper
+@using Radzen
+@using Radzen.Blazor
+@using DictionaryManagement_Server.Extensions;
+@inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
+@using DictionaryManagement_Common
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime

@@ -1,0 +1,649 @@
+﻿@page "/tags/MesParam"
+@attribute [Authorize]
+
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_DataAccess.Data.IntDB;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json;
+@using System.Linq.Dynamic.Core
+
+
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+
+
+@inject IJSRuntime _jsRuntime
+@inject IMesParamRepository _mesParamRepository
+@inject ILogEventRepository _logEventRepository
+
+@inject DialogService _dialogService
+
+
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/tags">Тэги</a> - <a href="/tags/MesParam">Тэги СИР</a></h6>
+        </div>
+
+
+        @if (IsLoading != true)
+        {
+
+            @*<div style="word-wrap: normal">*@
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый тэг СИР" Click="@(args => EditRow(null, SD.EditMode.Create))" />
+                <RadzenButton @ref="xlxButton" class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+            <RadzenDataGridApp @bind-Settings="@MesParamGridSettings" SettingsName="MesParamGridSettings" @ref="mesParamDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               Data="@mesParamDTOs" TItem="MesParamDTO"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               Density=Density.Compact
+                               AllowColumnReorder="true"
+                               AllowColumnResize="true"
+                               AllowVirtualization="true"
+                               ColumnWidth="200px"
+                               AllowColumnPicking="true"
+                               GridLines="DataGridGridLines.Both"
+                               Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px")
+                               ShowCleanGridSettingsHeaderButton="false"
+                               ShowCleanGridFiltersHeaderButton="false"
+                               ShowCleanGridSortsHeaderButton="false">
+                <HeaderTemplate>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
+                    </RadzenButton>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все фильтры" Icon="filter_alt"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllFiltersCustom()">
+                    </RadzenButton>
+
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
+                    </RadzenButton>
+                </HeaderTemplate>
+                <Columns>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Id" Title="Ид записи">
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Code" Title="Код тэга СИР">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.Code
+                            </div>
+                        </Template>
+
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Name" Title="Наименование">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                <strong>
+                                    @data1.Name
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Title="Источник" Property="MesParamSourceTypeDTOFK.ToStringValue" Type="typeof(IEnumerable<string>)"
+                                             FilterValue="@selectedMesParamSourceType" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedMesParamSourceType
+                                            Change=OnSelectedMesParamSourceTypeChange Data="@(distinctMesParamSourceTypeInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap">
+                                <strong>
+                                    @(data1.MesParamSourceTypeDTOFK == null ? "" : data1.MesParamSourceTypeDTOFK.ToStringValue)
+                                </strong>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="MesParamSourceLink" Title="Тэг источника">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.MesParamSourceLink
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Title="Производство" Property="MesDepartmentDTOFK.ToStringHierarchyShortName" Type="typeof(IEnumerable<string>)"
+                                             FilterValue="@selectedMesDepartment" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedMesDepartment
+                                            Change=OnSelectedMesDepartmentChange Data="@(distinctMesDepartmentInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesDepartmentDTOFK == null ? "" : data1.MesDepartmentDTOFK.ToStringHierarchyShortName)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapEquipmentSourceDTOFK" Title="SAP источник" FilterProperty="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName" SortProperty="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName">
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                @(data1.SapEquipmentSourceDTOFK == null ? "" : data1.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapEquipmentDestDTOFK" Title="SAP приемник" FilterProperty="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName" SortProperty="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName">
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                @(data1.SapEquipmentDestDTOFK == null ? "" : data1.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    @*
+            @if (SD.AppFactoryMode == SD.FactoryMode.NKNH)
+            {
+            <RadzenDataGridColumnApp TItem="MesParamDTO" Property="MesMaterialDTOFK" Title="Материал MES" Width="70px" FilterProperty="MesMaterialDTOFK.ToStringValue" SortProperty="MesMaterialDTOFK.ToStringValue">
+            <Template Context="data1">
+            <div style="white-space:pre-wrap; font-size: 12px">
+            @data1.MesMaterialDTOFK
+            </div>
+            </Template>
+            </RadzenDataGridColumnApp>
+
+            <RadzenDataGridColumnApp TItem="MesParamDTO" Property="MesUnitOfMeasureDTOFK" Title="Ед.изм MES" Width="60px" FilterProperty="MesUnitOfMeasureDTOFK.ToStringValue" SortProperty="MesUnitOfMeasureDTOFK.ToStringValue">
+            <Template Context="data1">
+            <div style="white-space:pre-wrap; font-size: 12px">
+            @data1.MesUnitOfMeasureDTOFK
+            </div>
+            </Template>
+            </RadzenDataGridColumnApp>
+            }
+
+            @if (SD.AppFactoryMode == SD.FactoryMode.KOS)
+            { *@
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapMaterialDTOFK" Title="Материал SAP" FilterProperty="SapMaterialDTOFK.ToStringCodeName" SortProperty="SapMaterialDTOFK.ToStringCodeName">
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                @(data1.SapMaterialDTOFK == null ? "" : data1.SapMaterialDTOFK.ToStringCodeName)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Title="Ед.изм SAP" Property="SapUnitOfMeasureDTOFK.ShortName" Type="typeof(IEnumerable<string>)"
+                                             FilterValue="@selectedSapUnitOfMeasure" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedSapUnitOfMeasure
+                                            Change=OnSelectedSapUnitOfMeasureChange Data="@(distinctSapUnitOfMeasureInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Style="font-size:0.75rem;width: 100%;"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+
+                        <Template Context="data1">
+                            <div style="white-space:pre-wrap; font-size: 12px">
+                                @(data1.SapUnitOfMeasureDTOFK == null ? "" : data1.SapUnitOfMeasureDTOFK.ShortName)
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="IsNdoBool" Title="НДО" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsNdoBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="IsArchive" Title="Арх" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp Title="Действия" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TItem="MesParamDTO" Context="mesParamDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="130px">
+                        <Template Context="mesParamDTO">
+                            <RadzenButton title="Создать на основании" Icon="add_box" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesParamDTO, SD.EditMode.CreateBasedOnRow))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesParamDTO, SD.EditMode.Edit))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            @if (!mesParamDTO.IsArchive)
+                            {
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                            else
+                            {
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                </Columns>
+            </RadzenDataGridApp>
+            @*   </div>*@
+
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+    </div>
+}
+
+<style>
+    .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
+        font-size: 0.75rem;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    bool iconMenuActive { get; set; }
+
+    _Dialogs? _dialogs { get; set; }
+
+    IEnumerable<MesParamDTO>? mesParamDTOs;
+    // IEnumerable<MesParamSourceTypeDTO>? mesParamSourceTypeDTOs;
+
+    IEnumerable<string> selectedMesParamSourceType;
+    IEnumerable<string> selectedMesDepartment;
+    IEnumerable<string> selectedSapUnitOfMeasure;
+
+    List<string> distinctMesParamSourceTypeInList = new List<string>();
+    List<string> distinctMesDepartmentInList = new List<string>();
+    List<string> distinctSapUnitOfMeasureInList = new List<string>();
+
+    RadzenDataGrid<MesParamDTO> mesParamDTOGrid;
+    RadzenButton xlxButton;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+    public bool excelExportFlag { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //employees = dbContext.Employees.Where(e => e.ReportsTo == null);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                //StateHasChanged();
+                await LoadStateAsync();
+                StateHasChanged();
+                mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
+
+                await GetDistincts();
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/tags");
+
+    }
+
+
+    DataGridSettings _mesParamGridSettings;
+    public DataGridSettings MesParamGridSettings
+    {
+        get
+        {
+            return _mesParamGridSettings;
+        }
+        set
+        {
+            if (_mesParamGridSettings != value)
+            {
+                _mesParamGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("MesParamGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "MesParamGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _mesParamGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+            if (_mesParamGridSettings != null)
+            {
+                var col_var = _mesParamGridSettings.Columns.Where(c => c.Property == "MesParamSourceTypeDTOFK.ToStringValue").FirstOrDefault();
+                if (col_var.FilterValue != null)
+                {
+                    selectedMesParamSourceType = JsonSerializer.Deserialize<List<string>>(col_var.FilterValue.ToString());
+                }
+                var col_var2 = _mesParamGridSettings.Columns.Where(c => c.Property == "MesDepartmentDTOFK.ToStringHierarchyShortName").FirstOrDefault();
+                if (col_var2.FilterValue != null)
+                {
+                    selectedMesDepartment = JsonSerializer.Deserialize<List<string>>(col_var2.FilterValue.ToString());
+                }
+                var col_var3 = _mesParamGridSettings.Columns.Where(c => c.Property == "SapUnitOfMeasureDTOFK.ShortName").FirstOrDefault();
+                if (col_var3.FilterValue != null)
+                {
+                    selectedSapUnitOfMeasure = JsonSerializer.Deserialize<List<string>>(col_var3.FilterValue.ToString());
+                }
+            }
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('MesParamGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(MesParamGridSettings)}')");
+        await SD.SetPageSettingsVersion("MesParamGridSettings", _jsRuntime);
+    }
+
+    async Task EditRow(MesParamDTO mesParamDTO, SD.EditMode modePar)
+    {
+        //mesMaterialDTOToUpdate = mesMaterialDTO;
+        //await mesMaterialDTOGrid.EditRow(mesMaterialDTO);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsLoading = true;
+
+            MesParamDTO dialogResult;
+
+            switch (modePar)
+            {
+                case SD.EditMode.Create:
+                    IsLoading = false;
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР", new Dictionary<string, object>() { { "MesParamId", 0 }, { "Mode", modePar } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    break;
+                case SD.EditMode.Edit:
+                    IsLoading = false;
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Изменить тэг СИР", new Dictionary<string, object>() { { "MesParamId", mesParamDTO.Id }, { "Mode", modePar } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    break;
+                case SD.EditMode.CreateBasedOnRow:
+                    IsLoading = false;
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР на основании", new Dictionary<string, object>() { { "MesParamId", mesParamDTO.Id }, { "Mode", modePar } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    break;
+                default:
+                    IsLoading = false;
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР", new Dictionary<string, object>() { { "MesParamId", 0 }, { "Mode", SD.EditMode.Create } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    break;
+            }
+
+
+            if (dialogResult != null)
+            {
+
+                if ((modePar == SD.EditMode.Create || modePar == SD.EditMode.CreateBasedOnRow) && (modePar != SD.EditMode.Edit))
+                {
+                    IsLoading = true;
+                    await LoadStateAsync();
+                    StateHasChanged();
+                    mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
+                    await GetDistincts();
+                    IsLoading = false;
+                    StateHasChanged();
+                    IsLoading = false;
+                }
+                else
+                {
+                    mesParamDTO.Code = dialogResult.Code;
+                    mesParamDTO.Name = dialogResult.Name;
+                    mesParamDTO.Description = dialogResult.Description;
+                    mesParamDTO.MesParamSourceType = dialogResult.MesParamSourceType;
+                    mesParamDTO.MesParamSourceTypeDTOFK = dialogResult.MesParamSourceTypeDTOFK;
+                    mesParamDTO.MesParamSourceLink = dialogResult.MesParamSourceLink;
+                    mesParamDTO.DepartmentId = dialogResult.DepartmentId;
+                    mesParamDTO.MesDepartmentDTOFK = dialogResult.MesDepartmentDTOFK;
+                    mesParamDTO.SapEquipmentIdSource = dialogResult.SapEquipmentIdSource;
+                    mesParamDTO.SapEquipmentSourceDTOFK = dialogResult.SapEquipmentSourceDTOFK;
+                    mesParamDTO.SapEquipmentIdDest = dialogResult.SapEquipmentIdDest;
+                    mesParamDTO.SapEquipmentDestDTOFK = dialogResult.SapEquipmentDestDTOFK;
+                    mesParamDTO.MesMaterialId = dialogResult.MesMaterialId;
+                    mesParamDTO.MesMaterialDTOFK = dialogResult.MesMaterialDTOFK;
+                    mesParamDTO.SapMaterialId = dialogResult.SapMaterialId;
+                    mesParamDTO.SapMaterialDTOFK = dialogResult.SapMaterialDTOFK;
+                    mesParamDTO.MesUnitOfMeasureId = dialogResult.MesUnitOfMeasureId;
+                    mesParamDTO.MesUnitOfMeasureDTOFK = dialogResult.MesUnitOfMeasureDTOFK;
+                    mesParamDTO.SapUnitOfMeasureId = dialogResult.SapUnitOfMeasureId;
+                    mesParamDTO.SapUnitOfMeasureDTOFK = dialogResult.SapUnitOfMeasureDTOFK;
+                    mesParamDTO.DaysRequestInPast = dialogResult.DaysRequestInPast;
+                    mesParamDTO.TI = dialogResult.TI;
+                    mesParamDTO.NameTI = dialogResult.NameTI;
+                    mesParamDTO.MesToSirUnitOfMeasureKoef = dialogResult.MesToSirUnitOfMeasureKoef;
+                    mesParamDTO.NeedWriteToSap = dialogResult.NeedWriteToSap;
+                    mesParamDTO.NeedReadFromSap = dialogResult.NeedReadFromSap;
+                    mesParamDTO.NeedReadFromMes = dialogResult.NeedReadFromMes;
+                    mesParamDTO.NeedWriteToMes = dialogResult.NeedWriteToMes;
+                    mesParamDTO.IsNdo = dialogResult.IsNdo;
+
+                    await mesParamDTOGrid.UpdateRow(mesParamDTO);
+                }
+            }
+            IsLoading = false;
+        }
+
+    }
+
+
+    async Task DeleteRow(MesParamDTO mesParamDTO)
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+            {
+                if (mesParamDTO.IsArchive != true)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление тэга СИР", "Удалить тэг \"" + mesParamDTO.Code + "\" в архив ?", "Удалить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена удаления");
+                        return;
+                    }
+                }
+                else
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление тэга СИР", "Восстановить тэг СИР \"" + mesParamDTO.Code + "\" из архива ?", "Восстановить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                        return;
+                    }
+                }
+            }
+
+            MesParamDTO oldMesParamDTO = await _mesParamRepository.GetById(mesParamDTO.Id);
+
+            if (mesParamDTO.IsArchive)
+            {
+
+                await _mesParamRepository.Delete(mesParamDTO.Id, SD.UpdateMode.RestoreFromArchive);
+                mesParamDTO.IsArchive = false;
+                await _logEventRepository.ToLog<MesParamDTO>(oldMesParamDTO, mesParamDTO, "Восстановление из архива тэга СИР", "Тэг: ", _authorizationRepository);
+                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + mesParamDTO.Name + "\" восстановлен из архива");
+            }
+            else
+            {
+                await _mesParamRepository.Delete(mesParamDTO.Id, SD.UpdateMode.MoveToArchive);
+                mesParamDTO.IsArchive = true;
+                await _logEventRepository.ToLog<MesParamDTO>(oldMesParamDTO, mesParamDTO, "Удаление в архив тэга СИР", "Тэг: ", _authorizationRepository);
+                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + mesParamDTO.Name + "\" удалён в архив");
+            }
+            await mesParamDTOGrid.UpdateRow(mesParamDTO);
+        }
+    }
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "Tags_MesParam_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelMesParam(filename, (IEnumerable<MesParamDTO>)mesParamDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    void OnSelectedMesParamSourceTypeChange(object value)
+    {
+        if (selectedMesParamSourceType != null && !selectedMesParamSourceType.Any())
+        {
+            selectedMesParamSourceType = null;
+        }
+    }
+
+    void OnSelectedMesDepartmentChange(object value)
+    {
+        if (selectedMesDepartment != null && !selectedMesDepartment.Any())
+        {
+            selectedMesDepartment = null;
+        }
+    }
+
+    void OnSelectedSapUnitOfMeasureChange(object value)
+    {
+        if (selectedSapUnitOfMeasure != null && !selectedSapUnitOfMeasure.Any())
+        {
+            selectedSapUnitOfMeasure = null;
+        }
+    }
+
+    private async Task CleanPageSettingsCustom()
+    {
+        await Task.CompletedTask;
+        var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.removeItem", "MesParamGridSettings");
+
+        MesParamGridSettings = null;
+
+        selectedMesParamSourceType = null;
+        selectedMesDepartment = null;
+        selectedSapUnitOfMeasure = null;
+
+        if (mesParamDTOs != null)
+        {
+            await GetDistincts();
+        }
+
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    async Task CleanAllFiltersCustom()
+    {
+        var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (MesParamGridSettings != null)
+        {
+            foreach (var c in MesParamGridSettings.Columns)
+            {
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+            }
+
+        }
+
+        selectedMesParamSourceType = null;
+        selectedMesDepartment = null;
+        selectedSapUnitOfMeasure = null;
+
+        if (mesParamDTOs != null)
+        {
+            await GetDistincts();
+        }
+
+        await InvokeAsync(SaveStateAsync);
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    async Task CleanAllOrdersCustom()
+    {
+
+        var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (MesParamGridSettings != null)
+        {
+            foreach (var c in MesParamGridSettings.Columns)
+            {
+                c.SortOrder = null;
+            }
+            await InvokeAsync(SaveStateAsync);
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    async Task GetDistincts()
+    {
+        if (mesParamDTOs != null)
+        {
+
+            distinctMesParamSourceTypeInList = (List<string>)mesParamDTOs.Where(u => u.MesParamSourceTypeDTOFK != null).OrderBy(u => u.MesParamSourceTypeDTOFK.ToStringValue)
+            .Select(u => u.MesParamSourceTypeDTOFK.ToStringValue).Distinct().ToList();
+            distinctMesDepartmentInList = (List<string>)mesParamDTOs.Where(u => u.MesDepartmentDTOFK != null).OrderBy(u => u.MesDepartmentDTOFK.ToStringHierarchyShortName)
+                .Select(u => u.MesDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
+            distinctSapUnitOfMeasureInList = (List<string>)mesParamDTOs.Where(u => u.SapUnitOfMeasureDTOFK != null).OrderBy(u => u.SapUnitOfMeasureDTOFK.ShortName)
+                .Select(u => u.SapUnitOfMeasureDTOFK.ShortName).Distinct().ToList();
+        }
+    }
+}

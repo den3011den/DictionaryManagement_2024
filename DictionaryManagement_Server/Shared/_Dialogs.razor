@@ -1,0 +1,32 @@
+﻿@inject DialogService DialogService
+
+@code {
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    public async Task<dynamic> ShowYesOrNoDialogBox(string windowTitle, string windowMessage, string actionButtonText, string cancelButtonText)
+    {
+        var result = await DialogService.OpenAsync(windowTitle, ds =>
+    @<RadzenStack Gap="1.5rem">
+        <p>@windowMessage</p>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="@actionButtonText" Click="() => ds.Close(true)" Style="width: 170px;" />
+                <RadzenButton Text="@cancelButtonText" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    , new DialogOptions() { Left = $"{400}px" });
+
+        if (result != null)
+            return result;
+        else
+            return false;
+
+    }
+}

@@ -1,0 +1,52 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@using System.Security.Claims;
+<AuthorizeView>
+    @* Пользователь: @context.User.Identity?.Name&nbsp&nbsp;&nbsp; *@
+    <div class="container">  
+        <div class="row">
+            <div class="col-6 justify-content-start text-primary">
+                Интеграционное решение - Dictionary Management - @SD.AppVersion - @(SD.AppFactoryMode)
+            </div>
+            <div class="col-6 justify-content-end">
+                Пользователь: @UserLogin
+            </div>
+        </div>
+    </div>
+
+    @* <div>Входит в группу BDSHOME-PC\HomeUsers:&nbsp;</div>
+
+    @if (@context.User.IsInRole("BDSHOME-PC\\HomeUsers"))
+    {
+    <div>Да</div>
+    }
+    else
+    {
+    <div>Нет</div>
+    }
+
+    <br />
+    Входит в группу SIBUR\G601GO-S601AS-MES-CLC_Developers:
+    <br />
+    @if (@context.User.IsInRole("SIBUR\\G601GO-S601AS-MES-CLC_Developers"))
+    {
+    <div>Да</div>
+    }
+    else
+    {
+    <div>Нет</div>
+    }
+    *@
+</AuthorizeView>
+
+@code
+{
+
+    //[CascadingParameter]
+    //private Task<AuthenticationState>? authenticationState { get; set; }
+    public string UserLogin { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        UserLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginAndName);        
+    }
+}

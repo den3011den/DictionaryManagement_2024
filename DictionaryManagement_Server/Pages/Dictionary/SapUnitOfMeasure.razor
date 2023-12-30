@@ -1,0 +1,409 @@
+﻿@page "/dictionary/SapUnitOfMeasure"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json
+
+
+
+@inject IJSRuntime _jsRuntime
+@inject ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="dictionary">Справочники</a> - <a href="/dictionary/SapUnitOfMeasure">Единицы измерения SAP</a></h6>
+        </div>
+
+
+        @if (IsLoading != true)
+        {
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую единицу измерения SAP" Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) />
+                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+
+            <RadzenDataGridApp @ref="sapUnitOfMeasureDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                            @bind-Settings="@SapUnitOfMeasureGridSettings" SettingsName="SapUnitOfMeasureGridSettings"
+                            Data="@sapUnitOfMeasureDTOs" TItem="SapUnitOfMeasureDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                            
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            AllowColumnResize="false"                            
+                            GridLines="DataGridGridLines.Both"
+                            Style="height:calc(100vh - 190px)">
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Id" Title="Ид записи" Width="120px" />
+                    <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Name" Title="Наименование">
+                        <EditTemplate Context="sapUnitOfMeasureDTO">
+                            <RadzenTextBox @bind-Value="sapUnitOfMeasureDTO.Name" Style="width:100%; display: block" Name="Name" />
+                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
+                            <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="ShortName" Title="Сокр. наименование">
+                        <EditTemplate Context="sapUnitOfMeasureDTO">
+                            <RadzenTextBox @bind-Value="sapUnitOfMeasureDTO.ShortName" Style="width:100%; display: block" Name="ShortName" />
+                            <RadzenRequiredValidator Text="Сокр. наименование обязателено к заполнению" Component="ShortName" Popup="true" />
+                            <RadzenLengthValidator Max=100 Text="Сокр. наименование не может быть больше 100 символов" Component="ShortName" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="70px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SapUnitOfMeasureDTO" Context="sapUnitOfMeasureDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                        <Template Context="sapUnitOfMeasureDTO">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            @if (!sapUnitOfMeasureDTO.IsArchive)
+                            {
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                            else
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+
+                        </Template>
+                        <EditTemplate Context="sapUnitOfMeasureDTO">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(sapUnitOfMeasureDTO))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapUnitOfMeasureDTO))">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapUnitOfMeasureDTO))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+
+    </div>
+}
+
+
+@code {
+    _Dialogs? _dialogs { get; set; }
+
+    public string DeleteMessage { get; set; } = "";
+
+    RadzenDataGrid<SapUnitOfMeasureDTO> sapUnitOfMeasureDTOGrid;
+
+    IEnumerable<SapUnitOfMeasureDTO> sapUnitOfMeasureDTOs;
+
+    SapUnitOfMeasureDTO sapUnitOfMeasureDTOToInsert;
+    SapUnitOfMeasureDTO sapUnitOfMeasureDTOToUpdate;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public bool excelExportFlag { get; set; } = false;
+
+    DataGridSettings _sapUnitOfMeasureGridSettings;
+    public DataGridSettings SapUnitOfMeasureGridSettings
+    {
+        get
+        {
+            return _sapUnitOfMeasureGridSettings;
+        }
+        set
+        {
+            if (_sapUnitOfMeasureGridSettings != value)
+            {
+                _sapUnitOfMeasureGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("SapUnitOfMeasureGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "SapUnitOfMeasureGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _sapUnitOfMeasureGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+        }
+    }
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('SapUnitOfMeasureGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(SapUnitOfMeasureGridSettings)}')");
+        await SD.SetPageSettingsVersion("SapUnitOfMeasureGridSettings", _jsRuntime);
+    }
+
+
+    void Reset()
+    {
+        sapUnitOfMeasureDTOToInsert = null;
+        sapUnitOfMeasureDTOToUpdate = null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                sapUnitOfMeasureDTOs = _sapUnitOfMeasureRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/dictionary");
+    }
+
+    async Task EditRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapUnitOfMeasureDTOToUpdate = sapUnitOfMeasureDTO;
+            await sapUnitOfMeasureDTOGrid.EditRow(sapUnitOfMeasureDTO);
+        }
+    }
+
+    async Task OnUpdateRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (sapUnitOfMeasureDTO == sapUnitOfMeasureDTOToInsert)
+            {
+                sapUnitOfMeasureDTOToInsert = null;
+            }
+
+            sapUnitOfMeasureDTOToUpdate = null;
+
+            var objectForCheckName = await _sapUnitOfMeasureRepository.GetByName(sapUnitOfMeasureDTO.Name);
+            if (objectForCheckName != null)
+            {
+                if (objectForCheckName.Id != sapUnitOfMeasureDTO.Id)
+                {
+                    var objectForRestore = await _sapUnitOfMeasureRepository.Get(sapUnitOfMeasureDTO.Id);
+                    sapUnitOfMeasureDTO.Name = objectForRestore.Name;
+                    sapUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
+                    await sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
+                    await sapUnitOfMeasureDTOGrid.Reload();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения SAP \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                    return;
+                }
+            }
+
+            var objectForCheckShortName = await _sapUnitOfMeasureRepository.GetByShortName(sapUnitOfMeasureDTO.ShortName);
+            if (objectForCheckShortName != null)
+            {
+                if (objectForCheckShortName.Id != sapUnitOfMeasureDTO.Id)
+                {
+                    var objectForRestore = await _sapUnitOfMeasureRepository.Get(sapUnitOfMeasureDTO.Id);
+                    sapUnitOfMeasureDTO.Name = objectForRestore.Name;
+                    sapUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
+                    await sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
+                    await sapUnitOfMeasureDTOGrid.Reload();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения SAP \"" + objectForCheckShortName.ShortName + "\" с ИД зависи = " + objectForCheckShortName.Id.ToString());
+                    return;
+                }
+            }
+            SapUnitOfMeasureDTO oldSapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.Get(sapUnitOfMeasureDTO.Id);
+            SapUnitOfMeasureDTO newSapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.Update(sapUnitOfMeasureDTO, SD.UpdateMode.Update);
+            await _logEventRepository.ToLog<SapUnitOfMeasureDTO>(oldObject: oldSapUnitOfMeasureDTO, newObject: newSapUnitOfMeasureDTO, "Изменение ед.изм. SAP", "Ед.изм. SAP: ", _authorizationRepository);
+        }
+    }
+
+    async Task SaveRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
+        }
+    }
+
+    void CancelEdit(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
+    {
+        if (sapUnitOfMeasureDTO == sapUnitOfMeasureDTOToInsert)
+        {
+            sapUnitOfMeasureDTOToInsert = null;
+        }
+
+        sapUnitOfMeasureDTOToUpdate = null;
+
+        sapUnitOfMeasureDTOGrid.CancelEditRow(sapUnitOfMeasureDTO);
+
+        var objectForRestore = _sapUnitOfMeasureRepository.Get(sapUnitOfMeasureDTO.Id).GetAwaiter().GetResult();
+        if (objectForRestore != null)
+        {
+            sapUnitOfMeasureDTO.Name = objectForRestore.Name;
+            sapUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
+            sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
+        }
+        sapUnitOfMeasureDTOGrid.Reload();
+
+    }
+
+    async Task DeleteRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+            {
+                if (sapUnitOfMeasureDTO.IsArchive != true)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление ед. изм. SAP", "Удалить ед. изм. SAP \"" + sapUnitOfMeasureDTO.ShortName + "\" в архив ?", "Удалить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена удаления");
+                        return;
+                    }
+                }
+                else
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление ед. изм. SAP", "Восстановить ед. изм. SAP \"" + sapUnitOfMeasureDTO.ShortName + "\" из архива ?", "Восстановить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                        return;
+                    }
+                }
+            }
+
+            if (sapUnitOfMeasureDTO == sapUnitOfMeasureDTOToInsert)
+            {
+                sapUnitOfMeasureDTOToInsert = null;
+            }
+
+            if (sapUnitOfMeasureDTO == sapUnitOfMeasureDTOToUpdate)
+            {
+                sapUnitOfMeasureDTOToUpdate = null;
+            }
+
+            if (sapUnitOfMeasureDTOs.Contains(sapUnitOfMeasureDTO))
+            {
+                SapUnitOfMeasureDTO oldSapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.Get(sapUnitOfMeasureDTO.Id);
+                SapUnitOfMeasureDTO newSapUnitOfMeasureDTO = new SapUnitOfMeasureDTO();
+                string logEventTypeName = "";
+
+                if (sapUnitOfMeasureDTO.IsArchive)
+                {
+                    newSapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.Update(sapUnitOfMeasureDTO, SD.UpdateMode.RestoreFromArchive);
+                    sapUnitOfMeasureDTO.IsArchive = false;
+                    await _jsRuntime.ToastrSuccess("Ед. изм. " + sapUnitOfMeasureDTO.Name + " восстановлена из архива");
+                    logEventTypeName = "Восстановление из архива ед.изм. SAP";
+                }
+                else
+                {
+                    newSapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.Update(sapUnitOfMeasureDTO, SD.UpdateMode.MoveToArchive);
+                    sapUnitOfMeasureDTO.IsArchive = true;
+                    await _jsRuntime.ToastrSuccess("Ед. изм. " + sapUnitOfMeasureDTO.Name + " удалена в архив");
+                    logEventTypeName = "Удаление в архив ед.изм. SAP";
+                }
+                await _logEventRepository.ToLog<SapUnitOfMeasureDTO>(oldObject: oldSapUnitOfMeasureDTO, newObject: newSapUnitOfMeasureDTO, logEventTypeName, "Ед.изм. SAP: ", _authorizationRepository);
+                await sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
+                //await sapEquipmentDTOGrid.Reload();
+            }
+            else
+            {
+                sapUnitOfMeasureDTOGrid.CancelEditRow(sapUnitOfMeasureDTO);
+                await sapUnitOfMeasureDTOGrid.Reload();
+            }
+        }
+    }
+    async Task InsertRow()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapUnitOfMeasureDTOToInsert = new SapUnitOfMeasureDTO();
+            await sapUnitOfMeasureDTOGrid.InsertRow(sapUnitOfMeasureDTOToInsert);
+        }
+    }
+
+    async Task OnCreateRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapUnitOfMeasureDTOToInsert = null;
+
+            var objectForCheckName = await _sapUnitOfMeasureRepository.GetByName(sapUnitOfMeasureDTO.Name);
+            if (objectForCheckName != null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения SAP \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                sapUnitOfMeasureDTOGrid.CancelEditRow(sapUnitOfMeasureDTO);
+                await sapUnitOfMeasureDTOGrid.Reload();
+                return;
+            }
+
+            var objectForCheckShortName = await _sapUnitOfMeasureRepository.GetByShortName(sapUnitOfMeasureDTO.ShortName);
+            if (objectForCheckShortName != null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения SAP \"" + objectForCheckShortName.ShortName + "\" с ИД записи = " + objectForCheckShortName.Id.ToString());
+                sapUnitOfMeasureDTOGrid.CancelEditRow(sapUnitOfMeasureDTO);
+                await sapUnitOfMeasureDTOGrid.Reload();
+
+                return;
+            }
+
+            var newDTO = await _sapUnitOfMeasureRepository.Create(sapUnitOfMeasureDTO);
+
+            await _logEventRepository.ToLog<SapUnitOfMeasureDTO>(oldObject: null, newObject: newDTO, "Добавление ед.изм. SAP", "Ед.изм. SAP: ", _authorizationRepository);
+            //sapUnitOfMeasureDTO.Id = newDTO.Id;
+            //await sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
+
+            await OnAfterRenderAsync(true);
+        }
+    }
+
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "SapUnitOfMeasure_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelSapUnitOfMeasure(filename, (IEnumerable<SapUnitOfMeasureDTO>)sapUnitOfMeasureDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+}
+

@@ -1,0 +1,33 @@
+﻿@page "/"
+@attribute [Authorize]
+@using DictionaryManagement_Common;
+
+<PageTitle>1 - Dictionary Management - @SD.AppVersion - @(SD.AppFactoryMode)</PageTitle>
+
+@* <h4 class="card-title text-primary">Интеграционное решение - Dictionary Management - @SD.AppVersion</h4> *@
+@*<h1>Интеграционное решение - Dictionary Management</h1>*@
+<br />
+
+<i class="bi bi-card-list"></i>&nbsp;&nbsp;<a href="dictionary">СПРАВОЧНИКИ</a>
+<br />
+<br />
+<i class="bi bi-arrow-left-right"></i>&nbsp;&nbsp;<a href="mapping">МАППИНГ</a>
+<br />
+<br />
+<i class="bi bi-tags-fill"></i>&nbsp;&nbsp;<a href="tags">ТЭГИ</a>
+<br />
+<br />
+<i class="bi bi-database-fill"></i>&nbsp;&nbsp;<a href="dataarchive">АРХИВ ДАННЫХ</a>
+<br />
+<br />
+<i class="bi bi-arrow-up"></i>&nbsp;&nbsp;<a href="SAPShowcase">ВИТРИНЫ SAP</a>
+<br />
+<br />
+<i class="bi bi-building-fill-add"></i>&nbsp;&nbsp;<a href="reports">ОТЧЁТЫ</a>
+<br />
+<br />
+<i class="bi bi-journal"></i>&nbsp;&nbsp;<a href="eventjournal">ЖУРНАЛ СОБЫТИЙ</a>
+<br />
+<br />
+<i class="bi bi-gear-fill"></i>&nbsp;&nbsp;<a href="administration">АДМИНИСТРИРОВАНИЕ</a>
+

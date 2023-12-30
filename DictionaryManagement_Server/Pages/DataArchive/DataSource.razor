@@ -1,0 +1,366 @@
+﻿@page "/dataarchive/DataSource"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json
+
+
+
+@inject DialogService DialogService
+
+@inject IJSRuntime _jsRuntime
+@inject IDataSourceRepository _dataSourceRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/DataSource">Источники данных</a></h6>
+        </div>
+
+
+        @if (IsLoading != true)
+        {
+
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый источник данных" Click="@InsertRow" Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null) />
+                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+            <RadzenDataGridApp @ref="dataSourceDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               @bind-Settings="@DataSourceGridSettings" SettingsName="DataSourceGridSettings"
+                               Data="@dataSourceDTOs" TItem="DataSourceDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               EmptyText="Нет записей для отображения"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               AllowColumnResize="false"
+                               AllowVirtualization="true"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 190px)">
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="DataSourceDTO" Property="Id" Title="Ид записи" Width="120px" />
+                    <RadzenDataGridColumnApp TItem="DataSourceDTO" Property="Name" Title="Наименование" Width="320px">
+                        <EditTemplate Context="dataSourceDTO">
+                            <RadzenTextBox @bind-Value="dataSourceDTO.Name" Style="width:100%; display: block" Name="Name" />
+                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
+                            <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="DataSourceDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="80px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="true" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp Title="Действия" TItem="DataSourceDTO" Context="dataSourceDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                        <Template Context="dataSourceDTO">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(dataSourceDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            @if (!dataSourceDTO.IsArchive)
+                            {
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                            else
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                        </Template>
+                        <EditTemplate Context="dataSourceDTO">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(dataSourceDTO))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(dataSourceDTO))">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataSourceDTO))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+    </div>
+}
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    public string DeleteMessage { get; set; } = "";
+
+    RadzenDataGrid<DataSourceDTO> dataSourceDTOGrid;
+
+    IEnumerable<DataSourceDTO> dataSourceDTOs;
+
+    DataSourceDTO dataSourceDTOToInsert;
+    DataSourceDTO dataSourceDTOToUpdate;
+    public bool excelExportFlag { get; set; } = false;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    DataGridSettings _dataSourceGridSettings;
+    public DataGridSettings DataSourceGridSettings
+    {
+        get
+        {
+            return _dataSourceGridSettings;
+        }
+        set
+        {
+            if (_dataSourceGridSettings != value)
+            {
+                _dataSourceGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("DataSourceGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "DataSourceGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _dataSourceGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+        }
+    }
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('DataSourceGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(DataSourceGridSettings)}')");
+        await SD.SetPageSettingsVersion("DataSourceGridSettings", _jsRuntime);
+    }
+
+    void Reset()
+    {
+        dataSourceDTOToInsert = null;
+        dataSourceDTOToUpdate = null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                dataSourceDTOs = _dataSourceRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/dataarchive");
+    }
+
+    async Task EditRow(DataSourceDTO dataSourceDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            dataSourceDTOToUpdate = dataSourceDTO;
+            await dataSourceDTOGrid.EditRow(dataSourceDTO);
+        }
+    }
+
+    async Task OnUpdateRow(DataSourceDTO dataSourceDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (dataSourceDTO == dataSourceDTOToInsert)
+            {
+                dataSourceDTOToInsert = null;
+            }
+
+            dataSourceDTOToUpdate = null;
+
+            var objectForCheckName = await _dataSourceRepository.GetByName(dataSourceDTO.Name);
+            if (objectForCheckName != null)
+            {
+                if (objectForCheckName.Id != dataSourceDTO.Id)
+                {
+                    var objectForRestore = await _dataSourceRepository.Get(dataSourceDTO.Id);
+                    dataSourceDTO.Name = objectForRestore.Name;
+                    await dataSourceDTOGrid.UpdateRow(dataSourceDTO);
+                    await dataSourceDTOGrid.Reload();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись источника данных с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                    return;
+                }
+            }
+            DataSourceDTO oldDataSourceDTO = await _dataSourceRepository.Get(dataSourceDTO.Id);
+            DataSourceDTO newDataSourceDTO = await _dataSourceRepository.Update(dataSourceDTO, SD.UpdateMode.Update);
+            await _logEventRepository.ToLog<DataSourceDTO>(oldObject: oldDataSourceDTO, newObject: newDataSourceDTO, "Изменение источника данных", "Источник данных: ", _authorizationRepository);
+        }
+    }
+
+    async Task SaveRow(DataSourceDTO dataSourceDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await dataSourceDTOGrid.UpdateRow(dataSourceDTO);
+        }
+    }
+
+    void CancelEdit(DataSourceDTO dataSourceDTO)
+    {
+        if (dataSourceDTO == dataSourceDTOToInsert)
+        {
+            dataSourceDTOToInsert = null;
+        }
+
+        dataSourceDTOToUpdate = null;
+        dataSourceDTOGrid.CancelEditRow(dataSourceDTO);
+
+        var objectForRestore = _dataSourceRepository.Get(dataSourceDTO.Id).GetAwaiter().GetResult();
+        if (objectForRestore != null)
+        {
+            dataSourceDTO.Name = objectForRestore.Name;
+            dataSourceDTOGrid.UpdateRow(dataSourceDTO);
+            dataSourceDTOGrid.Reload();
+        }
+    }
+
+    async Task DeleteRow(DataSourceDTO dataSourceDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+            {
+                if (dataSourceDTO.IsArchive != true)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление источника данных", "Удалить источник данных \"" + dataSourceDTO.Name + "\" в архив ?", "Удалить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена удаления");
+                        return;
+                    }
+                }
+                else
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление источника данных", "Восстановить источник данных \"" + dataSourceDTO.Name + "\" из архива ?", "Восстановить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                        return;
+                    }
+                }
+            }
+            if (dataSourceDTO == dataSourceDTOToInsert)
+            {
+                dataSourceDTOToInsert = null;
+            }
+
+            if (dataSourceDTO == dataSourceDTOToUpdate)
+            {
+                dataSourceDTOToUpdate = null;
+            }
+
+            if (dataSourceDTOs.Contains(dataSourceDTO))
+            {
+                DataSourceDTO oldDataSourceDTO = await _dataSourceRepository.Get(dataSourceDTO.Id);
+                DataSourceDTO newDataSourceDTO = new DataSourceDTO();
+                string logEventTypeName = "";
+                if (dataSourceDTO.IsArchive)
+                {
+                    newDataSourceDTO = await _dataSourceRepository.Update(dataSourceDTO, SD.UpdateMode.RestoreFromArchive);
+                    dataSourceDTO.IsArchive = false;
+                    await _jsRuntime.ToastrSuccess("Источник данных " + dataSourceDTO.Name + " восстановлен из архива");
+                    logEventTypeName = "Восстановление из архива источника данных";
+                }
+                else
+                {
+                    newDataSourceDTO = await _dataSourceRepository.Update(dataSourceDTO, SD.UpdateMode.MoveToArchive);
+                    dataSourceDTO.IsArchive = true;
+                    await _jsRuntime.ToastrSuccess("Источник данных " + dataSourceDTO.Name + " удален в архив");
+                    logEventTypeName = "Удаление в архив источника данных";
+                }
+                await _logEventRepository.ToLog<DataSourceDTO>(oldObject: oldDataSourceDTO, newObject: newDataSourceDTO, logEventTypeName, "Источник данных: ", _authorizationRepository);
+                await dataSourceDTOGrid.UpdateRow(dataSourceDTO);
+                //await sapEquipmentDTOGrid.Reload();
+            }
+            else
+            {
+                dataSourceDTOGrid.CancelEditRow(dataSourceDTO);
+                await dataSourceDTOGrid.Reload();
+            }
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            dataSourceDTOToInsert = new DataSourceDTO();
+            await dataSourceDTOGrid.InsertRow(dataSourceDTOToInsert);
+        }
+    }
+
+    async Task OnCreateRow(DataSourceDTO dataSourceDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            dataSourceDTOToInsert = null;
+
+            var objectForCheckName = await _dataSourceRepository.GetByName(dataSourceDTO.Name);
+            if (objectForCheckName != null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись источника данных с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                dataSourceDTOGrid.CancelEditRow(dataSourceDTO);
+                await dataSourceDTOGrid.Reload();
+                return;
+            }
+
+            var newDTO = await _dataSourceRepository.Create(dataSourceDTO);
+            await _logEventRepository.ToLog<DataSourceDTO>(oldObject: null, newObject: newDTO, "Добавление источника данных", "Источник данных: ", _authorizationRepository);
+            await OnAfterRenderAsync(true);
+        }
+    }
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "DataSource_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelDataSource(filename, (IEnumerable<DataSourceDTO>)dataSourceDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+}
+
+
+

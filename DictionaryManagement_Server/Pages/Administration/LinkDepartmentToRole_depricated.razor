@@ -1,0 +1,157 @@
+﻿@page "/administration/Role/LinkDepartmentToRole_depricated/{RoleId}"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+
+@inject IJSRuntime _jsRuntime
+
+@inject IRoleVMRepository _roleVMRepository
+@inject IMesDepartmentRepository _mesDepartmentRepository
+@inject IRoleToDepartmentRepository _roleToDepartmentRepository
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row my-2">
+
+        <div class="col-md-12">
+            @if (IsLoading)
+            {
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+            }
+            else
+            {
+                <EditForm Model="ActiveRoleVMDTO" OnSubmit="AddDepartmentToRoleProcedure">
+
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn Size="12">
+                            <RadzenStack>
+                                <RadzenStack Gap="1rem">
+                                    <div class="container-fluid">
+                                        <div class="row my-5">
+                                            <div class="col-lg-10 offset-lg-1">
+                                                <RadzenCard>
+                                                    <RadzenTree AllowCheckChildren="false" AllowCheckParents="false" AllowCheckBoxes="true" @bind-CheckedValues=@CheckedValues Style="width: 100%; height: 500px" Data=@MesDepartmentList>
+                                                        <RadzenTreeLevel TextProperty="ShortName" ChildrenProperty="ChildrenDTO" />                                                        
+                                                    </RadzenTree> 
+                                                </RadzenCard>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+
+
+
+
+                    <div class="form-group py-2">
+                        <button class="btn btn-primary">@Title</button>
+                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+}
+
+
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    [Parameter]
+    public Guid RoleId { get; set; }
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    RoleVMDTO ActiveRoleVMDTO { get; set; }
+    IEnumerable<MesDepartmentVMDTO> MesDepartmentList { get; set; } = new List<MesDepartmentVMDTO>();
+
+    private string Title { get; set; } = "Добавить производства к роли";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    IEnumerable<object> checkedValues;
+    IEnumerable<object> CheckedValues
+    {
+        get => checkedValues;
+        set
+        {
+            checkedValues = value;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                StateHasChanged();
+
+                ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+                Title = "Добавить производства к роли";
+
+                RoleToDepartmentDTO foundRoleToDepartmentDTO = null;
+
+                MesDepartmentList = await _roleVMRepository.GetAllDepartmentWithChildrenCheckedWithLinkRole(RoleId, null, null);
+                CheckedValues = await _roleVMRepository.GetAllDepartmentCheckedObjects(MesDepartmentList);
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration/Role");
+    }
+
+    private async Task AddDepartmentToRoleProcedure()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Сохранить привязку производств к роли ?", "Сохранить привязку производств к роли ?", "Добавить", "Отмена");
+            if (selectionResult == false)
+            {
+                return;
+            }
+
+            int addedCount = await _roleVMRepository.AddDepartmentsToRole(CheckedValues, ActiveRoleVMDTO);
+          
+            await _jsRuntime.ToastrSuccess("Сохранено. Всего привязано производств к роли " + addedCount.ToString());
+
+            ActiveRoleVMDTO = await _roleVMRepository.Get(ActiveRoleVMDTO.Id);
+
+            _dialogService.Close(ActiveRoleVMDTO);
+
+        }
+
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+}

@@ -1,0 +1,239 @@
+﻿@page "/administration/Scheduler"
+@attribute [Authorize]
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Business.Repository;
+@using DictionaryManagement_Models.IntDBModels;
+@using System.Text.Json;
+
+
+
+@inject IJSRuntime _jsRuntime
+@inject ISchedulerRepository _schedulerRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+
+@inject DialogService _dialogService
+
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Scheduler">Расписания авторасчётов (AutoCalc)</a></h6>
+        </div>
+
+
+        @if (IsLoading != true)
+        {
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить задание" Click="@(args => EditRow(null))" />
+                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+
+            <RadzenDataGridApp @bind-Settings="@SchedulerGridSettings" SettingsName="SchedulerGridSettings" @ref="schedulerDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               Data="@schedulerDTOs" TItem="SchedulerDTO"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               Density=Density.Compact
+                               ShowPagingSummary="true"
+                               AllowVirtualization="true"
+                               AllowColumnResize="false"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 190px)">
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="SchedulerDTO" Property="Id" Title="Ид записи" Width="70px">
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SchedulerDTO" Property="ModuleName" Title="Наименование модуля" Width="100px">
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SchedulerDTO" Property="StartTime" Title="Время начала" Width="60px">
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SchedulerDTO" Property="LastExecuted" Title="Время последнего выполнения" Width="120px">
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SchedulerDTO" Context="SchedulerDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="55px">
+                        <Template Context="schedulerDTO">
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(schedulerDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton title="Удалить" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(schedulerDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                </Columns>
+            </RadzenDataGridApp>
+
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+
+    </div>
+}
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    IEnumerable<SchedulerDTO>? schedulerDTOs;
+
+    RadzenDataGrid<SchedulerDTO> schedulerDTOGrid;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+    public bool excelExportFlag { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                schedulerDTOs = await _schedulerRepository.GetAll();
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration");
+    }
+
+
+    DataGridSettings _schedulerGridSettings;
+    public DataGridSettings SchedulerGridSettings
+    {
+        get
+        {
+            return _schedulerGridSettings;
+        }
+        set
+        {
+            if (_schedulerGridSettings != value)
+            {
+                _schedulerGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+
+        if (!(await SD.CheckPageSettingsVersion("SchedulerGridSettings", _jsRuntime)))
+            return;
+
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "SchedulerGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _schedulerGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('SchedulerGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(SchedulerGridSettings)}')");
+        await SD.SetPageSettingsVersion("SchedulerGridSettings", _jsRuntime);
+    }
+
+
+    async Task EditRow(SchedulerDTO schedulerDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsLoading = true;
+
+            SchedulerDTO dialogResult = null;
+
+            if (schedulerDTO == null)
+            {
+                IsLoading = false;
+                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Добавить задание", new Dictionary<string, object>() { { "SchedulerId", 0 } }, new DialogOptions() { Width = $"{500}px" });
+            }
+            else
+            {
+                IsLoading = false;
+                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Изменить задание", new Dictionary<string, object>() { { "SchedulerId", schedulerDTO.Id } }, new DialogOptions() { Width = $"{500}px" });
+            }
+
+
+            if (dialogResult != null)
+            {
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                schedulerDTOs = await _schedulerRepository.GetAll();
+                IsLoading = false;
+                StateHasChanged();
+            }
+
+            IsLoading = false;
+        }
+    }
+
+
+    async Task DeleteRow(SchedulerDTO schedulerDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+            {
+                bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление задания", "Удалить задание для модуля \"" + schedulerDTO.ModuleName + "\" с временем старта " +
+                    schedulerDTO.StartTime.ToString() + " ?", "Удалить", "Отмена");
+                if (selectionResult == false)
+                {
+                    await _jsRuntime.ToastrSuccess("Отмена удаления");
+                    return;
+                }
+            }
+            Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
+            await _logEventRepository.AddRecord("Удаление расписания", addedUserId, "", "", false, "Расписание: " + schedulerDTO.ToString());
+
+            await _schedulerRepository.Delete(schedulerDTO.Id);
+            schedulerDTOs = await _schedulerRepository.GetAll();
+            schedulerDTOGrid.Reload();
+
+        }
+    }
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "Scheduler_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelScheduler(filename, (IEnumerable<SchedulerDTO>)schedulerDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+}

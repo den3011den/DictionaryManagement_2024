@@ -1,0 +1,120 @@
+﻿@page "/administration/Version/AddEditVersion/{version}"
+@attribute [Authorize]
+
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+
+@inject IVersionRepository _versionRepository
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <div class="row my-2">        
+
+        <div class="col-md-10">
+            @if (IsLoading)
+            {
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+            }
+            else
+            {
+                <EditForm Model="ActiveVersionDTO" OnValidSubmit="AddEditVersionProcedure">
+                    <DataAnnotationsValidator />
+
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn Size="12">
+                            <RadzenStack>
+
+                                <RadzenFormField Text="Версия базы данных СИР" Variant="@variant" Style="width: 100%; max-width: 600px;">
+                                    <RadzenTextBox @bind-Value="@ActiveVersionDTO.version" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveVersionDTO.version"></ValidationMessage>
+
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    
+                    <div class="form-group py-2">
+                        <button class="btn btn-primary">@Title</button>
+                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public string version { get; set; }
+
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public VersionDTO ActiveVersionDTO { get; set; }
+
+    private string Title { get; set; } = "Изменить версию БД СИР";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+        ActiveVersionDTO = await _versionRepository.Get();
+
+        IsLoading = false;
+        StateHasChanged();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                StateHasChanged();
+
+                ActiveVersionDTO = await _versionRepository.Get();
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration");
+    }
+
+    private async Task AddEditVersionProcedure()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await _versionRepository.Set(ActiveVersionDTO);
+
+            await _jsRuntime.ToastrSuccess("Версия БД СИР изменена");
+                
+            _dialogService.Close(ActiveVersionDTO);            
+        }
+
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+}

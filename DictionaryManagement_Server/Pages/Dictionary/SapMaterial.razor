@@ -1,0 +1,505 @@
+﻿@page "/dictionary/SapMaterial"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json
+
+
+@inject IJSRuntime _jsRuntime
+@inject ISapMaterialRepository _sapMaterialRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+@inject DialogService _dialogService
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="dictionary">Справочники</a> - <a href="/dictionary/SapMaterial">Материалы SAP</a></h6>
+        </div>
+
+
+        @if (IsLoading != true)
+        {
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый материал SAP" Click="@InsertRow" Disabled=@(sapMaterialDTOToInsert != null || sapMaterialDTOToUpdate != null) />
+                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+            <RadzenDataGridApp @ref="sapMaterialDTOGrid" @bind-Settings="@SapMaterialGridSettings" SettingsName="SapMaterialGridSettings" AllowFiltering="true" AllowPaging="false" AllowAlternatingRows="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               Data="@sapMaterialDTOs" TItem="SapMaterialDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               AllowColumnResize="false"
+                               AllowVirtualization="true"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 190px)">
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="Id" Title="Ид записи" Width="120px" />
+                    <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="Code" Title="Код материала" Width="120px">
+                        <EditTemplate Context="sapMaterialDTO">
+                            <RadzenTextBox @bind-Value="sapMaterialDTO.Code" Style="width:50%; display: block" Name="Code" />
+                            <RadzenRequiredValidator Text="Код материала обязателен к заполнению" Component="Code" Popup="true" />
+                            <RadzenLengthValidator Max=100 Text="Код материала не может быть больше 100 символов" Component="Code" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="Name" Title="Наименование" Width="270px">
+                        <Template Context="sapMaterialDTO">
+                            <div style="white-space:pre-wrap">
+                                @sapMaterialDTO.Name
+                            </div>
+                        </Template>
+                        <EditTemplate Context="sapMaterialDTO">
+                            <RadzenTextBox @bind-Value="sapMaterialDTO.Name" Style="width:100%; display: block" Name="Name" />
+                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
+                            <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="ShortName" Title="Сокр. наименование" Width="270px">
+                        <Template Context="sapMaterialDTO">
+                            <div style="white-space:pre-wrap">
+                                @sapMaterialDTO.ShortName
+                            </div>
+                        </Template>
+                        <EditTemplate Context="sapMaterialDTO">
+                            <RadzenTextBox @bind-Value="sapMaterialDTO.ShortName" Style="width:100%; display: block;" Name="ShortName" />
+                            <RadzenRequiredValidator Text="Сокр. наименование обязателено к заполнению" Component="ShortName" Popup="true" />
+                            <RadzenLengthValidator Max=100 Text="Сокр. наименование не может быть больше 100 символов" Component="ShortName" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="80px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SapMaterialDTO" Context="sapMaterialDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="86px">
+                        <Template Context="sapMaterialDTO">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMaterialDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            @if (!sapMaterialDTO.IsArchive)
+                            {
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMaterialDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+                            else
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMaterialDTO))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            }
+
+                        </Template>
+                        <EditTemplate Context="sapMaterialDTO">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(sapMaterialDTO))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapMaterialDTO))">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMaterialDTO))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                //отображение gif загрузки
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+
+            }
+        }
+
+    </div>
+}
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    RadzenDataGrid<SapMaterialDTO> sapMaterialDTOGrid;
+
+    IEnumerable<SapMaterialDTO> sapMaterialDTOs;
+
+    SapMaterialDTO sapMaterialDTOToInsert;
+    SapMaterialDTO sapMaterialDTOToUpdate;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+    public bool excelExportFlag { get; set; } = false;
+
+    void Reset()
+    {
+        sapMaterialDTOToInsert = null;
+        sapMaterialDTOToUpdate = null;
+    }
+
+
+    DataGridSettings _sapMaterialGridSettings;
+    public DataGridSettings SapMaterialGridSettings
+    {
+        get
+        {
+            return _sapMaterialGridSettings;
+        }
+        set
+        {
+            if (_sapMaterialGridSettings != value)
+            {
+                _sapMaterialGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("SapMaterialGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "SapMaterialGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _sapMaterialGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+        }
+    }
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('SapMaterialGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(SapMaterialGridSettings)}')");
+        await SD.SetPageSettingsVersion("SapMaterialGridSettings", _jsRuntime);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                sapMaterialDTOs = _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/dictionary");
+    }
+
+    async Task EditRow(SapMaterialDTO sapMaterialDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapMaterialDTOToUpdate = sapMaterialDTO;
+            await sapMaterialDTOGrid.EditRow(sapMaterialDTO);
+        }
+    }
+
+    async Task OnUpdateRow(SapMaterialDTO sapMaterialDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (sapMaterialDTO == sapMaterialDTOToInsert)
+            {
+                sapMaterialDTOToInsert = null;
+            }
+
+            bool needAskUser = false;
+
+            sapMaterialDTOToUpdate = null;
+
+            string errorMessage = string.Empty;
+
+            var objectForCheckName = _sapMaterialRepository.GetByName(sapMaterialDTO.Name).Result;
+
+            if (objectForCheckName != null)
+            {
+                if (objectForCheckName.Id != sapMaterialDTO.Id)
+                {
+                    if (errorMessage != string.Empty)
+                    {
+                        errorMessage = errorMessage + "\n";
+                    }
+                    errorMessage = errorMessage + "Уже есть запись с наименованием материала SAP \"" + objectForCheckName.Name + "\" (ИД записи: " + objectForCheckName.Id.ToString() + ")";
+                    needAskUser = true;
+                }
+            }
+
+            var objectForCheckShortName = _sapMaterialRepository.GetByName(sapMaterialDTO.ShortName).Result;
+
+            if (objectForCheckShortName != null)
+            {
+                if (objectForCheckShortName.Id != sapMaterialDTO.Id)
+                {
+                    if (errorMessage != string.Empty)
+                    {
+                        errorMessage = errorMessage + "\n";
+                    }
+                    errorMessage = errorMessage + "Уже есть запись с сокр. наименованием материала SAP \"" + objectForCheckShortName.ShortName + "\" (ИД записи: " + objectForCheckShortName.Id.ToString() + ")";
+                    needAskUser = true;
+                }
+            }
+
+            var objectForCheckCode = _sapMaterialRepository.GetByCode(sapMaterialDTO.Code).Result;
+
+            if (objectForCheckCode != null)
+            {
+                if (objectForCheckCode.Id != sapMaterialDTO.Id)
+                {
+                    errorMessage = "Уже есть запись с кодом материала SAP \"" + objectForCheckCode.Code + "\" (ИД записи: " + objectForCheckCode.Id.ToString() + ")";
+                    needAskUser = false;
+                }
+            }
+
+
+            if (errorMessage != string.Empty)
+            {
+                bool returnFlag = false;
+                if (needAskUser)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение материала SAP", errorMessage + " Всё равно сохранить изменения ?", "Сохранить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        returnFlag = true;
+                    }
+                }
+                else
+                {
+                    returnFlag = true;
+                }
+
+                if (returnFlag == true)
+                {
+                    var objectForRestore = await _sapMaterialRepository.Get(sapMaterialDTO.Id);
+                    sapMaterialDTO.Code = objectForRestore.Code;
+                    sapMaterialDTO.Name = objectForRestore.Name;
+                    sapMaterialDTO.ShortName = objectForRestore.ShortName;
+                    await sapMaterialDTOGrid.UpdateRow(sapMaterialDTO);
+                    await sapMaterialDTOGrid.Reload();
+                    if (needAskUser == false)
+                    {
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", errorMessage);
+                    }
+                    return;
+                }
+
+                SapMaterialDTO oldSapMaterialDTO = await _sapMaterialRepository.Get(sapMaterialDTO.Id);
+                SapMaterialDTO newSapMaterialDTO = await _sapMaterialRepository.Update(sapMaterialDTO, SD.UpdateMode.Update);
+                await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: oldSapMaterialDTO, newObject: newSapMaterialDTO, "Изменение материала SAP", "Материал SAP: ", _authorizationRepository);
+            }
+        }
+    }
+    async Task SaveRow(SapMaterialDTO sapMaterialDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await sapMaterialDTOGrid.UpdateRow(sapMaterialDTO);
+        }
+    }
+
+    void CancelEdit(SapMaterialDTO sapMaterialDTO)
+    {
+        if (sapMaterialDTO == sapMaterialDTOToInsert)
+        {
+            sapMaterialDTOToInsert = null;
+        }
+
+        sapMaterialDTOToUpdate = null;
+
+        sapMaterialDTOGrid.CancelEditRow(sapMaterialDTO);
+
+        var objectForRestore = _sapMaterialRepository.Get(sapMaterialDTO.Id).GetAwaiter().GetResult();
+        if (objectForRestore != null)
+        {
+            sapMaterialDTO.Code = objectForRestore.Code;
+            sapMaterialDTO.Name = objectForRestore.Name;
+            sapMaterialDTO.ShortName = objectForRestore.ShortName;
+            sapMaterialDTOGrid.UpdateRow(sapMaterialDTO);
+        }
+        sapMaterialDTOGrid.Reload();
+    }
+
+    async Task DeleteRow(SapMaterialDTO sapMaterialDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (_dialogs != null)
+                if (sapMaterialDTO.IsArchive != true)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление материала SAP", "Удалить материал SAP \"" + sapMaterialDTO.ShortName + "\" в архив ?", "Удалить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена удаления");
+                        return;
+                    }
+                }
+                else
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление материала SAP", "Восстановить материал SAP \"" + sapMaterialDTO.ShortName + "\" из архива ?", "Восстановить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                        return;
+                    }
+                }
+
+            if (sapMaterialDTO == sapMaterialDTOToInsert)
+            {
+                sapMaterialDTOToInsert = null;
+            }
+
+            if (sapMaterialDTO == sapMaterialDTOToUpdate)
+            {
+                sapMaterialDTOToUpdate = null;
+            }
+
+            if (sapMaterialDTOs.Contains(sapMaterialDTO))
+            {
+                SapMaterialDTO oldSapMaterialDTO = await _sapMaterialRepository.Get(sapMaterialDTO.Id);
+                SapMaterialDTO newSapMaterialDTO = new SapMaterialDTO();
+                string logEventTypeName = "";
+                if (sapMaterialDTO.IsArchive)
+                {
+                    newSapMaterialDTO = await _sapMaterialRepository.Update(sapMaterialDTO, SD.UpdateMode.RestoreFromArchive);
+                    sapMaterialDTO.IsArchive = false;
+                    await _jsRuntime.ToastrSuccess("Материал \"" + sapMaterialDTO.Name + "\" восстановлен из архива");
+                    logEventTypeName = "Восстановление из архива материала SAP";
+                }
+                else
+                {
+                    newSapMaterialDTO = await _sapMaterialRepository.Update(sapMaterialDTO, SD.UpdateMode.MoveToArchive);
+                    sapMaterialDTO.IsArchive = true;
+                    await _jsRuntime.ToastrSuccess("Материал \"" + sapMaterialDTO.Name + "\" удалён в архив");
+                    logEventTypeName = "Удаление в архив материала SAP";
+                }
+                await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: oldSapMaterialDTO, newObject: newSapMaterialDTO, logEventTypeName, "Материал SAP: ", _authorizationRepository);
+                await sapMaterialDTOGrid.UpdateRow(sapMaterialDTO);
+            }
+            else
+            {
+                sapMaterialDTOGrid.CancelEditRow(sapMaterialDTO);
+                await sapMaterialDTOGrid.Reload();
+            }
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapMaterialDTOToInsert = new SapMaterialDTO();
+            await sapMaterialDTOGrid.InsertRow(sapMaterialDTOToInsert);
+        }
+    }
+
+    async Task OnCreateRow(SapMaterialDTO sapMaterialDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            sapMaterialDTOToInsert = null;
+
+            string errorMessage = string.Empty;            
+            bool needAskUser = false;
+
+            var objectForCheckName = _sapMaterialRepository.GetByName(sapMaterialDTO.Name).Result;
+
+            if (objectForCheckName != null)
+            {
+                if (errorMessage != string.Empty)
+                {
+                    errorMessage = errorMessage + "\n";
+                }
+                errorMessage = errorMessage + "Уже есть запись с наименованием материала SAP \"" + objectForCheckName.Name + "\" (ИД записи: " + objectForCheckName.Id.ToString() + ")";
+                needAskUser = true;
+            }
+
+            var objectForCheckShortName = _sapMaterialRepository.GetByName(sapMaterialDTO.ShortName).Result;
+
+            if (objectForCheckShortName != null)
+            {
+                if (errorMessage != string.Empty)
+                {
+                    errorMessage = errorMessage + "\n";
+                }
+                errorMessage = errorMessage + "Уже есть запись с сокр. наименованием материала SAP \"" + objectForCheckShortName.ShortName + "\" (ИД записи: " + objectForCheckShortName.Id.ToString() + ")";
+                needAskUser = true;
+            }
+
+            var objectForCheckCode = _sapMaterialRepository.GetByCode(sapMaterialDTO.Code).Result;
+            if (objectForCheckCode != null)
+            {
+                errorMessage = "Уже есть запись с кодом материала SAP \"" + objectForCheckCode.Code + "\" (ИД записи: " + objectForCheckCode.Id.ToString() + ")";
+                needAskUser = false;
+            }
+
+            if (errorMessage != string.Empty)                        
+            {
+                bool returnFlag = false;
+                if (needAskUser)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Добаление материала SAP", errorMessage + " Всё равно добавить ?", "Добавить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        returnFlag = true;
+                    }
+                }
+                else
+                {
+                    returnFlag = true;
+                }
+
+                if (returnFlag == true)
+                {
+                    if (needAskUser == false)
+                    {
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", errorMessage);
+                    }
+                    sapMaterialDTOGrid.CancelEditRow(sapMaterialDTO);
+                    await sapMaterialDTOGrid.Reload();
+                    return;
+                }
+            }
+
+            var newDTO = await _sapMaterialRepository.Create(sapMaterialDTO);
+            await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: null, newObject: newDTO, "Добавление материала SAP", "Материал SAP: ", _authorizationRepository);
+
+            await OnAfterRenderAsync(true);
+        }
+    }
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "SapMaterial_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelSapMaterial(filename, (IEnumerable<SapMaterialDTO>)sapMaterialDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+}
+

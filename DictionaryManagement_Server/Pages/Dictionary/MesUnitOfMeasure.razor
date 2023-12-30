@@ -1,0 +1,414 @@
+﻿@page "/dictionary/MesUnitOfMeasure"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json
+
+
+
+@inject IJSRuntime _jsRuntime
+@inject IMesUnitOfMeasureRepository _mesUnitOfMeasureRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+
+<_Dialogs @ref="_dialogs"></_Dialogs>
+
+<div class="row">
+    <div class="col-6">
+        <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> - <a href="/dictionary/MesUnitOfMeasure">Единицы измерения MES</a></h6>
+    </div>
+
+
+    @if (IsAdmin == true && IsLoading != true)
+    {
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую единицу измерения SAP" Click="@InsertRow" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null) />
+            <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+        </RadzenRow>
+
+        <RadzenDataGridApp @ref="mesUnitOfMeasureDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                           @bind-Settings="@MesUnitOfMeasureGridSettings" SettingsName="MesUnitOfMeasureGridSettings"
+                           Data="@mesUnitOfMeasureDTOs" TItem="MesUnitOfMeasureDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                           FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                           
+                           AllowColumnResize="false"
+                           FilterMode="FilterMode.SimpleWithMenu"
+                           GridLines="DataGridGridLines.Both"
+                           Style="height:calc(100vh - 190px)">
+            <Columns>
+                <RadzenDataGridColumnApp TItem="MesUnitOfMeasureDTO" Property="Id" Title="Ид записи" Width="120px" />
+                <RadzenDataGridColumnApp TItem="MesUnitOfMeasureDTO" Property="Name" Title="Наименование" Width="270px">
+                    <EditTemplate Context="mesUnitOfMeasureDTO">
+                        <RadzenTextBox @bind-Value="mesUnitOfMeasureDTO.Name" Style="width:100%; display: block" Name="Name" />
+                        <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
+                        <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                    </EditTemplate>
+                </RadzenDataGridColumnApp>
+                <RadzenDataGridColumnApp TItem="MesUnitOfMeasureDTO" Property="ShortName" Title="Сокр. наименование" Width="270px">
+                    <EditTemplate Context="mesUnitOfMeasureDTO">
+                        <RadzenTextBox @bind-Value="mesUnitOfMeasureDTO.ShortName" Style="width:100%; display: block" Name="ShortName" />
+                        <RadzenRequiredValidator Text="Сокр. наименование обязателено к заполнению" Component="ShortName" Popup="true" />
+                        <RadzenLengthValidator Max=100 Text="Сокр. наименование не может быть больше 100 символов" Component="ShortName" Popup="true" />
+                    </EditTemplate>
+                </RadzenDataGridColumnApp>
+
+                <RadzenDataGridColumnApp TItem="MesUnitOfMeasureDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="70px" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
+                    </Template>
+                </RadzenDataGridColumnApp>
+                <RadzenDataGridColumnApp Title="Действия" TItem="MesUnitOfMeasureDTO" Context="mesUnitOfMeasureDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <Template Context="mesUnitOfMeasureDTO">
+                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                        </RadzenButton>
+                        @if (!mesUnitOfMeasureDTO.IsArchive)
+                        {
+                            <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        }
+                        else
+                        {
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        }
+                    </Template>
+                    <EditTemplate Context="mesUnitOfMeasureDTO">
+                        <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(mesUnitOfMeasureDTO))">
+                        </RadzenButton>
+                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(mesUnitOfMeasureDTO))">
+                        </RadzenButton>
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesUnitOfMeasureDTO))">
+                        </RadzenButton>
+                    </EditTemplate>
+                </RadzenDataGridColumnApp>
+            </Columns>
+        </RadzenDataGridApp>
+    }
+    else
+    {
+        if (IsLoading)
+        {
+            //отображение gif загрузки
+            <div class="text-center">
+                <img src="/images/loading.gif">
+            </div>
+
+        }
+    }
+
+</div>
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    public string DeleteMessage { get; set; } = "";
+
+    RadzenDataGrid<MesUnitOfMeasureDTO> mesUnitOfMeasureDTOGrid;
+
+    IEnumerable<MesUnitOfMeasureDTO> mesUnitOfMeasureDTOs;
+
+    MesUnitOfMeasureDTO mesUnitOfMeasureDTOToInsert;
+    MesUnitOfMeasureDTO mesUnitOfMeasureDTOToUpdate;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+    public bool excelExportFlag { get; set; } = false;
+
+
+    DataGridSettings _mesUnitOfMeasureGridSettings;
+    public DataGridSettings MesUnitOfMeasureGridSettings
+    {
+        get
+        {
+            return _mesUnitOfMeasureGridSettings;
+        }
+        set
+        {
+            if (_mesUnitOfMeasureGridSettings != value)
+            {
+                _mesUnitOfMeasureGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("MesUnitOfMeasureGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "MesUnitOfMeasureGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _mesUnitOfMeasureGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+        }
+    }
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('MesUnitOfMeasureGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(MesUnitOfMeasureGridSettings)}')");
+        await SD.SetPageSettingsVersion("MesUnitOfMeasureGridSettings", _jsRuntime);
+    }
+
+
+
+    void Reset()
+    {
+        mesUnitOfMeasureDTOToInsert = null;
+        mesUnitOfMeasureDTOToUpdate = null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+                IsLoading = true;
+                await LoadStateAsync();
+                StateHasChanged();
+                mesUnitOfMeasureDTOs = _mesUnitOfMeasureRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/dictionary");
+    }
+
+    async Task EditRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            mesUnitOfMeasureDTOToUpdate = mesUnitOfMeasureDTO;
+            await mesUnitOfMeasureDTOGrid.EditRow(mesUnitOfMeasureDTO);
+        }
+    }
+
+    async Task OnUpdateRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+
+            if (mesUnitOfMeasureDTO == mesUnitOfMeasureDTOToInsert)
+            {
+                mesUnitOfMeasureDTOToInsert = null;
+            }
+
+            mesUnitOfMeasureDTOToUpdate = null;
+
+            var objectForCheckName = await _mesUnitOfMeasureRepository.GetByName(mesUnitOfMeasureDTO.Name);
+            if (objectForCheckName != null)
+            {
+                if (objectForCheckName.Id != mesUnitOfMeasureDTO.Id)
+                {
+                    var objectForRestore = await _mesUnitOfMeasureRepository.Get(mesUnitOfMeasureDTO.Id);
+                    mesUnitOfMeasureDTO.Name = objectForRestore.Name;
+                    mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
+                    await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+                    await mesUnitOfMeasureDTOGrid.Reload();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения MES \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                    return;
+                }
+            }
+
+            var objectForCheckShortName = await _mesUnitOfMeasureRepository.GetByShortName(mesUnitOfMeasureDTO.ShortName);
+            if (objectForCheckShortName != null)
+            {
+                if (objectForCheckShortName.Id != mesUnitOfMeasureDTO.Id)
+                {
+                    var objectForRestore = await _mesUnitOfMeasureRepository.Get(mesUnitOfMeasureDTO.Id);
+                    mesUnitOfMeasureDTO.Name = objectForRestore.Name;
+                    mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
+                    await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+                    await mesUnitOfMeasureDTOGrid.Reload();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения MES \"" + objectForCheckShortName.ShortName + "\" с ИД зависи = " + objectForCheckShortName.Id.ToString());
+                    return;
+                }
+            }
+
+            MesUnitOfMeasureDTO oldMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Get(mesUnitOfMeasureDTO.Id);
+            MesUnitOfMeasureDTO newMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Update(mesUnitOfMeasureDTO, SD.UpdateMode.Update);
+            await _logEventRepository.ToLog<MesUnitOfMeasureDTO>(oldObject: oldMesUnitOfMeasureDTO, newObject: newMesUnitOfMeasureDTO, "Изменение ед.изм. MES", "Ед.изм. MES: ", _authorizationRepository);
+        }
+    }
+
+    async Task SaveRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+        }
+    }
+
+    void CancelEdit(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
+    {
+        if (mesUnitOfMeasureDTO == mesUnitOfMeasureDTOToInsert)
+        {
+            mesUnitOfMeasureDTOToInsert = null;
+        }
+
+        mesUnitOfMeasureDTOToUpdate = null;
+
+        mesUnitOfMeasureDTOGrid.CancelEditRow(mesUnitOfMeasureDTO);
+
+        var objectForRestore = _mesUnitOfMeasureRepository.Get(mesUnitOfMeasureDTO.Id).GetAwaiter().GetResult();
+        if (objectForRestore != null)
+        {
+            mesUnitOfMeasureDTO.Name = objectForRestore.Name;
+            mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
+            mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+        }
+        mesUnitOfMeasureDTOGrid.Reload();
+
+    }
+
+    async Task DeleteRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+
+            if (_dialogs != null)
+            {
+                if (mesUnitOfMeasureDTO.IsArchive != true)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление ед. изм. MES", "Удалить ед. изм. MES \"" + mesUnitOfMeasureDTO.ShortName + "\" в архив ?", "Удалить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена удаления");
+                        return;
+                    }
+                }
+                else
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление ед. изм. MES", "Восстановить ед. изм. MES \"" + mesUnitOfMeasureDTO.ShortName + "\" из архива ?", "Восстановить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                        return;
+                    }
+                }
+            }
+            if (mesUnitOfMeasureDTO == mesUnitOfMeasureDTOToInsert)
+            {
+                mesUnitOfMeasureDTOToInsert = null;
+            }
+
+            if (mesUnitOfMeasureDTO == mesUnitOfMeasureDTOToUpdate)
+            {
+                mesUnitOfMeasureDTOToUpdate = null;
+            }
+
+            if (mesUnitOfMeasureDTOs.Contains(mesUnitOfMeasureDTO))
+            {
+
+                MesUnitOfMeasureDTO oldMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Get(mesUnitOfMeasureDTO.Id);
+                MesUnitOfMeasureDTO newMesUnitOfMeasureDTO = new MesUnitOfMeasureDTO();
+                string logEventTypeName = "";
+
+                if (mesUnitOfMeasureDTO.IsArchive)
+                {
+                    newMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Update(mesUnitOfMeasureDTO, SD.UpdateMode.RestoreFromArchive);
+                    mesUnitOfMeasureDTO.IsArchive = false;
+                    await _jsRuntime.ToastrSuccess("Ед. изм. " + mesUnitOfMeasureDTO.Name + " восстановлена из архива");
+                    logEventTypeName = "Восстановление из архива ед.изм. MES";
+                }
+                else
+                {
+                    newMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Update(mesUnitOfMeasureDTO, SD.UpdateMode.MoveToArchive);
+                    mesUnitOfMeasureDTO.IsArchive = true;
+                    await _jsRuntime.ToastrSuccess("Ед. изм. " + mesUnitOfMeasureDTO.Name + " удалена в архив");
+                    logEventTypeName = "Удаление в архив ед.изм. MES";
+                }
+                await _logEventRepository.ToLog<MesUnitOfMeasureDTO>(oldObject: oldMesUnitOfMeasureDTO, newObject: newMesUnitOfMeasureDTO, logEventTypeName, "Ед.изм. MES: ", _authorizationRepository);
+                await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+                //await sapEquipmentDTOGrid.Reload();
+            }
+            else
+            {
+                mesUnitOfMeasureDTOGrid.CancelEditRow(mesUnitOfMeasureDTO);
+                await mesUnitOfMeasureDTOGrid.Reload();
+            }
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+
+            mesUnitOfMeasureDTOToInsert = new MesUnitOfMeasureDTO();
+            await mesUnitOfMeasureDTOGrid.InsertRow(mesUnitOfMeasureDTOToInsert);
+        }
+    }
+
+    async Task OnCreateRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
+    {
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+
+            mesUnitOfMeasureDTOToInsert = null;
+
+            var objectForCheckName = await _mesUnitOfMeasureRepository.GetByName(mesUnitOfMeasureDTO.Name);
+            if (objectForCheckName != null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения MES \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                mesUnitOfMeasureDTOGrid.CancelEditRow(mesUnitOfMeasureDTO);
+                await mesUnitOfMeasureDTOGrid.Reload();
+                return;
+            }
+
+            var objectForCheckShortName = await _mesUnitOfMeasureRepository.GetByShortName(mesUnitOfMeasureDTO.ShortName);
+            if (objectForCheckShortName != null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения MES \"" + objectForCheckShortName.ShortName + "\" с ИД записи = " + objectForCheckShortName.Id.ToString());
+                mesUnitOfMeasureDTOGrid.CancelEditRow(mesUnitOfMeasureDTO);
+                await mesUnitOfMeasureDTOGrid.Reload();
+
+                return;
+            }
+
+            var newDTO = await _mesUnitOfMeasureRepository.Create(mesUnitOfMeasureDTO);
+
+            //mesUnitOfMeasureDTOToInsert.Id = newDTO.Id;
+            //await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTOToInsert);
+
+            await _logEventRepository.ToLog<MesUnitOfMeasureDTO>(oldObject: null, newObject: newDTO, "Добавление ед.изм. MES", "Ед.изм. MES: ", _authorizationRepository);
+            await OnAfterRenderAsync(true);
+
+        }
+
+    }
+
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "MesUnitOfMeasure_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelMesUnitOfMeasure(filename, (IEnumerable<MesUnitOfMeasureDTO>)mesUnitOfMeasureDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+}
+

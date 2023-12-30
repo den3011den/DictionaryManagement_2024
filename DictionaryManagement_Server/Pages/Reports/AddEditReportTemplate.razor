@@ -1,0 +1,511 @@
+﻿@page "/reports/ReportTemplate/AddEditReportTemplate/{ReportTemplateId}"
+@attribute [Authorize]
+
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IReportTemplateRepository _reportTemplateRepository
+@inject IReportTemplateTypeRepository _reportTemplateTypeRepository
+@inject IDataTypeRepository _dataTypeRepository
+@inject IMesDepartmentRepository _mesDepartmentRepository
+@inject ISettingsRepository _settingsRepository
+@inject IWebHostEnvironment _environment
+@inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
+@inject ILogEventRepository _logEventRepository
+
+
+@inject DialogService _dialogService
+
+<_Dialogs @ref="_dialogs"></_Dialogs>
+
+@if (IsAdmin == true)
+{
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <img src="/images/loading.gif">
+        </div>
+    }
+    else
+    {
+        @*OnSubmit = "AddEditReportTemplateProcedure2"*@
+        @*OnValidSubmit="AddEditReportTemplateProcedure*@
+        <EditForm Model="ActiveReportTemplateDTO" OnValidSubmit="AddEditReportTemplateProcedure">
+            <DataAnnotationsValidator />
+
+            <RadzenRow Gap="1rem">
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Шаблон отчёта" Style="font-weight: bold;">
+                            <RadzenStack Gap="1rem">
+
+
+                                @if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
+                                {
+                                    <RadzenFormField Text="ИД шаблона" Variant="@variant" Style="width: 100%;">
+                                        <RadzenNumeric @bind-Value="@ActiveReportTemplateDTO.Id" ReadOnly="true" />
+                                    </RadzenFormField>
+
+                                    <RadzenFormField Text="Время добавления" Variant="@variant" Style="width: 100%;">
+                                        <RadzenNumeric @bind-Value="@ActiveReportTemplateDTO.AddTime" ReadOnly="true" />
+                                    </RadzenFormField>
+                                    <ValidationMessage For="()=>ActiveReportTemplateDTO.AddTime"></ValidationMessage>
+
+                                    <RadzenFormField Text="Кто добавил" Variant="@variant" Style="width: 100%;">
+                                        <RadzenTextBox @bind-Value="@ActiveReportTemplateDTO.AddUserDTOFK.UserName" ReadOnly="true" />
+                                    </RadzenFormField>
+
+                                }
+
+                                <RadzenFormField Text="Тип шаблона отчёта" Variant="@variant" Style="width: 100%;">
+                                    <RadzenDropDown @ref=@reportTemplateTypeDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@ReportTemplateTypeDTOList TextProperty="Name" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveReportTemplateDTO.ReportTemplateTypeId" Style="width: 100%;"
+                                                    Change=@(args => FillDescription()) />
+                                    @* Change=@(args => FillDescription()) *@
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveReportTemplateDTO.ReportTemplateTypeDTOFK"></ValidationMessage>
+
+                                <RadzenFormField Text="Тип выходных данных" Variant="@variant" Style="width: 100%;">
+                                    <RadzenDropDown @ref=@dataTypeDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@DataTypeDTOList TextProperty="Name" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveReportTemplateDTO.DestDataTypeId" Style="width: 100%;"
+                                                    Change=@(args => FillDescription()) />
+                                    @* Change=@(args => FillDescription()) *@
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveReportTemplateDTO.DestDataTypeDTOFK"></ValidationMessage>
+
+                                <RadzenFormField Text="Производство" Variant="@variant" Style="width: 100%;">
+                                    <RadzenDropDown @ref=@mesDepartmentDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                                    Data=@MesDepartmentDTOList TextProperty="ToStringHierarchyShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveReportTemplateDTO.DepartmentId" Style="width: 100%;"
+                                                    Change=@(args => FillDescription()) />
+                                    @* Change=@(args => FillDescription()) *@
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveReportTemplateDTO.MesDepartmentDTOFK"></ValidationMessage>
+
+                                @if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
+                                {
+                                    <RadzenFormField Text="Имя Файла" Variant="@variant" Style="width: 100%;">
+                                        <RadzenTextBox @bind-Value="@ActiveReportTemplateDTO.TemplateFileName" ReadOnly="true" />
+                                    </RadzenFormField>
+                                    @*    <div class="rz-p-12 rz-text-align-right">
+                        <RadzenLink Path="@downloadLinkPath" Text="Скачать файл шаблона" />
+                        </div>*@
+                                    <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
+                                }
+
+                                <RadzenCard Style="width: 100%;">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл шаблона отчёта</RadzenText>
+                                    <RadzenUpload @ref="upload" Auto="false" ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                  Url="UploadFileController/UploadReportTemplateFile/{customParameter}"
+                                                  Change=@(args => OnChange(args)) Progress=@(args => OnProgress(args)) />
+                                    @if (!String.IsNullOrEmpty(uploadFileWarning))
+                                    {
+                                        <br />
+                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                    }
+                                </RadzenCard>
+
+
+
+                                @*<RadzenButton Text="Upload" Click=@(args => OnDownload(args)) class="d-block mt-4" />*@
+
+                                @* <div class="col-md-4 p-3">*@
+                                @*                    <RadzenCard Style="width: 100%; max-width: 700px;">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл шаблона отчёта</RadzenText>
+                        <RadzenUpload ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        Url=@($"UploadReportTemplateFile/{customParameter}")
+                        Progress=@(args => OnProgress(args)) />
+
+                        </RadzenCard>
+                        *@                    @*</div>*@
+
+
+
+
+                                @*                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Описание (заполняется автоматически)</RadzenText>
+                        <RadzenTextArea Style="width: 100%; max-width: 700px;" @bind-Value="@ActiveReportTemplateDTO.Description" ReadOnly="true" Rows="5" />
+                        <ValidationMessage For="()=>ActiveReportTemplateDTO.Description"></ValidationMessage>
+                        *@
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+
+                <RadzenColumn Size="12" SizeMD="4">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Авторасчёт шаблона отчёта" Style="font-weight: bold;">
+                            <RadzenStack Gap="1rem">
+                                @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK !=null && ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.CanAutoCalc == true)
+                                {       
+                                    <div class="rz-p-12 rz-text-align-center">
+                                    <RadzenCheckBox @bind-Value="@ActiveReportTemplateDTO.NeedAutoCalc" Name="CheckBoxNeedAutoCalc" />
+                                    <RadzenLabel Text="Включить авторасчёт шаблона отчёта" Component="CheckBoxNeedAutoCalc" Style="margin-left: 8px; vertical-align: middle; font-size: 14px" />
+                                    <ValidationMessage For="()=>ActiveReportTemplateDTO.NeedAutoCalc"></ValidationMessage>
+                                    </div>
+                                    <RadzenFormField Text="Порядок авторасчёта" Variant="@variant" Style="width: 100%; max-width: 700px;">
+                                        <RadzenNumeric @bind-Value="@ActiveReportTemplateDTO.AutoCalcOrder" Disabled="@(ActiveReportTemplateDTO.NeedAutoCalc == true ? false : true)" />
+                                    </RadzenFormField>
+                                    <ValidationMessage For="()=>ActiveReportTemplateDTO.AutoCalcOrder"></ValidationMessage>
+                                    <RadzenFormField Text="Количество прогонов шаблона авторасчётом" Variant="@variant" Style="width: 100%; max-width: 700px;">
+                                        <RadzenNumeric @bind-Value="@ActiveReportTemplateDTO.AutoCalcNumber" Disabled="@(ActiveReportTemplateDTO.NeedAutoCalc == true ? false : true)" />
+                                    </RadzenFormField>
+                                    <ValidationMessage For="()=>ActiveReportTemplateDTO.AutoCalcNumber"></ValidationMessage>
+                                }
+                                else
+                                {
+                                    <p style="color: lightgrey; font-size: 14px; text-align: center; margin: 2rem;">
+                                        @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK==null)
+                                        {
+                                            @("Тип шаблона отчёта не выбран")
+                                        }
+                                        else
+                                        {
+                                            @("Тип шаблона отчёта \"" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "\" отмечен как не доступный для авторасчёта")
+                                        }
+                                    </p>
+                                }
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+
+
+
+            <div class="form-group py-2">
+                <button class="btn btn-primary" @onclick="(() => OnClickSave())" disabled=@IsSubmited>@Title</button>
+                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+            </div>
+        </EditForm>
+    }
+}
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+
+    Guid customParameter;
+
+    [Parameter]
+    public Guid ReportTemplateId { get; set; }
+
+    bool IsSubmited = false;
+
+    public string ReportTemplatePath;
+
+    RadzenUpload upload;
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    string uploadFileWarning = "";
+
+    string downloadLinkPath = "";
+
+    IEnumerable<MesDepartmentDTO>? MesDepartmentDTOList { get; set; } = new List<MesDepartmentDTO>();
+    IEnumerable<ReportTemplateTypeDTO>? ReportTemplateTypeDTOList { get; set; } = new List<ReportTemplateTypeDTO>();
+    IEnumerable<DataTypeDTO>? DataTypeDTOList { get; set; } = new List<DataTypeDTO>();
+
+    public ReportTemplateDTO ActiveReportTemplateDTO { get; set; }
+
+    private string Title { get; set; } = "Создать шаблон отчёта";
+
+    RadzenDropDown<int> mesDepartmentDropDown;
+    RadzenDropDown<int> reportTemplateTypeDropDown;
+    RadzenDropDown<int> dataTypeDropDown;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        customParameter = Guid.NewGuid();
+
+        bool IsSubmited = false;
+        IsLoading = true;
+        StateHasChanged();
+
+
+        if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
+        {
+            ActiveReportTemplateDTO = new ReportTemplateDTO
+            {
+                NeedAutoCalc = false,
+                AutoCalcOrder = 1,
+                AutoCalcNumber = 1
+            };
+        }
+        else
+        {
+            ActiveReportTemplateDTO = await _reportTemplateRepository.GetById(ReportTemplateId);
+            Title = "Изменить шаблон отчёта";
+            downloadLinkPath = "/DownloadFileController/DownloadReportTemplateFile/" + ReportTemplateId;
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            // {
+            IsAdmin = true;
+
+            IsLoading = true;
+            StateHasChanged();
+
+            if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
+            {
+                ActiveReportTemplateDTO = new ReportTemplateDTO
+                    {
+                        NeedAutoCalc = false,
+                        AutoCalcOrder = 1,
+                        AutoCalcNumber = 1
+                    };
+            }
+            else
+            {
+                ActiveReportTemplateDTO = await _reportTemplateRepository.GetById(ReportTemplateId);
+                Title = "Изменить шаблон отчёта";
+            }
+
+            MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
+            ReportTemplateTypeDTOList = await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+            DataTypeDTOList = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+
+            IsLoading = false;
+            StateHasChanged();
+            // }
+            // else
+            //     _navigationManager.NavigateTo("/reports/ReportTemplate");
+
+
+        }
+
+    }
+    
+    private async Task AddEditReportTemplateProcedure()
+    {
+        IsSubmited = true;
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            ReportTemplatePath = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
+
+            if (String.IsNullOrEmpty(ReportTemplatePath))
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найдена настройка с наименованием \"ReportTemplatePath\" либо значение настройки пусто");
+                IsSubmited = false;
+                return;
+            }
+
+            if (!Directory.Exists(ReportTemplatePath))
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Путь \"" + ReportTemplatePath + "\", указанный в качестве значения настройки \"ReportTemplatePath\", не существует или не доступен!");
+                IsSubmited = false;
+                return;
+            }
+
+            if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
+            { // создание
+
+                if (String.IsNullOrEmpty(uploadFileWarning))
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Выбор файла шаблона отчёта является обязательным!");
+                    IsSubmited = false;
+                    return;
+                }
+
+                var foundByMult = await _reportTemplateRepository.GetByReportTemplateTypeIdAndDestDataTypeIdAndDepartmentId(ActiveReportTemplateDTO.ReportTemplateTypeId,
+                    ActiveReportTemplateDTO.DestDataTypeId, ActiveReportTemplateDTO.DepartmentId);
+                if (foundByMult != null)
+                {
+                    await _jsRuntime.ToastrError("Уже есть шаблон отчёта с типом: '" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "' Типом вых данных: '"
+                        + ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "' для производства: '" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "'");
+                    IsSubmited = false;
+                    return;
+                }
+
+                ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "\" c вых данными: \"" +
+                    ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "\" для производства: \"" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "\"";
+
+                ReportTemplateDTO createdTemplateDTO = await _reportTemplateRepository.Create(ActiveReportTemplateDTO);
+
+                createdTemplateDTO.TemplateFileName = createdTemplateDTO.Id + ".xlsx";
+
+                var addedDTO =  await _reportTemplateRepository.Update(createdTemplateDTO);
+
+                await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: null, newObject: addedDTO, "Добавление шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
+
+                upload.Url = @"UploadFileController/UploadReportTemplateFile/" + createdTemplateDTO.Id;
+                await upload.Upload();
+
+                await _jsRuntime.ToastrSuccess("Шаблон \"" + ActiveReportTemplateDTO.Description + "\" создан");
+                _dialogService.Close(ActiveReportTemplateDTO);
+            }
+            else
+            { // изменение
+
+                var foundByMult = await _reportTemplateRepository.GetByReportTemplateTypeIdAndDestDataTypeIdAndDepartmentId(ActiveReportTemplateDTO.ReportTemplateTypeId,
+                    ActiveReportTemplateDTO.DestDataTypeId, ActiveReportTemplateDTO.DepartmentId);
+
+                if ((foundByMult != null) && (foundByMult.Id != ActiveReportTemplateDTO.Id))
+                {
+                    await _jsRuntime.ToastrError("Уже есть шаблон отчёта с типом: '" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "' Типом вых данных: '"
+                        + ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "' для производства: '" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "'");
+                    IsSubmited = false;
+                    return;
+                }
+
+                ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "\" c вых данными: \"" +
+                    ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "\" для производства: \"" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "\"";
+
+                ActiveReportTemplateDTO.TemplateFileName = ActiveReportTemplateDTO.Id + ".xlsx";
+
+                if (!String.IsNullOrEmpty(uploadFileWarning))
+                {
+                    upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
+                    await upload.Upload();
+
+                    Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
+                    await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUserId, "", "", false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
+                }
+
+                ReportTemplateDTO oldReportTemplateDTO = await _reportTemplateRepository.GetById(ActiveReportTemplateDTO.Id);
+
+                ReportTemplateDTO newReportTemplateDTO = await _reportTemplateRepository.Update(ActiveReportTemplateDTO);
+
+                await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: oldReportTemplateDTO, newObject: newReportTemplateDTO, "Изменение шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
+
+                await _jsRuntime.ToastrSuccess("Шаблон отчёта \"" + ActiveReportTemplateDTO.Id.ToString() + "\" изменён");
+
+                _dialogService.Close(ActiveReportTemplateDTO);
+            }
+        }
+
+        IsSubmited = false;
+
+    }
+
+    private async Task FillDescription()
+    {
+        if (ActiveReportTemplateDTO.ReportTemplateTypeId != null)
+        {
+            ActiveReportTemplateDTO.ReportTemplateTypeDTOFK = await _reportTemplateTypeRepository.Get(ActiveReportTemplateDTO.ReportTemplateTypeId);
+        }
+
+        if (ActiveReportTemplateDTO.DepartmentId != null)
+        {
+            ActiveReportTemplateDTO.MesDepartmentDTOFK = await _mesDepartmentRepository.GetById(ActiveReportTemplateDTO.DepartmentId);
+        }
+
+        if (ActiveReportTemplateDTO.DestDataTypeId != null)
+        {
+            ActiveReportTemplateDTO.DestDataTypeDTOFK = await _dataTypeRepository.Get(ActiveReportTemplateDTO.DestDataTypeId);
+        }
+
+        var repTemplateTypeName = "";
+        var dataTypeName = "";
+        var depName = "";
+
+        if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK != null)
+        {
+            repTemplateTypeName = (String.IsNullOrEmpty(ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name)) ? "" : ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name;
+        }
+        if (ActiveReportTemplateDTO.DestDataTypeDTOFK != null)
+        {
+            dataTypeName = (String.IsNullOrEmpty(ActiveReportTemplateDTO.DestDataTypeDTOFK.Name)) ? "" : ActiveReportTemplateDTO.DestDataTypeDTOFK.Name;
+        }
+        if (ActiveReportTemplateDTO.MesDepartmentDTOFK != null)
+        {
+            depName = (String.IsNullOrEmpty(ActiveReportTemplateDTO.MesDepartmentDTOFK.ShortName)) ? ("") : (ActiveReportTemplateDTO.MesDepartmentDTOFK.ShortName);
+        }
+
+        ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + repTemplateTypeName + "\" c вых данными: \"" +
+                dataTypeName + "\" для производства: \"" + depName + "\"";
+
+        // StateHasChanged();
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+    private async Task OnClickSave()
+    {
+        IsSubmited = true;
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            UserDTO? currentUserDTO = await _authorizationRepository.GetCurrentUserDTO(SD.MessageBoxMode.Off);
+            ActiveReportTemplateDTO.AddTime = DateTime.Now;
+            if (currentUserDTO != null)
+            {
+                ActiveReportTemplateDTO.AddUserId = currentUserDTO.Id;
+                ActiveReportTemplateDTO.AddUserDTOFK = currentUserDTO;
+                // ActiveReportTemplateDTO.AddUserId = SD.CurrentUserDTO.Id;
+                // ActiveReportTemplateDTO.AddUserDTOFK = SD.CurrentUserDTO;
+            }
+            ActiveReportTemplateDTO.TemplateFileName = "sddsds";
+        }
+        IsSubmited = false;
+    }
+
+    
+    void OnProgress(UploadProgressArgs args)
+    {
+
+        var loadedFileName = "";
+
+        if (args.Progress == 100)
+        {
+            foreach (var file in args.Files)
+            {
+
+                loadedFileName = file.Name;
+
+                //console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
+            }
+
+        }
+    }
+
+    void OnChange(UploadChangeEventArgs args)
+    {
+        //console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
+
+        uploadFileWarning = "";
+        if (args.Files.Count() > 0)
+        {
+
+            if (args.Files.ToList()[0].Size > 31457280)
+            {
+                upload.ClearFiles();
+                _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл не может быть больше 30 МБ");
+            }
+            else
+            {
+                if (Path.GetExtension(args.Files.ToList()[0].Name).ToUpper() != ".XLSX")
+                {
+                    upload.ClearFiles();
+                    _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл должен быть формата xlsx");
+                }
+            }
+
+            @if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
+                uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Изменить шаблон отчёта\"";
+            else
+                uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Создать шаблон отчёта\"";
+        }
+    }
+
+    //void OnUpload(MouseEventArgs args)
+    //{
+    //    upload.Url = @"UploadFileController/UploadReportTemplateFile/"+ customParameter;
+    //    var aaa = 2;
+    //    upload.Upload();
+    //}
+
+}

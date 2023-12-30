@@ -1,0 +1,187 @@
+﻿@page "/administration/Role/AddEditRole/{RoleId}"
+@attribute [Authorize]
+
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+
+@inject IRoleRepository _roleRepository
+@inject IRoleVMRepository _roleVMRepository
+@inject DialogService _dialogService
+@inject ILogEventRepository _logEventRepository
+
+@if (IsAdmin == true)
+{
+    <div class="row my-2">        
+
+        <div class="col-md-10">
+            @if (IsLoading)
+            {
+                <div class="text-center">
+                    <img src="/images/loading.gif">
+                </div>
+            }
+            else
+            {
+                <EditForm Model="ActiveRoleDTO" OnValidSubmit="AddEditRoleProcedure">
+                    <DataAnnotationsValidator />
+
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn Size="12">
+                            <RadzenStack>
+
+                                @if (RoleId != Guid.Empty)
+                                {
+                                    <RadzenFormField Text="ИД записи" Variant="@variant" Style="width: 100%; max-width: 600px;">
+                                        <RadzenNumeric @bind-Value="@ActiveRoleDTO.Id" ReadOnly="true" />
+                                    </RadzenFormField>
+                                }
+                                
+                                <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 600px;">
+                                    <RadzenTextBox @bind-Value="@ActiveRoleDTO.Name" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveRoleDTO.Name"></ValidationMessage>
+
+                                <RadzenFormField Text="Описание" Variant="@variant" Style="width: 100%; max-width: 600px;">
+                                    <RadzenTextBox @bind-Value="@ActiveRoleDTO.Description" />
+                                </RadzenFormField>
+                                <ValidationMessage For="()=>ActiveRoleDTO.Description"></ValidationMessage>
+
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    
+                    <div class="form-group py-2">
+                        <button class="btn btn-primary">@Title</button>
+                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public Guid RoleId { get; set; }
+
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public RoleDTO ActiveRoleDTO { get; set; }
+
+    IEnumerable<RoleDTO> RoleDTOList { get; set; } = new List<RoleDTO>();
+
+    public IEnumerable<object> CheckedValues { get; set; } = new List<object>();
+
+    private string Title { get; set; } = "Создать роль СИР";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        StateHasChanged();
+
+        if (RoleId == Guid.Empty)
+        {
+            ActiveRoleDTO = new RoleDTO();
+        }
+        else
+        {
+            ActiveRoleDTO = await _roleRepository.GetById(RoleId);
+            Title = "Изменить роль СИР";
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsAdmin = true;
+            if (firstRender)
+            {
+
+                IsLoading = true;
+                StateHasChanged();
+
+                if (RoleId == Guid.Empty)
+                {
+                    ActiveRoleDTO = new RoleDTO();
+                }
+                else
+                {
+                    ActiveRoleDTO = await _roleRepository.GetById(RoleId);
+                    Title = "Изменить роль СИР";
+                }
+                RoleDTOList = await _roleRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+            _navigationManager.NavigateTo("/administration/Role");        
+    }
+
+    private async Task AddEditRoleProcedure()
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            if (RoleId == Guid.Empty)
+            { // создание
+                var foundByName = await _roleRepository.GetByName(ActiveRoleDTO.Name);
+                if (foundByName != null)
+                {
+                    await _jsRuntime.ToastrError("Уже есть роль с наименованием " + foundByName.Name + " (ИД: " + foundByName.Id.ToString() + ")");
+                    return;                    
+                }
+
+                RoleDTO addedDTO = await _roleRepository.Create(ActiveRoleDTO);                
+                await _logEventRepository.ToLog<RoleDTO>(oldObject: null, newObject: addedDTO, "Добавление роли", "Роль: ", _authorizationRepository);
+                await _jsRuntime.ToastrSuccess("Роль \"" + ActiveRoleDTO.Name + "\" создана");
+         
+                _dialogService.Close(ActiveRoleDTO);
+
+            }
+            else
+            { // изменение роли
+
+                var foundByName = await _roleRepository.GetByName(ActiveRoleDTO.Name);
+                if ((foundByName != null) && (foundByName.Id != ActiveRoleDTO.Id))
+                {
+                    await _jsRuntime.ToastrError("Уже есть роль с наименованием " + foundByName.Name + " (ИД: " + foundByName.Id.ToString() + ")");
+                    return;
+
+                }
+
+
+                RoleDTO oldRoleDTO = await _roleRepository.GetById(ActiveRoleDTO.Id);
+                RoleDTO newRoleDTO = await _roleRepository.Update(ActiveRoleDTO);
+                await _logEventRepository.ToLog<RoleDTO>(oldObject: oldRoleDTO, newObject: newRoleDTO, "Изменение роли", "Роль: ", _authorizationRepository);
+
+                await _jsRuntime.ToastrSuccess("Роль \"" + ActiveRoleDTO.Name + "\" изменена");
+                
+                _dialogService.Close(ActiveRoleDTO);
+            }
+        }
+
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+
+}
