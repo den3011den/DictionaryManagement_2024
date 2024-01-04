@@ -61,7 +61,7 @@
                                 <RadzenFormField Text="Тип шаблона отчёта" Variant="@variant" Style="width: 100%;">
                                     <RadzenDropDown @ref=@reportTemplateTypeDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
                                                     Data=@ReportTemplateTypeDTOList TextProperty="Name" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveReportTemplateDTO.ReportTemplateTypeId" Style="width: 100%;"
-                                                    Change=@(args => FillDescription()) />
+                                                    Change=@(args => FillDescription().GetAwaiter().GetResult()) />
                                     @* Change=@(args => FillDescription()) *@
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveReportTemplateDTO.ReportTemplateTypeDTOFK"></ValidationMessage>
@@ -69,7 +69,7 @@
                                 <RadzenFormField Text="Тип выходных данных" Variant="@variant" Style="width: 100%;">
                                     <RadzenDropDown @ref=@dataTypeDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
                                                     Data=@DataTypeDTOList TextProperty="Name" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveReportTemplateDTO.DestDataTypeId" Style="width: 100%;"
-                                                    Change=@(args => FillDescription()) />
+                                                    Change=@(args => FillDescription().GetAwaiter().GetResult()) />
                                     @* Change=@(args => FillDescription()) *@
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveReportTemplateDTO.DestDataTypeDTOFK"></ValidationMessage>
@@ -77,7 +77,7 @@
                                 <RadzenFormField Text="Производство" Variant="@variant" Style="width: 100%;">
                                     <RadzenDropDown @ref=@mesDepartmentDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
                                                     Data=@MesDepartmentDTOList TextProperty="ToStringHierarchyShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveReportTemplateDTO.DepartmentId" Style="width: 100%;"
-                                                    Change=@(args => FillDescription()) />
+                                                    Change=@(args => FillDescription().GetAwaiter().GetResult()) />
                                     @* Change=@(args => FillDescription()) *@
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveReportTemplateDTO.MesDepartmentDTOFK"></ValidationMessage>
@@ -173,7 +173,7 @@
 
 
             <div class="form-group py-2">
-                <button class="btn btn-primary" @onclick="(() => OnClickSave())" disabled=@IsSubmited>@Title</button>
+                <button class="btn btn-primary" @onclick="(() => OnClickSave().GetAwaiter().GetResult())" disabled=@IsSubmited>@Title</button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
