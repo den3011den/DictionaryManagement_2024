@@ -40,6 +40,8 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.DownloadReportFileName = objectToAddDTO.DownloadReportFileName;
             objectToAdd.DownloadSuccessFlag = objectToAddDTO.DownloadSuccessFlag;
 
+            objectToAdd.ReportTemplateId = objectToAddDTO.ReportTemplateId;
+
             objectToAdd.UploadTime = objectToAddDTO.UploadTime;
             objectToAdd.UploadUserId = objectToAddDTO.UploadUserId;
             objectToAdd.UploadReportFileName = objectToAddDTO.UploadReportFileName;

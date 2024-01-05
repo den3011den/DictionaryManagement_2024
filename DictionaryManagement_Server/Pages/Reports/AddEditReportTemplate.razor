@@ -87,9 +87,6 @@
                                     <RadzenFormField Text="Имя Файла" Variant="@variant" Style="width: 100%;">
                                         <RadzenTextBox @bind-Value="@ActiveReportTemplateDTO.TemplateFileName" ReadOnly="true" />
                                     </RadzenFormField>
-                                    @*    <div class="rz-p-12 rz-text-align-right">
-                        <RadzenLink Path="@downloadLinkPath" Text="Скачать файл шаблона" />
-                        </div>*@
                                     <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
                                 }
 
@@ -104,28 +101,6 @@
                                         <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
                                     }
                                 </RadzenCard>
-
-
-
-                                @*<RadzenButton Text="Upload" Click=@(args => OnDownload(args)) class="d-block mt-4" />*@
-
-                                @* <div class="col-md-4 p-3">*@
-                                @*                    <RadzenCard Style="width: 100%; max-width: 700px;">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл шаблона отчёта</RadzenText>
-                        <RadzenUpload ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        Url=@($"UploadReportTemplateFile/{customParameter}")
-                        Progress=@(args => OnProgress(args)) />
-
-                        </RadzenCard>
-                        *@                    @*</div>*@
-
-
-
-
-                                @*                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Описание (заполняется автоматически)</RadzenText>
-                        <RadzenTextArea Style="width: 100%; max-width: 700px;" @bind-Value="@ActiveReportTemplateDTO.Description" ReadOnly="true" Rows="5" />
-                        <ValidationMessage For="()=>ActiveReportTemplateDTO.Description"></ValidationMessage>
-                        *@
                             </RadzenStack>
                         </RadzenFieldset>
                     </RadzenStack>
@@ -500,12 +475,4 @@
                 uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Создать шаблон отчёта\"";
         }
     }
-
-    //void OnUpload(MouseEventArgs args)
-    //{
-    //    upload.Url = @"UploadFileController/UploadReportTemplateFile/"+ customParameter;
-    //    var aaa = 2;
-    //    upload.Upload();
-    //}
-
 }
