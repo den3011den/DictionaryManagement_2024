@@ -28,7 +28,8 @@
         {
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый материал SAP" Click="@InsertRow" Disabled=@(sapMaterialDTOToInsert != null || sapMaterialDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel -->" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton class="mt-2 mb-4" title="Загрузка данных из Excel в справочник материалов SAP" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())"/>
             </RadzenRow>
             <RadzenDataGridApp @ref="sapMaterialDTOGrid" @bind-Settings="@SapMaterialGridSettings" SettingsName="SapMaterialGridSettings" AllowFiltering="true" AllowPaging="false" AllowAlternatingRows="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@sapMaterialDTOs" TItem="SapMaterialDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
@@ -500,6 +501,20 @@
         excelExportFlag = false;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
+    }
+
+    async Task ExcelImport()
+    {
+        IsLoading = true;
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            SapMaterialDTO dialogResult = null;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<SapMaterialLoadFromExcel>("Загрузка данных из Excel", new Dictionary
+                    <string, object>
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{1000}px", Left = $"{200}px"});
+            IsLoading = false;
+        }
     }
 }
 

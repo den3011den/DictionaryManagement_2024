@@ -12,5 +12,6 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<int> Delete(Guid id, UpdateMode updateMode = UpdateMode.Update);
         public Task<ReportTemplateDTO> GetByTemplateFileName(string templateFileName = "");
         public Task<ReportTemplateDTO> GetByReportTemplateTypeIdAndDestDataTypeIdAndDepartmentId(int reportTemplateTypeId, int destDataTypeId, int departmentId);
+        public Task<ReportTemplateDTO> GetByReportTemplateTypeId(int reportTemplateTypeId);
     }
 }

@@ -1,0 +1,296 @@
+﻿@page "/dictionary/SapMaterial/SapMaterialLoadFromExcel/{LoadFromExcelReportTemplateTypeNameSettingName}"
+
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using ClosedXML.Excel;
+@using DocumentFormat.OpenXml;
+
+@inject IJSRuntime _jsRuntime
+
+@inject IReportEntityRepository _reportEntityRepository
+@inject IReportEntityLogRepository _reportReportEntityLogRepository
+@inject ISettingsRepository _settingsRepository
+@inject IMesMovementsRepository _mesMovementsRepository
+@inject IReportEntityLogRepository _reportEntityLogRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject IReportTemplateTypeRepository _reportTemplateTypeRepository
+@inject IReportTemplateRepository _reportTemplateRepository
+
+
+@inject DialogService _dialogService
+
+
+@if (IsAdmin == true)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <img src="/images/loading.gif">
+        </div>
+    }
+    else
+    {
+
+        <RadzenTabs @bind-SelectedIndex=@selectedTabIndex Change="@(args => OnTabChange(args))">
+            <Tabs>
+                <RadzenTabsItem Text="Получение шаблона для заполнения">
+                    <RadzenRow Gap="1rem">
+                        <RadzenStack>
+                            <RadzenFieldset Text="Варианты получения шаблона для заполнения" Style="font-weight: bold;">
+                                <RadzenStack Gap="1rem">
+                                    @if (String.IsNullOrEmpty(reportTemplateTypeName))
+                                    {
+                                        <br />
+                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                            @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + LoadFromExcelReportTemplateTypeNameSettingName + "\"")
+                                        </RadzenText>
+                                        errorFlag = true;
+                                    }
+                                    @if (errorFlag == false && String.IsNullOrEmpty(reportTemplateTypeName))
+                                    {
+                                        <br />
+                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                            @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + SD.ReportTemplatePathSettingName + "\"")
+                                        </RadzenText>
+                                        errorFlag = true;
+                                    }
+                                    @if (errorFlag == false && ActiveReportTemplateTypeDTO == null)
+                                    {
+                                        <br />
+                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                            @("Невозможно получить шаблон, так как не найден тип шаблона отчёта с наименованием \"" + reportTemplateTypeName + "\"")
+                                        </RadzenText>
+                                        errorFlag = true;
+                                    }
+
+                                    @if (errorFlag == false && ActiveReportTemplateTypeDTO != null && ActiveReportTemplateDTO == null)
+                                    {
+                                        <br />
+                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                            @("Невозможно получить шаблон, так как не найден шаблона отчёта с типом \"" + ActiveReportTemplateTypeDTO.Name + "\"")
+                                        </RadzenText>
+                                        errorFlag = true;
+                                    }
+                                    @if (errorFlag == false && foundActiveReportTemplateFile == false)
+                                    {
+                                        <br />
+                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                            @("Невозможно получить шаблон, так как не найден файл шаблона отчёта на сервере по пути \"" + fileTemplateFullPath + "\"")
+                                        </RadzenText>
+                                        errorFlag = true;
+                                   }                                    
+
+                                    <div class="rz-text-align-center">
+                                        <RadzenButton Text="Скачать пустой шаблон для заполнения" title="Получить пустой шаблон файла с заголовками и подсказками для заполнения"
+                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 900px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                      Click="@(args => ReportTemplateDownloadFile(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true">
+                                        </RadzenButton>
+                                    </div>
+                                    <div class="rz-text-align-center">
+                                        <RadzenButton Text="Скачать шаблон для заполнения с данными" title="Получить шаблон файла с данными справочника Материалы SAP в качестве примера заполнения"
+                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 900px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                      Click="@(args => ReportTemplateDownloadFileWithData(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true">
+                                        </RadzenButton>
+                                    </div>
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenStack>
+                    </RadzenRow>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Загрузить данные из Excel">
+                    <div class="row">
+                        @if (IsLoading != true)
+                        {
+
+                        }
+                        else
+                        {
+                            if (IsLoading)
+                            {
+                                //отображение gif загрузки
+                                <div class="text-center">
+                                    <img src="/images/loading.gif">
+                                </div>
+                            }
+                        }
+                    </div>
+                </RadzenTabsItem>
+
+                <RadzenTabsItem Text="Результат загрузки">
+                    <div class="row">
+                        @if (IsLoading != true)
+                        {
+
+                        }
+                        else
+                        {
+                            if (IsLoading)
+                            {
+                                //отображение gif загрузки
+                                <div class="text-center">
+                                    <img src="/images/loading.gif">
+                                </div>
+                            }
+                        }
+                    </div>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    }
+}
+
+
+@code {
+
+    int selectedTabIndex = 0;
+
+    _Dialogs? _dialogs { get; set; }
+
+    [Parameter]
+    public string LoadFromExcelReportTemplateTypeNameSettingName { get; set; }
+
+    XLWorkbook? workbook = null;
+
+    Variant variant = Variant.Outlined;
+
+    public string reportTemplateTypeName = "";
+
+    public string reportDownloadPath = "";
+    public string reportUploadPath = "";
+    public string reportTemplatePath = "";
+
+    public string fileDownloadFullPath = "";
+    public string fileUploadFullPath = "";
+    public string fileTemplateFullPath = "";
+
+    public ReportTemplateTypeDTO? ActiveReportTemplateTypeDTO { get; set; }
+    public ReportTemplateDTO? ActiveReportTemplateDTO { get; set; }
+    public SettingsDTO? ActiveSettingDTO { get; set; }
+
+    public bool foundActiveReportTemplateFile = false;
+    public bool errorFlag = false;
+
+    public bool IsLoading { get; set; }
+    public bool IsAdmin { get; set; }
+
+    private string Title { get; set; } = "Загрузка данных из Excel в справочник Материалы SAP";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            IsLoading = true;
+            StateHasChanged();
+
+            foundActiveReportTemplateFile = false;
+
+            ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportUploadPathSettingName);
+            if (ActiveSettingDTO != null)
+                reportUploadPath = ActiveSettingDTO.Value.Trim();
+            else
+                reportUploadPath = "";
+
+            ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportDownloadPathSettingName);
+            if (ActiveSettingDTO != null)
+                reportDownloadPath = ActiveSettingDTO.Value.Trim();
+            else
+                reportDownloadPath = "";
+
+            ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName);
+            if (ActiveSettingDTO != null)
+                reportTemplatePath = ActiveSettingDTO.Value.Trim();
+            else
+                reportTemplatePath = "";
+
+            fileDownloadFullPath = "";
+            fileUploadFullPath = "";
+            fileTemplateFullPath = "";
+
+            ActiveSettingDTO = await _settingsRepository.GetByName(LoadFromExcelReportTemplateTypeNameSettingName);
+
+            if (ActiveSettingDTO != null)
+                reportTemplateTypeName = ActiveSettingDTO.Value.Trim();
+            else
+                reportTemplateTypeName = "";
+
+            ActiveReportTemplateTypeDTO = await _reportTemplateTypeRepository.GetByName(reportTemplateTypeName);
+
+            if (ActiveReportTemplateTypeDTO != null)
+            {
+                ActiveReportTemplateDTO = await _reportTemplateRepository.GetByReportTemplateTypeId(ActiveReportTemplateTypeDTO.Id);
+            }
+            else
+            {
+                ActiveReportTemplateDTO = null;
+            }
+
+            if (ActiveReportTemplateDTO != null)
+            {
+                fileTemplateFullPath = reportTemplatePath + ActiveReportTemplateDTO.TemplateFileName;
+            }
+
+            if (System.IO.File.Exists(fileTemplateFullPath))
+                foundActiveReportTemplateFile = true;
+
+            IsLoading = false;
+            IsAdmin = true;
+            StateHasChanged();
+
+        }
+    }
+
+
+    async Task ReportTemplateDownloadFile(Guid id)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            // IsAdmin = true;
+            // await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
+        }
+    }
+
+    async Task ReportTemplateDownloadFileWithData(Guid id)
+    {
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            // IsAdmin = true;
+            // await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
+        }
+    }
+
+    async Task OnTabChange(int value)
+    {
+        selectedTabIndex = value;
+
+        switch (selectedTabIndex)
+        {
+            case 0:
+                {
+                    break;
+                }
+
+            case 1:
+                {
+                    break;
+                }
+            case 2:
+                {
+                    break;
+                }
+
+            default:
+                {
+                    break;
+                }
+        }
+
+        StateHasChanged();
+    }
+}

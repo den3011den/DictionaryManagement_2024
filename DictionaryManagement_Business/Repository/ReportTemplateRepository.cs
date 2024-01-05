@@ -45,7 +45,7 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.NeedAutoCalc = objectToAddDTO.NeedAutoCalc;
             objectToAdd.AutoCalcOrder = objectToAddDTO.AutoCalcOrder;
             objectToAdd.AutoCalcNumber = objectToAddDTO.AutoCalcNumber;
-                               
+
             objectToAdd.IsArchive = objectToAddDTO.IsArchive;
 
             var addedReportTemplate = _db.ReportTemplate.Add(objectToAdd);
@@ -115,6 +115,30 @@ namespace DictionaryManagement_Business.Repository
             }
             return null;
         }
+
+
+        public async Task<ReportTemplateDTO> GetByReportTemplateTypeId(int reportTemplateTypeId)
+        {
+            if (reportTemplateTypeId > 0)
+            {
+                var objToGet = _db.ReportTemplate
+                            .Include("AddUserFK")
+                            .Include("ReportTemplateTypeFK")
+                            .Include("DestDataTypeFK")
+                            .Include("MesDepartmentFK")
+                            .Include("MesDepartmentFK.DepartmentParent")
+                            .Include("MesDepartmentFK.DepartmentParent.DepartmentParent")
+                            .Include("MesDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent")
+                            .Include("MesDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
+                            .FirstOrDefaultWithNoLock(u => u.ReportTemplateTypeId == reportTemplateTypeId);
+                if (objToGet != null)
+                {
+                    return _mapper.Map<ReportTemplate, ReportTemplateDTO>(objToGet);
+                }
+            }
+            return null;
+        }
+
 
 
         public async Task<IEnumerable<ReportTemplateDTO>> GetAll(SelectDictionaryScope selectDictionaryScope = SelectDictionaryScope.All)
