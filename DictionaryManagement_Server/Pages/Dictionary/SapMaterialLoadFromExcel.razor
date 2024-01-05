@@ -2,21 +2,21 @@
 
 @attribute [Authorize]
 
+@using ClosedXML.Report
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 @using ClosedXML.Excel;
-@using DocumentFormat.OpenXml;
+@* @using ClosedXML.Report; *@
 
 @inject IJSRuntime _jsRuntime
 
 @inject IReportEntityRepository _reportEntityRepository
 @inject IReportEntityLogRepository _reportReportEntityLogRepository
 @inject ISettingsRepository _settingsRepository
-@inject IMesMovementsRepository _mesMovementsRepository
 @inject IReportEntityLogRepository _reportEntityLogRepository
-@inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject IReportTemplateRepository _reportTemplateRepository
+@inject ISapMaterialRepository _sapMaterialRepository
 
 
 @inject DialogService _dialogService
@@ -76,6 +76,15 @@
                                         </RadzenText>
                                         errorFlag = true;
                                     }
+                                    @if (errorFlag == false && String.IsNullOrEmpty(reportTempPath))
+                                    {
+                                        <br />
+                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                            @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + SD.TempFilePathSettingName + "\"")
+                                        </RadzenText>
+                                        errorFlag = true;
+                                    }
+
                                     @if (errorFlag == false && foundActiveReportTemplateFile == false)
                                     {
                                         <br />
@@ -83,18 +92,20 @@
                                             @("Невозможно получить шаблон, так как не найден файл шаблона отчёта на сервере по пути \"" + fileTemplateFullPath + "\"")
                                         </RadzenText>
                                         errorFlag = true;
-                                   }                                    
-
+                                    }
+                                    
                                     <div class="rz-text-align-center">
                                         <RadzenButton Text="Скачать пустой шаблон для заполнения" title="Получить пустой шаблон файла с заголовками и подсказками для заполнения"
-                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 900px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                                      Click="@(args => ReportTemplateDownloadFile(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true">
+                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 800px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                      Click="@(args => ReportTemplateDownloadFile(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
+                                                      IsBusy=@reportTemplateDownloadFileBusyFlag BusyText="Выполняется ...">
                                         </RadzenButton>
                                     </div>
                                     <div class="rz-text-align-center">
                                         <RadzenButton Text="Скачать шаблон для заполнения с данными" title="Получить шаблон файла с данными справочника Материалы SAP в качестве примера заполнения"
-                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 900px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                                      Click="@(args => ReportTemplateDownloadFileWithData(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true">
+                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 800px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                      Click="@(args => ReportTemplateDownloadFileWithData(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
+                                                      IsBusy=@reportTemplateDownloadFileWithDataBusyFlag BusyText=@reportTemplateDownloadFileWithDataBusyText>
                                         </RadzenButton>
                                     </div>
                                 </RadzenStack>
@@ -163,10 +174,12 @@
     public string reportDownloadPath = "";
     public string reportUploadPath = "";
     public string reportTemplatePath = "";
+    public string reportTempPath = "";
 
     public string fileDownloadFullPath = "";
     public string fileUploadFullPath = "";
     public string fileTemplateFullPath = "";
+    public string fileReportTempFullPath = "";
 
     public ReportTemplateTypeDTO? ActiveReportTemplateTypeDTO { get; set; }
     public ReportTemplateDTO? ActiveReportTemplateDTO { get; set; }
@@ -174,6 +187,9 @@
 
     public bool foundActiveReportTemplateFile = false;
     public bool errorFlag = false;
+    public bool reportTemplateDownloadFileBusyFlag = false;
+    public bool reportTemplateDownloadFileWithDataBusyFlag = false;
+    public string reportTemplateDownloadFileWithDataBusyText = "Выполняется ...";
 
     public bool IsLoading { get; set; }
     public bool IsAdmin { get; set; }
@@ -209,6 +225,12 @@
             else
                 reportTemplatePath = "";
 
+            ActiveSettingDTO = await _settingsRepository.GetByName(SD.TempFilePathSettingName);
+            if (ActiveSettingDTO != null)
+                reportTempPath = ActiveSettingDTO.Value.Trim();
+            else
+                reportTempPath = "";
+            
             fileDownloadFullPath = "";
             fileUploadFullPath = "";
             fileTemplateFullPath = "";
@@ -249,20 +271,87 @@
 
     async Task ReportTemplateDownloadFile(Guid id)
     {
+        reportTemplateDownloadFileBusyFlag = true;
+        //reportTemplateDownloadFileWithDataBusyFlag = true;
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
-            // IsAdmin = true;
-            // await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
+            IsAdmin = true;
+            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportTemplateFile/" + id.ToString(), "_blank");
         }
+        reportTemplateDownloadFileBusyFlag = false;
+        //reportTemplateDownloadFileWithDataBusyFlag = false;
     }
 
     async Task ReportTemplateDownloadFileWithData(Guid id)
-    {
+    {        
+        reportTemplateDownloadFileWithDataBusyFlag = true;
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
-            // IsAdmin = true;
-            // await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
+            IsAdmin = true;
+            reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение шаблона файла)";
+
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
+
+            try
+            {
+                using var workbook = new XLWorkbook(fileTemplateFullPath);
+                {
+                    var worksheet = workbook.Worksheet("SapMaterial");
+                    reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Материалов SAP)";
+                    await Task.Delay(200);
+                    await InvokeAsync(StateHasChanged);
+
+                    IEnumerable<SapMaterialDTO> sapMaterialDTOList = (await _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
+
+                    int recordCount = sapMaterialDTOList.Count();
+                    int recordOrder = 0;
+
+                    int excelRowNum = 9;
+                    int excelColNum;
+                    foreach (var sapMaterialDTOItem in sapMaterialDTOList)
+                    {
+                        recordOrder++;
+                        if ((recordOrder == 1) || (recordOrder%100)==0)
+                        {
+                            reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString()  + ")";
+                            await Task.Delay(200);
+                            await InvokeAsync(StateHasChanged);
+                        }
+
+                        excelColNum = 2;
+                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.Id.ToString();
+                        excelColNum++;
+                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.Code;
+                        excelColNum++;
+                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.Name;
+                        excelColNum++;
+                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.ShortName;
+                        excelColNum++;
+                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.IsArchive == true ? "Да" : "Нет";
+                        excelRowNum++;                        
+                    }
+
+                    string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+                    string filename = "SapMaterial_Example_with_data_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+                    fileReportTempFullPath = System.IO.Path.Combine(reportTempPath, filename);
+
+                    workbook.SaveAs(fileReportTempFullPath);
+                    if (workbook != null)
+                        workbook.Dispose();
+
+                    await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+                }    
+            }
+            catch(Exception ex)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "При выполнении операции произошла ошибка. Сообщение ошибки: " + ex.Message);
+            }
+            //await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
         }
+        reportTemplateDownloadFileWithDataBusyFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task OnTabChange(int value)
