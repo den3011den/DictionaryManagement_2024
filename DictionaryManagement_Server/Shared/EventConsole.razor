@@ -1,6 +1,7 @@
 ﻿@using Microsoft.JSInterop;
 @using Radzen
 @using System.Text.Json
+@using Microsoft.AspNetCore.Html
 @inject IJSRuntime JSRuntime
 <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" Class="rz-mt-4 rz-p-4 rz-border-radius-1" @attributes=@Attributes Style="border: var(--rz-grid-cell-border)">
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
@@ -8,12 +9,20 @@
         <RadzenButton Click=@OnClearClick Text="Очистить лог" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" />
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Vertical" Gap="0" ID="event-console" Class="rz-pt-1" Style="border-top: var(--rz-grid-cell-border); min-height: 2rem; max-height: 32rem; height:300px; overflow: auto;">
-    @foreach(var message in messages)
-    {
+        @foreach (var message in messages)
+        {
             <RadzenAlert ShowIcon="false" Variant="Variant.Flat" AlertStyle="@message.MessageStyle" Size="AlertSize.ExtraSmall" Shade="Shade.Lighter" AllowClose="false" Style="font-size: 0.75rem">
-                <span Style="opacity: 0.6;">@message.Date.ToString("dd.MM.yyyy HH:mm:ss.fff"): </span> @message.Text
-        </RadzenAlert>        
-    }
+                <span Style="opacity: 0.6;">@message.Date.ToString("dd.MM.yyyy HH:mm:ss.fff"): </span>
+                @if (String.IsNullOrEmpty(message.Link))
+                {
+                    @message.Text
+                }
+                else
+                {
+                    <a href="@message.Link" target="_blank">@message.Text</a>
+                }
+            </RadzenAlert>
+        }
     </RadzenStack>
 </RadzenStack>
 
@@ -23,6 +32,7 @@
         public DateTime Date { get; set; }
         public string Text { get; set; }
         public AlertStyle MessageStyle { get; set; } = AlertStyle.Info;
+        public string Link { get; set; }
     }
 
     [Parameter(CaptureUnmatchedValues = true)]
@@ -49,9 +59,9 @@
         InvokeAsync(StateHasChanged);
     }
 
-    public void Log(string message, AlertStyle alertStyle = AlertStyle.Info)
+    public void Log(string message, AlertStyle alertStyle = AlertStyle.Info, string link = "")
     {
-        messages.Add(new Message { Date = DateTime.Now, Text = message, MessageStyle = alertStyle });
+        messages.Add(new Message { Date = DateTime.Now, Text = message, MessageStyle = alertStyle, Link = link });
 
         InvokeAsync(StateHasChanged);
     }
