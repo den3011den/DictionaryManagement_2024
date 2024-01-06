@@ -244,7 +244,7 @@
                 }
             }
 
-            var objectForCheckShortName = _sapMaterialRepository.GetByName(sapMaterialDTO.ShortName).Result;
+            var objectForCheckShortName = _sapMaterialRepository.GetByShortName(sapMaterialDTO.ShortName).Result;
 
             if (objectForCheckShortName != null)
             {
@@ -432,7 +432,7 @@
                 needAskUser = true;
             }
 
-            var objectForCheckShortName = _sapMaterialRepository.GetByName(sapMaterialDTO.ShortName).Result;
+            var objectForCheckShortName = _sapMaterialRepository.GetByShortName(sapMaterialDTO.ShortName).Result;
 
             if (objectForCheckShortName != null)
             {
