@@ -153,7 +153,7 @@ namespace DictionaryManagement_Server.Controllers
             //string fileName = foundEntity.UploadReportFileName;
             // в шестёрке решили в UploadReportFileName сохранять имя загружаемого пользователем файла
             // теперь приходится брать реально храняшееся имя файла из DownloadReportFileName
-            string fileName = foundEntity.DownloadReportFileName;
+            string fileName = foundEntity.UploadReportFileName;
             string file = System.IO.Path.Combine(pathVar, fileName);
             var extension = Path.GetExtension(fileName);
             if (System.IO.File.Exists(file))

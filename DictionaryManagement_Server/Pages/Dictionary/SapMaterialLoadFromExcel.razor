@@ -96,14 +96,14 @@
 
                                     <div class="rz-text-align-center">
                                         <RadzenButton Text="Скачать пустой шаблон для заполнения" title="Получить пустой шаблон файла с заголовками и подсказками для заполнения"
-                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 800px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                                       Click="@(args => ReportTemplateDownloadFile(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
                                                       IsBusy=@reportTemplateDownloadFileBusyFlag BusyText="Выполняется ...">
                                         </RadzenButton>
                                     </div>
                                     <div class="rz-text-align-center">
                                         <RadzenButton Text="Скачать шаблон для заполнения с данными" title="Получить шаблон файла с данными справочника Материалы SAP в качестве примера заполнения"
-                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 800px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                                       Click="@(args => ReportTemplateDownloadFileWithData(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
                                                       IsBusy=@reportTemplateDownloadFileWithDataBusyFlag BusyText=@reportTemplateDownloadFileWithDataBusyText>
                                         </RadzenButton>
@@ -129,7 +129,7 @@
                             </RadzenCard>
                             <RadzenCard Style="width: 100%;">
                                 <RadzenButton Text="Загрузить данные из файла" title="Запуск загрузки данных из выбранного файла"
-                                              Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 800px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                              Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                               Click=@(() => LoadExcelFile().GetAwaiter()) @onclick:stopPropagation="true"
                                               IsBusy=@loadExcelFileBusyFlag BusyText="Выполняется ...">
                                 </RadzenButton>
@@ -151,7 +151,7 @@
                                 <RadzenStack Gap="1rem">
                                     <div class="rz-text-align-center">
                                         <RadzenButton Text="Скачать результат" title="Получить обработанный файл с сообщениями об ошибках или удачной обработке строк Excel-файла"
-                                                      Icon="download" Disabled="@(ResultFileId == Guid.Empty)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 800px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                      Icon="download" Disabled="@(ResultFileId == Guid.Empty)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                                       Click="@(() => DownloadResultFile())" @onclick:stopPropagation="true">
                                         </RadzenButton>
                                     </div>
@@ -168,9 +168,9 @@
 
 @code {
 
-        int selectedTabIndex = 0;
+    int selectedTabIndex = 0;
 
-        _Dialogs? _dialogs { get; set; }
+    _Dialogs? _dialogs { get; set; }
 
     public EventConsole console;
 
@@ -387,6 +387,10 @@
         console.Log($"Определение прав пользователя");
 
         loadExcelFileBusyFlag = true;
+
+        await Task.Delay(1);
+        await InvokeAsync(StateHasChanged);
+
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
             IsAdmin = true;
@@ -396,12 +400,13 @@
             try
             {
                 upload.Url = @"UploadFileController/UploadReportEntityFile/" + reportEntityId;
-                await upload.Upload();
+                await upload.Upload();                
+                await Task.Delay(2000);
             }
             catch (Exception ex1)
             {
                 console.Log($"! Загрузка файла на сервер завершилась неудачей. Сообщение ошибки: " + ex1.Message, AlertStyle.Danger);
-                loadExcelFileBusyFlag = false;
+                loadExcelFileBusyFlag = false;                
                 await Task.Delay(1);
                 await InvokeAsync(StateHasChanged);
                 return;
@@ -437,12 +442,13 @@
             //     return;
             // }
 
+            console.Log($"Загружен : " + fileUploadFullPath);
             console.Log($"Загрузка файла в память");
 
-            XLWorkbook workbook;
+            XLWorkbook workbook = null;
             try
             {
-                workbook = new XLWorkbook(fileTemplateFullPath);
+                workbook = new XLWorkbook(fileUploadFullPath);
             }
             catch (Exception ex)
             {
@@ -456,7 +462,7 @@
             if (workbook == null)
             {
                 console.Log($"! Не удалось загрузить в память файл: " + fileUploadFullPath, AlertStyle.Danger);
-                loadExcelFileBusyFlag = false;
+                loadExcelFileBusyFlag = false;                
                 if (workbook != null)
                     workbook.Dispose();
                 await Task.Delay(1);
@@ -465,7 +471,6 @@
             }
 
             console.Log($"Файл загружен в память");
-
             console.Log($"Загрузка листа SapMaterial");
 
             IXLWorksheet worksheet;
@@ -502,6 +507,8 @@
 
             bool isEmptyString = false;
 
+            bool haveErrors = false;
+
             while(isEmptyString == false)
             {
 
@@ -519,7 +526,7 @@
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString) && String.IsNullOrEmpty(nameVarString)
                         && String.IsNullOrEmpty(shortNameVarString) && String.IsNullOrEmpty(isArchiveVarString))
-                {
+                {                    
                     isEmptyString = true;
                     continue;
                 }
@@ -533,6 +540,7 @@
                     }
                     catch (Exception ex)
                     {
+                        haveErrors = true;
                         idVarInt = 0;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
@@ -546,6 +554,7 @@
 
                     if(idVarInt<=0)
                     {
+                        haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
                         worksheet.Cell(rowNumber, 7).Value = resultString;
                         worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
@@ -558,6 +567,7 @@
                     foundSapMaterialDTO = await _sapMaterialRepository.Get(idVarInt);
                     if (foundSapMaterialDTO == null)
                     {
+                        haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
                         worksheet.Cell(rowNumber, 7).Value = resultString;
                         worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
@@ -587,6 +597,7 @@
                             {
                                 if (objectForCheckCode.Id != foundSapMaterialDTO.Id)
                                 {
+                                    haveErrors = true;
                                     resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом материала " + codeVarString
                                         + ". ИД записи: " + objectForCheckCode.Id.ToString() +
                                         ". Наименование: " + objectForCheckCode.ShortName + ". Изменения не применялись.";
@@ -599,12 +610,12 @@
                                 }
                                 else
                                 {
-                                    changedSapMaterialDTO.Code = foundSapMaterialDTO.Code;
+                                    changedSapMaterialDTO.Code = codeVarString;
                                 }
                             }
                             else
                             {
-                                changedSapMaterialDTO.Code = foundSapMaterialDTO.Code;
+                                changedSapMaterialDTO.Code = codeVarString;
                             }
                         }
                     }
@@ -627,6 +638,7 @@
                             {
                                 if (objectForCheckName.Id != foundSapMaterialDTO.Id)
                                 {
+                                    haveErrors = true;
                                     resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с наименованием " + nameVarString
                                         + ". ИД записи: " + objectForCheckName.Id.ToString() +
                                         ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
@@ -639,12 +651,12 @@
                                 }
                                 else
                                 {
-                                    changedSapMaterialDTO.Name = foundSapMaterialDTO.Name;
+                                    changedSapMaterialDTO.Name = nameVarString;
                                 }
                             }
                             else
                             {
-                                changedSapMaterialDTO.Name = foundSapMaterialDTO.Name;
+                                changedSapMaterialDTO.Name = nameVarString;
                             }
                         }
                     }
@@ -667,6 +679,7 @@
                             {
                                 if (objectForCheckShortName.Id != foundSapMaterialDTO.Id)
                                 {
+                                    haveErrors = true;
                                     resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Уже есть запись с сокр. наименованием " + shortNameVarString
                                         + ". ИД записи: " + objectForCheckShortName.Id.ToString() +
                                         ". Код: " + objectForCheckShortName.Code + ". Изменения не применялись.";
@@ -679,12 +692,12 @@
                                 }
                                 else
                                 {
-                                    changedSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
+                                    changedSapMaterialDTO.ShortName = shortNameVarString;
                                 }
                             }
                             else
                             {
-                                changedSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
+                                changedSapMaterialDTO.ShortName = shortNameVarString;
                             }
                         }
                     }
@@ -712,10 +725,10 @@
 
                     await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: foundSapMaterialDTO, newObject: changedSapMaterialDTO, "Изменение материала SAP", "Материал SAP: ", _authorizationRepository);
 
-                    resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Материал изменён.";
+                    resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
                     worksheet.Cell(rowNumber, 7).Value = resultString;
                     worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;                    
-                    console.Log(resultString, AlertStyle.Danger);
+                    console.Log(resultString);
                     rowNumber++;
                     continue;
                 }
@@ -733,6 +746,7 @@
                         var objectForCheckCode = _sapMaterialRepository.GetByCode(codeVarString).Result;
                         if (objectForCheckCode != null)
                         {
+                            haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом " + codeVarString +
                                 ". ИД записи: " + objectForCheckCode.Id.ToString() + " Наименование: " + objectForCheckCode.ShortName + ".Изменения не применялись.";
                             worksheet.Cell(rowNumber, 7).Value = resultString;
@@ -747,6 +761,7 @@
 
                         if (String.IsNullOrEmpty(nameVarString))
                         {
+                            haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Для добавляемой записи не может быть пустое наименование. Изменения не применялись.";
                             worksheet.Cell(rowNumber, 7).Value = resultString;
                             worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
@@ -760,6 +775,7 @@
                             var objectForCheckName = _sapMaterialRepository.GetByName(nameVarString).Result;
                             if (objectForCheckName != null)
                             {
+                                haveErrors = true;
                                 resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с наименованием " + nameVarString
                                         + ". ИД записи: " + objectForCheckName.Id.ToString() +
                                         ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
@@ -775,6 +791,7 @@
 
                         if (String.IsNullOrEmpty(shortNameVarString))
                         {
+                            haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Для добавляемой записи не может быть пустое сокращённое наименование. Изменения не применялись.";
                             worksheet.Cell(rowNumber, 7).Value = resultString;
                             worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
@@ -788,6 +805,7 @@
                             var objectForCheckShortName = _sapMaterialRepository.GetByShortName(shortNameVarString).Result;
                             if (objectForCheckShortName != null)
                             {
+                                haveErrors = true;
                                 resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Уже есть запись с сокращённым наименованием " + shortNameVarString
                                         + ". ИД записи: " + objectForCheckShortName.Id.ToString() +
                                         ". Код: " + objectForCheckShortName.Code + ". Изменения не применялись.";
@@ -809,7 +827,7 @@
                         resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Материал добавлен";
                         worksheet.Cell(rowNumber, 7).Value = resultString;
                         worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
-                        console.Log(resultString, AlertStyle.Danger);
+                        console.Log(resultString);
                         rowNumber++;
                         continue;
                     }
@@ -817,6 +835,7 @@
                     {
                         SapMaterialDTO forChangeSapMaterialDTO = new SapMaterialDTO();
                         forChangeSapMaterialDTO.Id = foundSapMaterialDTO.Id;
+                        forChangeSapMaterialDTO.Code = foundSapMaterialDTO.Code;
                         if (String.IsNullOrEmpty(nameVarString))
                         {
                             forChangeSapMaterialDTO.Name = foundSapMaterialDTO.Name;
@@ -834,6 +853,7 @@
                                 {
                                     if (objectForCheckName.Id != foundSapMaterialDTO.Id)
                                     {
+                                        haveErrors = true;
                                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с наименованием " + nameVarString
                                             + ". ИД записи: " + objectForCheckName.Id.ToString() +
                                             ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
@@ -846,12 +866,12 @@
                                     }
                                     else
                                     {
-                                        forChangeSapMaterialDTO.Name = foundSapMaterialDTO.Name;
+                                        forChangeSapMaterialDTO.Name = nameVarString;
                                     }
                                 }
                                 else
                                 {
-                                    forChangeSapMaterialDTO.Name = foundSapMaterialDTO.Name;
+                                    forChangeSapMaterialDTO.Name = nameVarString;
                                 }
                             }
                         }
@@ -874,6 +894,7 @@
                                 {
                                     if (objectForCheckShortName.Id != foundSapMaterialDTO.Id)
                                     {
+                                        haveErrors = true;
                                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Уже есть запись с сокр. наименованием " + shortNameVarString
                                             + ". ИД записи: " + objectForCheckShortName.Id.ToString() +
                                             ". Код: " + objectForCheckShortName.Code + ". Изменения не применялись.";
@@ -886,12 +907,12 @@
                                     }
                                     else
                                     {
-                                        forChangeSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
+                                        forChangeSapMaterialDTO.ShortName = shortNameVarString;
                                     }
                                 }
                                 else
                                 {
-                                    forChangeSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
+                                    forChangeSapMaterialDTO.ShortName = shortNameVarString;
                                 }
                             }
                         }
@@ -919,10 +940,10 @@
 
                         await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: foundSapMaterialDTO, newObject: forChangeSapMaterialDTO, "Изменение материала SAP", "Материал SAP: ", _authorizationRepository);
 
-                        resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Материал изменён.";
+                        resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
                         worksheet.Cell(rowNumber, 7).Value = resultString;
                         worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
-                        console.Log(resultString, AlertStyle.Danger);
+                        console.Log(resultString);
                         rowNumber++;
                         continue;
                     }
@@ -933,11 +954,21 @@
             console.Log($"Сохранение файла результата");
 
             workbook.SaveAs(fileUploadFullPath);
+
             if (workbook != null)
                 workbook.Dispose();
+
+            if (haveErrors)
+            {
+                await _jsRuntime.ToastrWarning("Загрузка выполнена. Есть ошибки! (см. лог или файл результата)");
+            }
+            else
+            {
+                await _jsRuntime.ToastrSuccess("Загрузка выполнена успешно");
+            }
         }
         else
-        {
+        {            
             console.Log($" : ! Пользователь не обладает правами администратора", AlertStyle.Warning);
             console.Log($" : ! Процесс загрузки остановлен <--", AlertStyle.Warning);
         }
@@ -947,8 +978,8 @@
 
         console.Log($"<-- Окончание процесса");
 
-        console.Log("<a href=\"/DownloadFileController/DownloadReportEntityUploadFile/" + ResultFileId.ToString()
-                + "\">Кликните, чтобы скачать результат обработки файла</a>");
+        // console.Log("<a href=\"/DownloadFileController/DownloadReportEntityUploadFile/" + ResultFileId.ToString()
+        //         + "\">Кликните, чтобы скачать результат обработки файла</a>");
                
         loadExcelFileBusyFlag = false;
         await Task.Delay(1);

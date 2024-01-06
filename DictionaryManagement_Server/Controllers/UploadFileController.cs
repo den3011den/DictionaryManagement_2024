@@ -157,7 +157,9 @@ namespace DictionaryManagement_Server.Controllers
                 using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
                 {
                     await file.CopyToAsync(fileStream);
-                    fileStream.Close();
+                    //fileStream.Close();
+                    if (fileStream != null)
+                        await fileStream.DisposeAsync();
                 }
             }
         }

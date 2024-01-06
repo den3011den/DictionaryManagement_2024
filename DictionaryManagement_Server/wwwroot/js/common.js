@@ -5,6 +5,9 @@
     if (type === "error") {
         toastr.error(message, "Ошибка выполнения операции", { timeOut: 5000 });
     }
+    if (type === "warning") {
+        toastr.warning(message, "Выполнено с ошибками", { timeOut: 10000 });
+    }
 }
 
 window.ShowSwal = (type, message) => {

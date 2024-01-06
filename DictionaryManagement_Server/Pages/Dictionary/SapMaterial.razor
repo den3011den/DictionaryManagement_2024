@@ -512,7 +512,7 @@
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<SapMaterialLoadFromExcel>("Загрузка данных из Excel", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{1000}px", Left = $"{200}px"});
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px"});
             IsLoading = false;
         }
     }
