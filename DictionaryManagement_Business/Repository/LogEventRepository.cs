@@ -37,32 +37,27 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<LogEventDTO?> AddRecord(string logEventTypeName, Guid userId, string oldValue, string newValue, bool isError, string description)
         {
-            var logEventTypeDTO = await _logEventTypeRepository.GetByName(logEventTypeName);
+            var logEventTypeDTO = _logEventTypeRepository.GetByName(logEventTypeName).GetAwaiter().GetResult();
             int logEventTypeId = 1;
             if (logEventTypeDTO != null)
                 logEventTypeId = logEventTypeDTO.Id;
 
-            if (logEventTypeId != null)
+            var objectToAdd = new LogEvent
             {
-                var objectToAdd = new LogEvent
-                {
-                    LogEventTypeId = logEventTypeId,
-                    UserId = userId,
-                    Description = description,
-                    IsError = isError,
-                    IsCritical = false,
-                    IsWarning = false,
-                    OldValue = oldValue,
-                    NewValue = newValue,
-                    EventTime = DateTime.Now
-                };
+                LogEventTypeId = logEventTypeId,
+                UserId = userId,
+                Description = description,
+                IsError = isError,
+                IsCritical = false,
+                IsWarning = false,
+                OldValue = oldValue,
+                NewValue = newValue,
+                EventTime = DateTime.Now
+            };
 
-                var addedLogEvent = _db.LogEvent.Add(objectToAdd);
-                _db.SaveChanges();
-                return _mapper.Map<LogEvent, LogEventDTO>(addedLogEvent.Entity);
-            }
-            else
-                return null;
+            var addedLogEvent = _db.LogEvent.Add(objectToAdd);
+            _db.SaveChanges();
+            return _mapper.Map<LogEvent, LogEventDTO>(addedLogEvent.Entity);
         }
 
         public async Task ToLog<T>(T? oldObject, T newObject, string logEventTypeName, string prefixString, IAuthorizationRepository _authorizationRepository)

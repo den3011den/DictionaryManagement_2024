@@ -591,12 +591,12 @@
                 {
                     case "SapMaterial" :
                         {
-                            haveErrors = await _loadFromExcelRepository.SapMaterialExcelFileLoad(this, worksheet, _authorizationRepository);
+                            haveErrors = await _loadFromExcelRepository.MaterialExcelFileLoad(this, worksheet, _authorizationRepository);
                             break;
                         }
                     case "MesMaterial":
                         {
-                            haveErrors = await _loadFromExcelRepository.MesMaterialExcelFileLoad(this, worksheet, _authorizationRepository);
+                            haveErrors = await _loadFromExcelRepository.MaterialExcelFileLoad(this, worksheet, _authorizationRepository);
                             break;
                         }
                     case "SapEquipment":
@@ -611,7 +611,7 @@
                             bool haveErrorsMesParam = false;
                             if (worksheetSapMaterial != null)
                             {
-                                haveErrorsSapMaterial = await _loadFromExcelRepository.SapMaterialExcelFileLoad(this, worksheetSapMaterial, _authorizationRepository);
+                                haveErrorsSapMaterial = await _loadFromExcelRepository.MaterialExcelFileLoad(this, worksheetSapMaterial, _authorizationRepository);
                             }
                             if (worksheetSapMaterial != null)
                             {
