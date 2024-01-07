@@ -65,8 +65,8 @@ namespace DictionaryManagement_Common
         public static string TempFilePathSettingName = "TempFilePath";
 
         public static string SapMaterialLoadFromExcelReportTemplateTypeNameSettingName = "SapMaterialLoadFromExcelReportTemplateTypeName";
-        public static string MesMaterialLoadFromExcelReportTemplateTypeNameSettingName = "MesMaterialLoadFromExcelReportTemplateType";
-        public static string SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName = "SapEquipmentLoadFromExcelReportTemplateType";
+        public static string MesMaterialLoadFromExcelReportTemplateTypeNameSettingName = "MesMaterialLoadFromExcelReportTemplateTypeName";
+        public static string SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName = "SapEquipmentLoadFromExcelReportTemplateTypeName";
         public static string MesParamLoadFromExcelReportTemplateTypeNameSettingName = "MesParamLoadFromExcelReportTemplateTypeName";
 
         public static String RemoveInvalidCharsFromFilename(this String file_name, int? maxFileNameLength = 200)

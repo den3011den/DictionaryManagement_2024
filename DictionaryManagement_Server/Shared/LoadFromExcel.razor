@@ -256,7 +256,7 @@
 
             if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName))
             {
-                Title = "Загрузка данных из Excel в справочник Оборудования SAP";
+                Title = "Загрузка данных из Excel в справочник Ресурсов SAP";
                 objectName = "SapEquipment";
             }
 
@@ -384,12 +384,16 @@
                             }
                         case "MesParam":
                             {
+                                var worksheet2 = workbook.Worksheet("SapMaterial");
+                                await _loadFromExcelRepository.SapMaterialReportTemplateDownloadFileWithData(this, worksheet2);
+                                var worksheet3 = workbook.Worksheet("SapEquipment");
+                                await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet3);
                                 filename = await _loadFromExcelRepository.MesParamReportTemplateDownloadFileWithData(this, worksheet);
                                 break;
                             }
                         default:
                             {
-                                filename = await _loadFromExcelRepository.SapMaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet);
                                 break;
                             }
                     }
@@ -427,6 +431,8 @@
 
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
+
+        RegisterHandler(RefreshSate);
 
         try
         {
@@ -519,16 +525,20 @@
                 }
 
                 console.Log($"Файл загружен в память");
-                console.Log($"Загрузка листа SapMaterial");
 
-                IXLWorksheet worksheet;
+                ResultFileId = createdReportEntityDTO.Id;
+
+                IXLWorksheet worksheet = null;
+                IXLWorksheet worksheetSapEquipment = null;
+                IXLWorksheet worksheetSapMaterial = null;
                 try
                 {
-                    worksheet = workbook.Worksheet("SapMaterial");
+                    console.Log($"Загрузка листа " + objectName);
+                    worksheet = workbook.Worksheet(objectName);
                 }
                 catch (Exception ex)
                 {
-                    console.Log($"! Не удалось загрузить лист: SapMaterial. Сообщение ошибки: " + ex.Message, AlertStyle.Danger);
+                    console.Log($"! Не удалось загрузить лист: " + objectName + ". Сообщение ошибки: " + ex.Message, AlertStyle.Danger);
                     loadExcelFileBusyFlag = false;
                     if (workbook != null)
                         workbook.Dispose();
@@ -538,7 +548,7 @@
                 }
                 if (worksheet == null)
                 {
-                    console.Log($"! Не удалось загрузить лист: SapMaterial", AlertStyle.Danger);
+                    console.Log($"! Не удалось загрузить лист: " + objectName, AlertStyle.Danger);
                     loadExcelFileBusyFlag = false;
                     if (workbook != null)
                         workbook.Dispose();
@@ -547,458 +557,79 @@
                     return;
                 }
 
-                console.Log($"Лист SapMaterial загружен");
-
-                ResultFileId = createdReportEntityDTO.Id;
-
-                int rowNumber = 9;
-
-                bool isEmptyString = false;
-
-                bool haveErrors = false;
-
-                while (isEmptyString == false)
+                if (objectName.Equals("MesParam"))
                 {
-
-                    console.Log($"Обработка строки " + rowNumber.ToString());
-
-                    var rowVar = worksheet.Row(rowNumber);
-
-                    string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
-                    string codeVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
-                    string nameVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
-                    string shortNameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
-                    string isArchiveVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
-                    string resultString = "";
-                    int idVarInt = 0;
-
-                    if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString) && String.IsNullOrEmpty(nameVarString)
-                            && String.IsNullOrEmpty(shortNameVarString) && String.IsNullOrEmpty(isArchiveVarString))
+                    try
                     {
-                        isEmptyString = true;
-                        continue;
+                        console.Log($"Загрузка листа SapMaterial");
+                        worksheetSapMaterial = workbook.Worksheet("SapMaterial");
+                    }
+                    catch (Exception ex)
+                    {                        
+                        console.Log($"! Не удалось загрузить лист: SapMaterial. Сообщение ошибки: " + ex.Message, AlertStyle.Warning);
+                        await Task.Delay(1);
+                        await InvokeAsync(StateHasChanged);
+                        worksheetSapMaterial = null;
+                    }
+                    try
+                    {
+                        console.Log($"Загрузка листа SapEquipment");
+                        worksheetSapMaterial = workbook.Worksheet("SapEquipment");
+                    }
+                    catch (Exception ex)
+                    {
+                        console.Log($"! Не удалось загрузить лист: SapEquipment. Сообщение ошибки: " + ex.Message, AlertStyle.Danger);
+                        await Task.Delay(1);
+                        await InvokeAsync(StateHasChanged);
+                        worksheetSapEquipment = null;
                     }
 
-                    SapMaterialDTO? foundSapMaterialDTO = null;
-                    if (!String.IsNullOrEmpty(idVarString))  // если указан id элемента, то рассматриваем только вариант редактирования уже существующей записи
-                    {
-                        try
-                        {
-                            idVarInt = int.Parse(idVarString);
-                        }
-                        catch (Exception ex)
-                        {
-                            haveErrors = true;
-                            idVarInt = 0;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
-                                " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                            console.Log(resultString, AlertStyle.Danger);
-                            rowNumber++;
-                            continue;
-                        }
-
-                        if (idVarInt <= 0)
-                        {
-                            haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                            console.Log(resultString, AlertStyle.Danger);
-                            rowNumber++;
-                            continue;
-                        }
-
-                        foundSapMaterialDTO = await _sapMaterialRepository.Get(idVarInt);
-                        if (foundSapMaterialDTO == null)
-                        {
-                            haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                            console.Log(resultString, AlertStyle.Danger);
-                            rowNumber++;
-                            continue;
-                        }
-
-                        SapMaterialDTO changedSapMaterialDTO = new SapMaterialDTO();
-                        changedSapMaterialDTO.Id = foundSapMaterialDTO.Id;
-
-                        if (String.IsNullOrEmpty(codeVarString))
-                        {
-                            changedSapMaterialDTO.Code = foundSapMaterialDTO.Code;
-                        }
-                        else
-                        {
-                            if (foundSapMaterialDTO.Code.Equals(codeVarString))
-                            {
-                                changedSapMaterialDTO.Code = foundSapMaterialDTO.Code;
-                            }
-                            else
-                            {
-                                var objectForCheckCode = _sapMaterialRepository.GetByCode(codeVarString).Result;
-                                if (objectForCheckCode != null)
-                                {
-                                    if (objectForCheckCode.Id != foundSapMaterialDTO.Id)
-                                    {
-                                        haveErrors = true;
-                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом материала " + codeVarString
-                                            + ". ИД записи: " + objectForCheckCode.Id.ToString() +
-                                            ". Наименование: " + objectForCheckCode.ShortName + ". Изменения не применялись.";
-                                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                        console.Log(resultString, AlertStyle.Danger);
-                                        rowNumber++;
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        changedSapMaterialDTO.Code = codeVarString;
-                                    }
-                                }
-                                else
-                                {
-                                    changedSapMaterialDTO.Code = codeVarString;
-                                }
-                            }
-                        }
-
-
-                        if (String.IsNullOrEmpty(nameVarString))
-                        {
-                            changedSapMaterialDTO.Name = foundSapMaterialDTO.Name;
-                        }
-                        else
-                        {
-                            if (foundSapMaterialDTO.Name.Equals(nameVarString))
-                            {
-                                changedSapMaterialDTO.Name = foundSapMaterialDTO.Name;
-                            }
-                            else
-                            {
-                                var objectForCheckName = _sapMaterialRepository.GetByName(nameVarString).Result;
-                                if (objectForCheckName != null)
-                                {
-                                    if (objectForCheckName.Id != foundSapMaterialDTO.Id)
-                                    {
-                                        haveErrors = true;
-                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с наименованием " + nameVarString
-                                            + ". ИД записи: " + objectForCheckName.Id.ToString() +
-                                            ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
-                                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                        console.Log(resultString, AlertStyle.Danger);
-                                        rowNumber++;
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        changedSapMaterialDTO.Name = nameVarString;
-                                    }
-                                }
-                                else
-                                {
-                                    changedSapMaterialDTO.Name = nameVarString;
-                                }
-                            }
-                        }
-
-
-                        if (String.IsNullOrEmpty(shortNameVarString))
-                        {
-                            changedSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
-                        }
-                        else
-                        {
-                            if (foundSapMaterialDTO.ShortName.Equals(shortNameVarString))
-                            {
-                                changedSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
-                            }
-                            else
-                            {
-                                var objectForCheckShortName = _sapMaterialRepository.GetByShortName(shortNameVarString).Result;
-                                if (objectForCheckShortName != null)
-                                {
-                                    if (objectForCheckShortName.Id != foundSapMaterialDTO.Id)
-                                    {
-                                        haveErrors = true;
-                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Уже есть запись с сокр. наименованием " + shortNameVarString
-                                            + ". ИД записи: " + objectForCheckShortName.Id.ToString() +
-                                            ". Код: " + objectForCheckShortName.Code + ". Изменения не применялись.";
-                                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                        console.Log(resultString, AlertStyle.Danger);
-                                        rowNumber++;
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        changedSapMaterialDTO.ShortName = shortNameVarString;
-                                    }
-                                }
-                                else
-                                {
-                                    changedSapMaterialDTO.ShortName = shortNameVarString;
-                                }
-                            }
-                        }
-
-                        if (String.IsNullOrEmpty(isArchiveVarString))
-                        {
-                            changedSapMaterialDTO.IsArchive = false;
-                        }
-                        else
-                        {
-                            changedSapMaterialDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
-                        }
-
-                        await _sapMaterialRepository.Update(changedSapMaterialDTO, SD.UpdateMode.Update);
-
-                        if (changedSapMaterialDTO.IsArchive != foundSapMaterialDTO.IsArchive)
-                            if (changedSapMaterialDTO.IsArchive == true)
-                            {
-                                await _sapMaterialRepository.Update(changedSapMaterialDTO, SD.UpdateMode.MoveToArchive);
-                            }
-                            else
-                            {
-                                await _sapMaterialRepository.Update(changedSapMaterialDTO, SD.UpdateMode.RestoreFromArchive);
-                            }
-
-                        await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: foundSapMaterialDTO, newObject: changedSapMaterialDTO, "Изменение материала SAP", "Материал SAP: ", _authorizationRepository);
-
-                        resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
-                        console.Log(resultString);
-                        rowNumber++;
-                        continue;
-                    }
-
-                    //-------------------------------------
-
-                    if (!String.IsNullOrEmpty(codeVarString))  // если указан Code элемента, то может быть как обновление записи, так и добавление
-                    {
-                        foundSapMaterialDTO = await _sapMaterialRepository.GetByCode(codeVarString);
-                        if (foundSapMaterialDTO == null)  // добавление
-                        {
-
-                            SapMaterialDTO forAddSapMaterialDTO = new SapMaterialDTO();
-
-                            var objectForCheckCode = _sapMaterialRepository.GetByCode(codeVarString).Result;
-                            if (objectForCheckCode != null)
-                            {
-                                haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом " + codeVarString +
-                                    ". ИД записи: " + objectForCheckCode.Id.ToString() + " Наименование: " + objectForCheckCode.ShortName + ".Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 7).Value = resultString;
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                console.Log(resultString, AlertStyle.Danger);
-                                rowNumber++;
-                                continue;
-                            }
-
-                            forAddSapMaterialDTO.Code = codeVarString;
-
-                            if (String.IsNullOrEmpty(nameVarString))
-                            {
-                                haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Для добавляемой записи не может быть пустое наименование. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 7).Value = resultString;
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                console.Log(resultString, AlertStyle.Danger);
-                                rowNumber++;
-                                continue;
-                            }
-                            else
-                            {
-                                var objectForCheckName = _sapMaterialRepository.GetByName(nameVarString).Result;
-                                if (objectForCheckName != null)
-                                {
-                                    haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с наименованием " + nameVarString
-                                            + ". ИД записи: " + objectForCheckName.Id.ToString() +
-                                            ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
-                                    worksheet.Cell(rowNumber, 7).Value = resultString;
-                                    worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                    worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                    console.Log(resultString, AlertStyle.Danger);
-                                    rowNumber++;
-                                    continue;
-                                }
-                                forAddSapMaterialDTO.Name = nameVarString;
-                            }
-
-                            if (String.IsNullOrEmpty(shortNameVarString))
-                            {
-                                haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Для добавляемой записи не может быть пустое сокращённое наименование. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 7).Value = resultString;
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                console.Log(resultString, AlertStyle.Danger);
-                                rowNumber++;
-                                continue;
-                            }
-                            else
-                            {
-                                var objectForCheckShortName = _sapMaterialRepository.GetByShortName(shortNameVarString).Result;
-                                if (objectForCheckShortName != null)
-                                {
-                                    haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Уже есть запись с сокращённым наименованием " + shortNameVarString
-                                            + ". ИД записи: " + objectForCheckShortName.Id.ToString() +
-                                            ". Код: " + objectForCheckShortName.Code + ". Изменения не применялись.";
-                                    worksheet.Cell(rowNumber, 7).Value = resultString;
-                                    worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                    worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                    console.Log(resultString, AlertStyle.Danger);
-                                    rowNumber++;
-                                    continue;
-                                }
-                                forAddSapMaterialDTO.ShortName = shortNameVarString;
-                            }
-
-                            forAddSapMaterialDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
-
-                            var newSapMaterialDTO = await _sapMaterialRepository.Create(forAddSapMaterialDTO);
-                            await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: null, newObject: newSapMaterialDTO, "Добавление материала SAP", "Материал SAP: ", _authorizationRepository);
-
-                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Материал добавлен";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
-                            console.Log(resultString);
-                            rowNumber++;
-                            continue;
-                        }
-                        else  // изменение
-                        {
-                            SapMaterialDTO forChangeSapMaterialDTO = new SapMaterialDTO();
-                            forChangeSapMaterialDTO.Id = foundSapMaterialDTO.Id;
-                            forChangeSapMaterialDTO.Code = foundSapMaterialDTO.Code;
-                            if (String.IsNullOrEmpty(nameVarString))
-                            {
-                                forChangeSapMaterialDTO.Name = foundSapMaterialDTO.Name;
-                            }
-                            else
-                            {
-                                if (forChangeSapMaterialDTO.Name.Equals(nameVarString))
-                                {
-                                    forChangeSapMaterialDTO.Name = foundSapMaterialDTO.Name;
-                                }
-                                else
-                                {
-                                    var objectForCheckName = _sapMaterialRepository.GetByName(nameVarString).Result;
-                                    if (objectForCheckName != null)
-                                    {
-                                        if (objectForCheckName.Id != foundSapMaterialDTO.Id)
-                                        {
-                                            haveErrors = true;
-                                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с наименованием " + nameVarString
-                                                + ". ИД записи: " + objectForCheckName.Id.ToString() +
-                                                ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
-                                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                            console.Log(resultString, AlertStyle.Danger);
-                                            rowNumber++;
-                                            continue;
-                                        }
-                                        else
-                                        {
-                                            forChangeSapMaterialDTO.Name = nameVarString;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        forChangeSapMaterialDTO.Name = nameVarString;
-                                    }
-                                }
-                            }
-
-
-                            if (String.IsNullOrEmpty(shortNameVarString))
-                            {
-                                forChangeSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
-                            }
-                            else
-                            {
-                                if (foundSapMaterialDTO.ShortName.Equals(shortNameVarString))
-                                {
-                                    forChangeSapMaterialDTO.ShortName = foundSapMaterialDTO.ShortName;
-                                }
-                                else
-                                {
-                                    var objectForCheckShortName = _sapMaterialRepository.GetByShortName(shortNameVarString).Result;
-                                    if (objectForCheckShortName != null)
-                                    {
-                                        if (objectForCheckShortName.Id != foundSapMaterialDTO.Id)
-                                        {
-                                            haveErrors = true;
-                                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Уже есть запись с сокр. наименованием " + shortNameVarString
-                                                + ". ИД записи: " + objectForCheckShortName.Id.ToString() +
-                                                ". Код: " + objectForCheckShortName.Code + ". Изменения не применялись.";
-                                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
-                                            console.Log(resultString, AlertStyle.Danger);
-                                            rowNumber++;
-                                            continue;
-                                        }
-                                        else
-                                        {
-                                            forChangeSapMaterialDTO.ShortName = shortNameVarString;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        forChangeSapMaterialDTO.ShortName = shortNameVarString;
-                                    }
-                                }
-                            }
-
-                            if (String.IsNullOrEmpty(isArchiveVarString))
-                            {
-                                forChangeSapMaterialDTO.IsArchive = false;
-                            }
-                            else
-                            {
-                                forChangeSapMaterialDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
-                            }
-
-                            await _sapMaterialRepository.Update(forChangeSapMaterialDTO, SD.UpdateMode.Update);
-
-                            if (forChangeSapMaterialDTO.IsArchive != foundSapMaterialDTO.IsArchive)
-                                if (forChangeSapMaterialDTO.IsArchive == true)
-                                {
-                                    await _sapMaterialRepository.Update(forChangeSapMaterialDTO, SD.UpdateMode.MoveToArchive);
-                                }
-                                else
-                                {
-                                    await _sapMaterialRepository.Update(forChangeSapMaterialDTO, SD.UpdateMode.RestoreFromArchive);
-                                }
-
-                            await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: foundSapMaterialDTO, newObject: forChangeSapMaterialDTO, "Изменение материала SAP", "Материал SAP: ", _authorizationRepository);
-
-                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
-                            console.Log(resultString);
-                            rowNumber++;
-                            continue;
-                        }
-                    }
-                    rowNumber++;
                 }
 
+                bool haveErrors = false;
+                switch (objectName)
+                {
+                    case "SapMaterial" :
+                        {
+                            haveErrors = await _loadFromExcelRepository.SapMaterialExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "MesMaterial":
+                        {
+                            haveErrors = await _loadFromExcelRepository.MesMaterialExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "SapEquipment":
+                        {
+                            haveErrors = await _loadFromExcelRepository.SapEquipmentExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "MesParam":
+                        {
+                            bool haveErrorsSapMaterial = false;
+                            bool haveErrorsSapEquipment = false;
+                            bool haveErrorsMesParam = false;
+                            if (worksheetSapMaterial != null)
+                            {
+                                haveErrorsSapMaterial = await _loadFromExcelRepository.SapMaterialExcelFileLoad(this, worksheetSapMaterial, _authorizationRepository);
+                            }
+                            if (worksheetSapMaterial != null)
+                            {
+                                haveErrorsSapEquipment = await _loadFromExcelRepository.SapEquipmentExcelFileLoad(this, worksheetSapEquipment, _authorizationRepository);
+                            }
+
+                            haveErrorsMesParam = await _loadFromExcelRepository.MesParamExcelFileLoad(this, worksheet, _authorizationRepository);
+
+                            if (haveErrorsSapMaterial || haveErrorsSapEquipment || haveErrorsMesParam)
+                                haveErrors = true;
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+           
                 console.Log($"Сохранение файла результата");
 
                 workbook.SaveAs(fileUploadFullPath);
