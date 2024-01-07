@@ -611,7 +611,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             }
 
                         await _logEventRepository.ToLog<SapMaterialDTO>(oldObject: foundSapMaterialDTO, newObject: forChangeSapMaterialDTO, "Изменение материала SAP", "Материал SAP: ", _authorizationRepository);
-
                         resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
                         worksheet.Cell(rowNumber, 7).Value = resultString;
                         worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
