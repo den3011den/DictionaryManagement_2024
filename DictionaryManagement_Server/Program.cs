@@ -2,6 +2,8 @@ using DictionaryManagement_Business.Repository;
 using DictionaryManagement_Business.Repository.IRepository;
 using DictionaryManagement_Common;
 using DictionaryManagement_DataAccess.Data.IntDB;
+using DictionaryManagement_Server.Extensions.Repository;
+using DictionaryManagement_Server.Extensions.Repository.IRepository;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
 using Radzen;
@@ -84,6 +86,7 @@ builder.Services.AddScoped<IMesMovementsRepository, MesMovementsRepository>();
 builder.Services.AddScoped<ISapMovementsINRepository, SapMovementsINRepository>();
 builder.Services.AddScoped<ISapMovementsOUTRepository, SapMovementsOUTRepository>();
 builder.Services.AddScoped<ILogEventRepository, LogEventRepository>();
+builder.Services.AddScoped<ILoadFromExcelRepository, LoadFromExcelRepository>();
 
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

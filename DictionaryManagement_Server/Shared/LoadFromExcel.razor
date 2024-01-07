@@ -1,4 +1,4 @@
-﻿@page "/dictionary/SapMaterial/SapMaterialLoadFromExcel/{LoadFromExcelReportTemplateTypeNameSettingName}"
+﻿@page "/dictionary/LoadFromExcel/{LoadFromExcelReportTemplateTypeNameSettingName}"
 
 @attribute [Authorize]
 
@@ -6,7 +6,7 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 @using ClosedXML.Excel;
-@* @using ClosedXML.Report; *@ 
+@using DictionaryManagement_Server.Extensions.Repository.IRepository
 
 @inject IJSRuntime _jsRuntime
 
@@ -16,6 +16,7 @@
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject IReportTemplateRepository _reportTemplateRepository
 @inject ISapMaterialRepository _sapMaterialRepository
+@inject ILoadFromExcelRepository _loadFromExcelRepository
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 
 @inject DialogService _dialogService
@@ -101,7 +102,7 @@
                                         </RadzenButton>
                                     </div>
                                     <div class="rz-text-align-center">
-                                        <RadzenButton Text="Скачать шаблон для заполнения с данными" title="Получить шаблон файла с данными справочника Материалы SAP в качестве примера заполнения"
+                                        <RadzenButton Text="Скачать шаблон для заполнения с данными" title="Получить шаблон файла с данными справочника в качестве примера заполнения"
                                                       Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                                       Click="@(args => ReportTemplateDownloadFileWithData(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
                                                       IsBusy=@reportTemplateDownloadFileWithDataBusyFlag BusyText=@reportTemplateDownloadFileWithDataBusyText>
@@ -116,7 +117,7 @@
                     <RadzenRow Gap="1rem">
                         <RadzenStack>
                             <RadzenCard Style="width: 100%;">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл Excel с данными загружаемых Материалов SAP</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл Excel с загружаемыми данными</RadzenText>
                                 <RadzenUpload @ref="upload" Auto="false" ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                               Url=@("UploadFileController/UploadReportEntityFile/"+Guid.NewGuid().ToString())
                                               Change=@(args => OnChangeUploadFile(args)) Progress=@(args => OnProgressUploadFile(args)) Style="width: 850px;" />
@@ -182,6 +183,8 @@
 
     Variant variant = Variant.Outlined;
 
+    public string objectName = "";
+
     public string reportTemplateTypeName = "";
 
     public string reportDownloadPath = "";
@@ -213,7 +216,22 @@
     public bool IsLoading { get; set; }
     public bool IsAdmin { get; set; }
 
-    private string Title { get; set; } = "Загрузка данных из Excel в справочник Материалы SAP";
+    private string Title { get; set; } = "Загрузка данных из Excel";
+
+    public delegate void DelegateHandler();
+
+    DelegateHandler? delegateHandler;
+    public void RegisterHandler(DelegateHandler deleg)
+    {
+        delegateHandler = deleg;
+    }
+
+    public void RefreshSate()
+    {
+        Task.Delay(1);
+        InvokeAsync(StateHasChanged);
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -223,6 +241,31 @@
         {
             IsLoading = true;
             StateHasChanged();
+
+            Title = "Загрузка данных из Excel";
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в справочник Материалы SAP";
+                objectName = "SapMaterial";
+            }
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в справочник Материалы MES";
+                objectName = "MesMaterial";
+            }
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в справочник Оборудования SAP";
+                objectName = "SapEquipment";
+            }
+
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesParamLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в справочник Тэгов СИР";
+                objectName = "MesParam";
+            }
 
             foundActiveReportTemplateFile = false;
 
@@ -305,54 +348,57 @@
         reportTemplateDownloadFileWithDataBusyFlag = true;
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
+
             IsAdmin = true;
             reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение шаблона файла)";
 
             await Task.Delay(200);
             await InvokeAsync(StateHasChanged);
 
+            RegisterHandler(RefreshSate);
+
             try
             {
                 using var workbook = new XLWorkbook(fileTemplateFullPath);
-                {
-                    var worksheet = workbook.Worksheet("SapMaterial");
-                    reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Материалов SAP)";
-                    await Task.Delay(200);
-                    await InvokeAsync(StateHasChanged);
+                {                    
+                    var worksheet = workbook.Worksheet(objectName);
 
-                    IEnumerable<SapMaterialDTO> sapMaterialDTOList = (await _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
+                    string filename = "";
 
-                    int recordCount = sapMaterialDTOList.Count();
-                    int recordOrder = 0;
-
-                    int excelRowNum = 9;
-                    int excelColNum;
-                    foreach (var sapMaterialDTOItem in sapMaterialDTOList)
+                    switch(objectName)
                     {
-                        recordOrder++;
-                        if ((recordOrder == 1) || (recordOrder % 100) == 0)
-                        {
-                            reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-                            await Task.Delay(200);
-                            await InvokeAsync(StateHasChanged);
-                        }
-
-                        excelColNum = 2;
-                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.Id.ToString();
-                        excelColNum++;
-                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.Code;
-                        excelColNum++;
-                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.Name;
-                        excelColNum++;
-                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.ShortName;
-                        excelColNum++;
-                        worksheet.Cell(excelRowNum, excelColNum).Value = sapMaterialDTOItem.IsArchive == true ? "Да" : "Нет";
-                        excelRowNum++;
+                        case "SapMaterial" :
+                            {
+                                filename = await _loadFromExcelRepository.SapMaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                break; 
+                            }
+                        case "MesMaterial":
+                            {
+                                filename = await _loadFromExcelRepository.MesMaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                break;
+                            }
+                        case "SapEquipment":
+                            {
+                                filename = await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet);
+                                break;
+                            }
+                        case "MesParam":
+                            {
+                                filename = await _loadFromExcelRepository.MesParamReportTemplateDownloadFileWithData(this, worksheet);
+                                break;
+                            }
+                        default:
+                            {
+                                filename = await _loadFromExcelRepository.SapMaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                break;
+                            }
                     }
 
+
                     string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
-                    string filename = "SapMaterial_Example_with_data_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+                    filename = filename + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
                     fileReportTempFullPath = System.IO.Path.Combine(reportTempPath, filename);
+
 
                     workbook.SaveAs(fileReportTempFullPath);
                     if (workbook != null)

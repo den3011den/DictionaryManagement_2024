@@ -123,7 +123,7 @@
     </div>
 }
 @code {
-
+    
     _Dialogs? _dialogs { get; set; }
 
     RadzenDataGrid<SapMaterialDTO> sapMaterialDTOGrid;
@@ -510,7 +510,7 @@
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<SapMaterialLoadFromExcel>("Загрузка данных из Excel", new Dictionary
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Материалы SAP)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px"});
             IsLoading = false;
