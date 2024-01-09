@@ -369,12 +369,12 @@
                     {
                         case "SapMaterial" :
                             {
-                                filename = await _loadFromExcelRepository.SapMaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                filename = await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet);
                                 break; 
                             }
                         case "MesMaterial":
                             {
-                                filename = await _loadFromExcelRepository.MesMaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                filename = await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet);
                                 break;
                             }
                         case "SapEquipment":
@@ -385,7 +385,7 @@
                         case "MesParam":
                             {
                                 var worksheet2 = workbook.Worksheet("SapMaterial");
-                                await _loadFromExcelRepository.SapMaterialReportTemplateDownloadFileWithData(this, worksheet2);
+                                await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet2);
                                 var worksheet3 = workbook.Worksheet("SapEquipment");
                                 await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet3);
                                 filename = await _loadFromExcelRepository.MesParamReportTemplateDownloadFileWithData(this, worksheet);
