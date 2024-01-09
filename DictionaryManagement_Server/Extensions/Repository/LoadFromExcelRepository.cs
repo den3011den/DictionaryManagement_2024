@@ -14,15 +14,17 @@ namespace DictionaryManagement_Server.Extensions.Repository
         private readonly IMesMaterialRepository _mesMaterialRepository;
         private readonly ISapEquipmentRepository _sapEquipmentRepository;
         private readonly ILogEventRepository _logEventRepository;
+        private readonly IMesParamRepository _mesParamRepository;
 
         public LoadFromExcelRepository(ISapMaterialRepository sapMaterialRepository, IMesMaterialRepository mesMaterialRepository,
             ISapEquipmentRepository sapEquipmentRepository,
-            ILogEventRepository logEventRepository)
+            ILogEventRepository logEventRepository, IMesParamRepository mesParamRepository)
         {
             _sapMaterialRepository = sapMaterialRepository;
             _mesMaterialRepository = mesMaterialRepository;
             _sapEquipmentRepository = sapEquipmentRepository;
             _logEventRepository = logEventRepository;
+            _mesParamRepository = mesParamRepository;
         }
 
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
@@ -107,6 +109,99 @@ namespace DictionaryManagement_Server.Extensions.Repository
         }
         public async Task<string> MesParamReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
         {
+
+
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Тэгов СИР)";
+            loadFromExcelPage.RefreshSate();
+
+            IEnumerable<MesParamDTO> mesParamDTOList = (await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
+
+            int recordCount = mesParamDTOList.Count();
+            int recordOrder = 0;
+
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var mesParamDTOItem in mesParamDTOList)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    loadFromExcelPage.RefreshSate();
+                }
+
+                excelColNum = 2;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.Code;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.Name == null ? "" : mesParamDTOItem.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.Description == null ? "" : mesParamDTOItem.Description;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesParamSourceTypeDTOFK == null ? "" : mesParamDTOItem.MesParamSourceTypeDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesParamSourceLink == null ? "" : mesParamDTOItem.MesParamSourceLink;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesParamSourceLink == null ? "" : mesParamDTOItem.MesParamSourceLink;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesDepartmentDTOFK == null ? "" : mesParamDTOItem.MesDepartmentDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesDepartmentDTOFK == null ? "" : mesParamDTOItem.MesDepartmentDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentSourceDTOFK == null ? "" : mesParamDTOItem.SapEquipmentSourceDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentSourceDTOFK == null ? "" : mesParamDTOItem.SapEquipmentSourceDTOFK.ErpPlantId;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentSourceDTOFK == null ? "" : mesParamDTOItem.SapEquipmentSourceDTOFK.ErpId;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentSourceDTOFK == null ? "" : mesParamDTOItem.SapEquipmentSourceDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentDestDTOFK == null ? "" : mesParamDTOItem.SapEquipmentDestDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentDestDTOFK == null ? "" : mesParamDTOItem.SapEquipmentDestDTOFK.ErpPlantId;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentDestDTOFK == null ? "" : mesParamDTOItem.SapEquipmentDestDTOFK.ErpId;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapEquipmentDestDTOFK == null ? "" : mesParamDTOItem.SapEquipmentDestDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapMaterialDTOFK == null ? "" : mesParamDTOItem.SapMaterialDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapMaterialDTOFK == null ? "" : mesParamDTOItem.SapMaterialDTOFK.Code.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapMaterialDTOFK == null ? "" : mesParamDTOItem.SapMaterialDTOFK.Name.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapUnitOfMeasureDTOFK == null ? "" : mesParamDTOItem.SapUnitOfMeasureDTOFK.Name.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.DaysRequestInPast == null ? "" : mesParamDTOItem.DaysRequestInPast.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.DaysRequestInPast == null ? "" : mesParamDTOItem.DaysRequestInPast.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.TI == null ? "" : mesParamDTOItem.TI;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.NameTI == null ? "" : mesParamDTOItem.NameTI;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.TM == null ? "" : mesParamDTOItem.TM;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.NameTM == null ? "" : mesParamDTOItem.NameTM;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesToSirUnitOfMeasureKoef == null ? "" : mesParamDTOItem.MesToSirUnitOfMeasureKoef.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.NeedWriteToSap == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.NeedReadFromSap == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.NeedReadFromMes == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.NeedWriteToMes == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.IsNdo == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.IsArchive == true ? "Да" : "Нет";
+
+                excelRowNum++;
+            }
+
             return "MesParam_Example_with_data_";
         }
 
