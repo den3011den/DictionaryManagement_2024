@@ -17,6 +17,9 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<MesDepartmentDTO> GetByCode(int? mesCode = 0);
         public Task<MesDepartmentDTO> GetByName(string name = "");
         public Task<MesDepartmentDTO> GetByShortName(string shortName = "");
+        public Task<IEnumerable<MesDepartmentDTO>> GetByNameList(string name = "");
+        public Task<IEnumerable<MesDepartmentDTO>> GetByShortNameList(string shortName = "");
+
         public Task<Tuple<IEnumerable<MesDepartmentVMDTO>, int>> GetAllDepartmentWithChildren(int? mesDepartmentRootId, int level, int maxLevel, MesDepartmentVMDTO? departmentParentVMDTO);
     }
 }

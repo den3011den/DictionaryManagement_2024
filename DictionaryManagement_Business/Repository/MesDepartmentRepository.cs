@@ -218,6 +218,18 @@ namespace DictionaryManagement_Business.Repository
             {
                 return new Tuple<IEnumerable<MesDepartmentVMDTO>, int>(resutlList, maxLevel);
             }
+        }
+
+        public async Task<IEnumerable<MesDepartmentDTO>> GetByNameList(string name = "")
+        {
+            var hhh3 = _db.MesDepartment.Include("DepartmentParent").Where(u => u.Name.Trim().ToUpper() != name.Trim().ToUpper()).ToListWithNoLock();
+            return _mapper.Map<IEnumerable<MesDepartment>, IEnumerable<MesDepartmentDTO>>(hhh3);
+
+        }
+        public async Task<IEnumerable<MesDepartmentDTO>> GetByShortNameList(string shortName = "")
+        {
+            var hhh3 = _db.MesDepartment.Include("DepartmentParent").Where(u => u.ShortName.Trim().ToUpper() != shortName.Trim().ToUpper()).ToListWithNoLock();
+            return _mapper.Map<IEnumerable<MesDepartment>, IEnumerable<MesDepartmentDTO>>(hhh3);
 
         }
     }

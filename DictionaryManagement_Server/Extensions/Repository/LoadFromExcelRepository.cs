@@ -15,16 +15,25 @@ namespace DictionaryManagement_Server.Extensions.Repository
         private readonly ISapEquipmentRepository _sapEquipmentRepository;
         private readonly ILogEventRepository _logEventRepository;
         private readonly IMesParamRepository _mesParamRepository;
+        private readonly IMesParamSourceTypeRepository _mesParamSourceTypeRepository;
+        private readonly IMesDepartmentRepository _mesDepartmentRepository;
+        private readonly ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository;
 
         public LoadFromExcelRepository(ISapMaterialRepository sapMaterialRepository, IMesMaterialRepository mesMaterialRepository,
             ISapEquipmentRepository sapEquipmentRepository,
-            ILogEventRepository logEventRepository, IMesParamRepository mesParamRepository)
+            ILogEventRepository logEventRepository, IMesParamRepository mesParamRepository,
+            IMesParamSourceTypeRepository mesParamSourceTypeRepository,
+            IMesDepartmentRepository mesDepartmentRepository,
+            ISapUnitOfMeasureRepository sapUnitOfMeasureRepository)
         {
             _sapMaterialRepository = sapMaterialRepository;
             _mesMaterialRepository = mesMaterialRepository;
             _sapEquipmentRepository = sapEquipmentRepository;
             _logEventRepository = logEventRepository;
             _mesParamRepository = mesParamRepository;
+            _mesParamSourceTypeRepository = mesParamSourceTypeRepository;
+            _mesDepartmentRepository = mesDepartmentRepository;
+            _sapUnitOfMeasureRepository = sapUnitOfMeasureRepository;
         }
 
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
@@ -962,7 +971,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             rowNumber++;
                             continue;
                         }
-
                 }
             }
 
@@ -976,16 +984,1127 @@ namespace DictionaryManagement_Server.Extensions.Repository
         public async Task<bool> MesParamExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
                 IAuthorizationRepository _authorizationRepository)
         {
+
             bool haveErrors = false;
 
-            loadFromExcelPage.console.Log($"Лист MesParam загружен в память");
-            loadFromExcelPage.console.Log($"Начало загрузки данных листа MesParam в справочник Тэгов СИР");
+            loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
+            loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в справочник Тэгов СИР");
             loadFromExcelPage.RefreshSate();
 
-            loadFromExcelPage.console.Log($"Окончание загрузки данных листа MesParam в справочник Тэгов СИР");
+            int rowNumber = 9;
+
+            bool isEmptyString = false;
+
+            while (isEmptyString == false)
+            {
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                loadFromExcelPage.RefreshSate();
+
+                var rowVar = worksheet.Row(rowNumber);
+
+                string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string codeVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string nameVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string descriptionVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string mesParamSourceTypeNameVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string mesParamSourceLinkVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string departmentIdVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
+                string departmentNameVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
+
+                string sapEquipmentIdSourceVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
+                string erpPlantIdSourceVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
+                string erpIdSourceVarString = rowVar.Cell(12).CachedValue.ToString().Trim();
+                string erpNameSourceVarString = rowVar.Cell(13).CachedValue.ToString().Trim();
+
+                string sapEquipmentIdDestVarString = rowVar.Cell(14).CachedValue.ToString().Trim();
+                string erpPlantIdDestVarString = rowVar.Cell(15).CachedValue.ToString().Trim();
+                string erpIdDestVarString = rowVar.Cell(16).CachedValue.ToString().Trim();
+                string erpNameDestVarString = rowVar.Cell(17).CachedValue.ToString().Trim();
+
+                string sapMaterialIdVarString = rowVar.Cell(18).CachedValue.ToString().Trim();
+                string sapMaterialCodeVarString = rowVar.Cell(19).CachedValue.ToString().Trim();
+                string sapMaterialNameVarString = rowVar.Cell(20).CachedValue.ToString().Trim();
+
+                string sapUnitOfMeasureNameVarString = rowVar.Cell(21).CachedValue.ToString().Trim();
+                string daysRequestInPastVarString = rowVar.Cell(22).CachedValue.ToString().Trim();
+
+                string TIVarString = rowVar.Cell(23).CachedValue.ToString().Trim();
+                string nameTIVarString = rowVar.Cell(24).CachedValue.ToString().Trim();
+
+                string TMVarString = rowVar.Cell(25).CachedValue.ToString().Trim();
+                string nameTMVarString = rowVar.Cell(26).CachedValue.ToString().Trim();
+
+                string mesToSirUnitOfMeasureKoefVarString = rowVar.Cell(27).CachedValue.ToString().Trim();
+
+                string needWriteToSapVarString = rowVar.Cell(28).CachedValue.ToString().Trim();
+                string needReadFromSapVarString = rowVar.Cell(29).CachedValue.ToString().Trim();
+
+                string needReadFromMesVarString = rowVar.Cell(30).CachedValue.ToString().Trim();
+                string needWriteToMesVarString = rowVar.Cell(31).CachedValue.ToString().Trim();
+
+                string isNdoVarString = rowVar.Cell(32).CachedValue.ToString().Trim();
+                string isArchiveVarString = rowVar.Cell(33).CachedValue.ToString().Trim();
+
+
+                string resultString = "";
+                int idVarInt = 0;
+
+
+                // монструозный if. Наверное лучше какой-нить Dictionary. Но пока так.
+                // Нет данных во всех 32-х колонках - выходим
+                if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString) && String.IsNullOrEmpty(nameVarString)
+                   && String.IsNullOrEmpty(descriptionVarString)
+                   && String.IsNullOrEmpty(mesParamSourceTypeNameVarString) && String.IsNullOrEmpty(mesParamSourceLinkVarString))
+                    if (String.IsNullOrEmpty(departmentIdVarString) && String.IsNullOrEmpty(departmentNameVarString) && String.IsNullOrEmpty(sapEquipmentIdSourceVarString)
+                       && String.IsNullOrEmpty(erpPlantIdSourceVarString)
+                       && String.IsNullOrEmpty(erpIdSourceVarString) && String.IsNullOrEmpty(erpNameSourceVarString))
+                        if (String.IsNullOrEmpty(sapEquipmentIdDestVarString) && String.IsNullOrEmpty(erpPlantIdDestVarString) && String.IsNullOrEmpty(erpIdDestVarString)
+                           && String.IsNullOrEmpty(erpNameDestVarString)
+                           && String.IsNullOrEmpty(sapMaterialIdVarString) && String.IsNullOrEmpty(sapMaterialCodeVarString) && String.IsNullOrEmpty(sapMaterialNameVarString))
+                            if (String.IsNullOrEmpty(sapUnitOfMeasureNameVarString) && String.IsNullOrEmpty(daysRequestInPastVarString) && String.IsNullOrEmpty(TIVarString)
+                               && String.IsNullOrEmpty(nameTIVarString)
+                               && String.IsNullOrEmpty(TMVarString) && String.IsNullOrEmpty(nameTMVarString) && String.IsNullOrEmpty(mesToSirUnitOfMeasureKoefVarString))
+                                if (String.IsNullOrEmpty(needWriteToSapVarString) && String.IsNullOrEmpty(needReadFromSapVarString) && String.IsNullOrEmpty(needReadFromMesVarString)
+                                   && String.IsNullOrEmpty(needWriteToMesVarString)
+                                   && String.IsNullOrEmpty(isNdoVarString) && String.IsNullOrEmpty(isArchiveVarString))
+                                {
+                                    isEmptyString = true;
+                                    continue;
+                                }
+
+                if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString))
+                {
+                    haveErrors = true;
+                    idVarInt = 0;
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3. Пустые одновременно поля \"ИД записи\" и \"Код тэга СИР\". Изменения не применялись.";
+                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
+                string isUpdateOrAddMode = "NONE";
+                bool needCheckCode = true;
+                bool needCheckName = true;
+                bool needCheckMapping = true;
+                bool needCheckMesParamSourceLink = true;
+                string duplicateMesParamSourceLink = "";
+
+                IEnumerable<MesDepartmentDTO>? foundMesDepartmentList = null;
+                MesDepartmentDTO? foundMesDepartment = null;
+                MesParamSourceTypeDTO? foundMesParamSourceTypeDTO = null;
+                SapEquipmentDTO? foundSapEquipmentSourceDTO = null;
+                SapEquipmentDTO? foundSapEquipmentDestDTO = null;
+                SapMaterialDTO? foundSapMaterialDTO = null;
+                SapUnitOfMeasureDTO? foundSapUnitOfMeasureDTO = null;
+
+                MesParamDTO? foundMesParamDTO = null;
+                MesParamDTO changedMesParamDTO = new MesParamDTO();
+                if (!String.IsNullOrEmpty(idVarString))  // если указан id элемента, то рассматриваем только вариант редактирования уже существующей записи
+                {
+                    isUpdateOrAddMode = "UPDATE";
+                    try
+                    {
+                        idVarInt = int.Parse(idVarString);
+                    }
+                    catch (Exception ex)
+                    {
+                        haveErrors = true;
+                        idVarInt = 0;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
+                            " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+
+                    if (idVarInt <= 0)
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+
+                    foundMesParamDTO = await _mesParamRepository.GetById(idVarInt);
+
+                    if (foundMesParamDTO == null)
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ". Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    changedMesParamDTO.Id = foundMesParamDTO.Id;
+                    if (String.IsNullOrEmpty(codeVarString))
+                    {
+                        changedMesParamDTO.Code = foundMesParamDTO.Code;
+                    }
+                    else
+                    {
+                        changedMesParamDTO.Code = codeVarString;
+                    }
+                }
+                else
+                {
+                    if (!String.IsNullOrEmpty(codeVarString))
+                    {
+                        foundMesParamDTO = await _mesParamRepository.GetByCode(codeVarString);
+
+                        if (foundMesParamDTO == null)  // добавление
+                        {
+                            isUpdateOrAddMode = "ADD";
+                            changedMesParamDTO.Code = codeVarString;
+                        }
+                        else  // редактирование
+                        {
+                            isUpdateOrAddMode = "UPDATE";
+                            needCheckCode = true;
+
+                            changedMesParamDTO.Id = foundMesParamDTO.Id;
+                            changedMesParamDTO.Code = codeVarString;
+                        }
+                    }
+                }
+
+                if ((!String.IsNullOrEmpty(mesParamSourceTypeNameVarString) && String.IsNullOrEmpty(mesParamSourceLinkVarString)) ||
+                    (String.IsNullOrEmpty(mesParamSourceTypeNameVarString) && !String.IsNullOrEmpty(mesParamSourceLinkVarString)))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 6, 7. Поля \"Источник\" и \"Тэг/ИД источника\" могут быть или оба проставлены, или оба пустые. Изменения не применялись.";
+                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+
+                }
+                if (needCheckCode)
+                {
+                    MesParamDTO? objectForCheckCode;
+                    objectForCheckCode = _mesParamRepository.GetByCode(codeVarString).Result;
+
+                    if (objectForCheckCode != null)
+                    {
+                        bool isBad = false;
+                        if (isUpdateOrAddMode == "UPDATE")
+                        {
+                            if (objectForCheckCode.Id != foundMesParamDTO.Id)
+                            {
+                                isBad = true;
+                            }
+                        }
+                        else  // если добавление
+                        {
+                            isBad = true;
+                        }
+                        if (isBad)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом Тэга СИР " + codeVarString
+                                + ". ИД записи: " + objectForCheckCode.Id.ToString() +
+                                ". Наименование: " + objectForCheckCode.Name + ". Изменения не применялись."; ;
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+                }
+
+                if (needCheckName)
+                {
+                    MesParamDTO? objectForCheckName;
+                    objectForCheckName = _mesParamRepository.GetByName(nameVarString).Result;
+
+                    if (objectForCheckName != null)
+                    {
+                        bool isBad = false;
+                        if (isUpdateOrAddMode == "UPDATE")
+                        {
+                            if (objectForCheckName.Id != foundMesParamDTO.Id)
+                            {
+                                isBad = true;
+                            }
+                        }
+                        else  // это добавление записи
+                        {
+                            isBad = true;
+                        }
+                        if (isBad)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с Наименованием тэга СИР " + nameVarString
+                                        + ". ИД записи: " + objectForCheckName.Id.ToString() +
+                                        ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+                }
+
+                if (needCheckMesParamSourceLink)
+                {
+
+                    if (!String.IsNullOrEmpty(mesParamSourceLinkVarString) && !String.IsNullOrEmpty(mesParamSourceTypeNameVarString))
+                    {
+
+                        MesParamDTO? objectForCheckMesParamSourceLink = _mesParamRepository.GetByMesParamSourceLink(mesParamSourceLinkVarString).GetAwaiter().GetResult();
+
+                        if (objectForCheckMesParamSourceLink != null)
+                        {
+                            bool isBad = false;
+                            if (isUpdateOrAddMode == "UPDATE")
+                            {
+                                if (objectForCheckMesParamSourceLink.Id != foundMesParamDTO.Id)
+                                {
+                                    isBad = true;
+                                }
+                            }
+                            else  // это добавление записи
+                            {
+                                isBad = true;
+                            }
+                            if (isBad)
+                            {
+                                duplicateMesParamSourceLink = "Предупреждение: уже был тэг СИР с таким \"Тэг/ИД источника.\"";
+                            }
+                        }
+                    }
+                }
+
+                if (String.IsNullOrEmpty(nameVarString))
+                {
+                    if (isUpdateOrAddMode == "ADD")
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. У добавляемой записи не может быть пустое наименование. Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    if (isUpdateOrAddMode == "UPDATE")
+                    {
+                        changedMesParamDTO.Name = foundMesParamDTO.Name;
+                    }
+                    else
+                    {
+                        changedMesParamDTO.Name = nameVarString;
+                    }
+                }
+                changedMesParamDTO.Description = descriptionVarString;
+
+                if (String.IsNullOrEmpty(mesParamSourceTypeNameVarString))
+                {
+                    changedMesParamDTO.MesParamSourceLink = null;
+                    changedMesParamDTO.MesParamSourceTypeDTOFK = null;
+                }
+                else
+                {
+                    foundMesParamSourceTypeDTO = _mesParamSourceTypeRepository.GetByName(mesParamSourceTypeNameVarString).GetAwaiter().GetResult();
+                    if (foundMesParamSourceTypeDTO == null)
+                    {
+                        changedMesParamDTO.MesParamSourceType = null;
+                        changedMesParamDTO.MesParamSourceTypeDTOFK = null;
+                    }
+                    else
+                    {
+                        changedMesParamDTO.MesParamSourceType = foundMesParamSourceTypeDTO.Id;
+                        changedMesParamDTO.MesParamSourceTypeDTOFK = foundMesParamSourceTypeDTO;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(mesParamSourceLinkVarString))
+                {
+                    changedMesParamDTO.MesParamSourceLink = null;
+                }
+                else
+                {
+                    changedMesParamDTO.MesParamSourceLink = mesParamSourceLinkVarString;
+                }
+
+                if (String.IsNullOrEmpty(departmentIdVarString) && String.IsNullOrEmpty(departmentNameVarString))
+                {
+                    changedMesParamDTO.DepartmentId = null;
+                    changedMesParamDTO.MesDepartmentDTOFK = null;
+                }
+                else
+                {
+                    if (!String.IsNullOrEmpty(departmentIdVarString))
+                    {
+                        int departmentIdVarInt;
+                        try
+                        {
+                            departmentIdVarInt = int.Parse(departmentIdVarString);
+                        }
+                        catch (Exception ex)
+                        {
+                            haveErrors = true;
+                            departmentIdVarInt = 0;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 8. Не удалось получить целое число ИД производства." +
+                                " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+
+                        foundMesDepartment = _mesDepartmentRepository.GetById(departmentIdVarInt).GetAwaiter().GetResult();
+
+                        if (foundMesDepartment == null)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 8. Не удалось найти производство с \"ИД производства\" равным " + departmentIdVarInt.ToString() + ". Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+
+                    if (!String.IsNullOrEmpty(departmentNameVarString))
+                    {
+                        foundMesDepartmentList = _mesDepartmentRepository.GetByNameList(departmentNameVarString).GetAwaiter().GetResult();
+                        if (foundMesDepartmentList != null)
+                        {
+                            if (foundMesDepartmentList.Count() > 1)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                            foundMesDepartment = foundMesDepartmentList.First();
+                        }
+                        if (foundMesDepartment == null)
+                        {
+                            foundMesDepartmentList = null;
+                            foundMesDepartmentList = _mesDepartmentRepository.GetByShortNameList(departmentNameVarString).GetAwaiter().GetResult();
+                            if (foundMesDepartmentList != null)
+                            {
+                                if (foundMesDepartmentList.Count() > 1)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с сокращённым наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
+                                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                    loadFromExcelPage.RefreshSate();
+                                    rowNumber++;
+                                    continue;
+                                }
+                                foundMesDepartment = foundMesDepartmentList.First();
+                            }
+                        }
+                    }
+
+                    if (foundMesDepartment == null)
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9. не найдено производство. Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    else
+                    {
+                        changedMesParamDTO.DepartmentId = foundMesDepartment.Id;
+                        changedMesParamDTO.MesDepartmentDTOFK = foundMesDepartment;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(sapEquipmentIdSourceVarString) && String.IsNullOrEmpty(erpPlantIdSourceVarString) && !String.IsNullOrEmpty(erpIdSourceVarString) && !String.IsNullOrEmpty(erpNameSourceVarString))
+                {
+                    changedMesParamDTO.SapEquipmentIdSource = null;
+                    changedMesParamDTO.SapEquipmentSourceDTOFK = null;
+                }
+                else
+                {
+                    if (!String.IsNullOrEmpty(sapEquipmentIdSourceVarString))
+                    {
+                        int sapEquipmentIdSourceVarInt;
+                        try
+                        {
+                            sapEquipmentIdSourceVarInt = int.Parse(sapEquipmentIdSourceVarString);
+                        }
+                        catch (Exception ex)
+                        {
+                            haveErrors = true;
+                            sapEquipmentIdSourceVarInt = 0;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Не удалось получить целое число \"ИД ресурса-источника SAP\"" +
+                                " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+
+                        foundSapEquipmentSourceDTO = _sapEquipmentRepository.Get(sapEquipmentIdSourceVarInt).GetAwaiter().GetResult();
+
+                        if (foundSapEquipmentSourceDTO == null)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Не найден Ресурс-источник SAP c \"ИД ресурса-источника SAP\" равным " + sapEquipmentIdSourceVarInt.ToString() + ". Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+
+                    if (foundSapEquipmentSourceDTO == null)
+                    {
+                        if (!String.IsNullOrEmpty(erpPlantIdSourceVarString) && !String.IsNullOrEmpty(erpIdSourceVarString))
+                        {
+                            foundSapEquipmentSourceDTO = await _sapEquipmentRepository.GetByResource(erpPlantIdSourceVarString, erpIdSourceVarString);
+                            if (foundSapEquipmentSourceDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12. Ресурс SAP с \"Кодом завода ресурса-источника SAP\" равным " + erpPlantIdSourceVarString +
+                                    " и \"Кодом ресурса/склада ресурса-источника SAP\" равным " + erpIdSourceVarString + " не найден в справочнике Ресурсов SAP. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            if (!String.IsNullOrEmpty(erpPlantIdSourceVarString) || !String.IsNullOrEmpty(erpIdSourceVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12. Поля \"Код завода ресурса-источника SAP\" и \"Код ресурса/склада ресурса-источника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (foundSapEquipmentSourceDTO == null)
+                    {
+                        if (!String.IsNullOrEmpty(erpNameSourceVarString))
+                        {
+                            foundSapEquipmentSourceDTO = await _sapEquipmentRepository.GetByName(erpNameSourceVarString);
+                            if (foundSapEquipmentSourceDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 13. Ресурс-источник SAP с наименованием равным " + erpNameSourceVarString +
+                                    " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (foundSapEquipmentSourceDTO == null)
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 10, 11, 12, 13. Ресурс-источник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    else
+                    {
+                        changedMesParamDTO.SapEquipmentIdSource = foundSapEquipmentSourceDTO.Id;
+                        changedMesParamDTO.SapEquipmentSourceDTOFK = foundSapEquipmentSourceDTO;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(sapEquipmentIdDestVarString) && String.IsNullOrEmpty(erpPlantIdDestVarString) && !String.IsNullOrEmpty(erpIdDestVarString) && !String.IsNullOrEmpty(erpNameDestVarString))
+                {
+                    changedMesParamDTO.SapEquipmentIdDest = null;
+                    changedMesParamDTO.SapEquipmentDestDTOFK = null;
+                }
+                else
+                {
+                    if (!String.IsNullOrEmpty(sapEquipmentIdDestVarString))
+                    {
+                        int sapEquipmentIdDestVarInt;
+                        try
+                        {
+                            sapEquipmentIdDestVarInt = int.Parse(sapEquipmentIdDestVarString);
+                        }
+                        catch (Exception ex)
+                        {
+                            haveErrors = true;
+                            sapEquipmentIdDestVarInt = 0;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 14. Не удалось получить целое число \"ИД ресурса-приёмника SAP\"" +
+                                " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+
+                        foundSapEquipmentDestDTO = _sapEquipmentRepository.Get(sapEquipmentIdDestVarInt).GetAwaiter().GetResult();
+
+                        if (foundSapEquipmentDestDTO == null)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 14. Не найден Ресурс-приёмник SAP c \"ИД ресурса-приёмника SAP\" равным " + sapEquipmentIdDestVarInt.ToString() + ". Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+
+                    if (foundSapEquipmentDestDTO == null)
+                    {
+                        if (!String.IsNullOrEmpty(erpPlantIdDestVarString) && !String.IsNullOrEmpty(erpIdDestVarString))
+                        {
+                            foundSapEquipmentDestDTO = await _sapEquipmentRepository.GetByResource(erpPlantIdDestVarString, erpIdDestVarString);
+                            if (foundSapEquipmentDestDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16. Ресурс SAP с \"Кодом завода ресурса-приёмника SAP\" равным " + erpPlantIdDestVarString +
+                                    " и \"Кодом ресурса/склада ресурса-приёмника SAP\" равным " + erpIdDestVarString + " не найден в справочнике Ресурсов SAP. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            if (!String.IsNullOrEmpty(erpPlantIdDestVarString) || !String.IsNullOrEmpty(erpIdDestVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16. Поля \"Код завода ресурса-приёмника SAP\" и \"Код ресурса/склада ресурса-приёмника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (foundSapEquipmentDestDTO == null)
+                    {
+                        if (!String.IsNullOrEmpty(erpNameDestVarString))
+                        {
+                            foundSapEquipmentDestDTO = await _sapEquipmentRepository.GetByName(erpNameDestVarString);
+                            if (foundSapEquipmentDestDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 17. Ресурс-приёмник SAP с наименованием равным " + erpNameDestVarString +
+                                    " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (foundSapEquipmentDestDTO == null)
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 14, 15, 16, 17. Ресурс-приёмник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    else
+                    {
+                        changedMesParamDTO.SapEquipmentIdDest = foundSapEquipmentDestDTO.Id;
+                        changedMesParamDTO.SapEquipmentDestDTOFK = foundSapEquipmentDestDTO;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(sapMaterialIdVarString) && String.IsNullOrEmpty(sapMaterialNameVarString))
+                {
+                    changedMesParamDTO.SapMaterialId = null;
+                    changedMesParamDTO.SapMaterialDTOFK = null;
+                }
+                else
+                {
+                    if (!String.IsNullOrEmpty(sapMaterialIdVarString))
+                    {
+                        int sapMaterialIdVarInt;
+                        try
+                        {
+                            sapMaterialIdVarInt = int.Parse(sapMaterialIdVarString);
+                        }
+                        catch (Exception ex)
+                        {
+                            haveErrors = true;
+                            sapMaterialIdVarInt = 0;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 18. Не удалось получить целое число \"ИД материала SAP\"" +
+                                " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+
+                        foundSapMaterialDTO = _sapMaterialRepository.Get(sapMaterialIdVarInt).GetAwaiter().GetResult();
+
+                        if (foundSapMaterialDTO == null)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 18. Не найден Материал SAP c \"ИД материала SAP\" равным " + sapMaterialIdVarInt.ToString() + ". Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+
+                    if (foundSapMaterialDTO == null)
+                    {
+                        if (!String.IsNullOrEmpty(sapMaterialCodeVarString))
+                        {
+                            foundSapMaterialDTO = await _sapMaterialRepository.GetByCode(sapMaterialCodeVarString);
+                            if (foundSapMaterialDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 19. Материал SAP с кодом равным " + sapMaterialCodeVarString +
+                                    " не найден в справочнике Материалы SAP. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 34).Value = resultString;
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (foundSapMaterialDTO == null)
+                    {
+                        if (!String.IsNullOrEmpty(sapMaterialNameVarString))
+                        {
+                            foundSapMaterialDTO = await _sapMaterialRepository.GetByName(sapMaterialNameVarString);
+                            if (foundSapMaterialDTO == null)
+                            {
+                                foundSapMaterialDTO = await _sapMaterialRepository.GetByShortName(sapMaterialNameVarString);
+                                if (foundSapMaterialDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 20. Материал SAP с наименованием или сокр. наименованием " + sapMaterialNameVarString +
+                                        " не найден в справочнике Материалы SAP. Изменения не применялись.";
+                                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                    loadFromExcelPage.RefreshSate();
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    if (foundSapMaterialDTO == null)
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 18, 19, 20. Материал SAP не найден в справочнике Материалы SAP. Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    else
+                    {
+                        changedMesParamDTO.SapMaterialId = foundSapMaterialDTO.Id;
+                        changedMesParamDTO.SapMaterialDTOFK = foundSapMaterialDTO;
+                    }
+                }
+
+
+                if ((changedMesParamDTO.SapEquipmentIdSource != null) || (changedMesParamDTO.SapEquipmentIdDest != null) || (changedMesParamDTO.SapMaterialId != null))
+                {
+                    if ((changedMesParamDTO.SapEquipmentIdSource != null) && (changedMesParamDTO.SapEquipmentIdDest != null) && (changedMesParamDTO.SapMaterialId != null))
+                    {
+                        var foundBySapMapping = await _mesParamRepository.GetBySapMappingNotInArchive(changedMesParamDTO.SapEquipmentIdSource, changedMesParamDTO.SapEquipmentIdDest, changedMesParamDTO.SapMaterialId, 0);
+                        if (foundBySapMapping != null)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ". Уже есть не архивный Тэг СИР с таким же маппингом \"Ресурс-источник SAP + Ресурс-приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + "). Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ". Не полный мэппинг Тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны или все 3 параметра, или ни одного. Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(sapUnitOfMeasureNameVarString))
+                {
+                    changedMesParamDTO.SapUnitOfMeasureId = null;
+                    changedMesParamDTO.SapUnitOfMeasureDTOFK = null;
+                }
+                else
+                {
+                    foundSapUnitOfMeasureDTO = _sapUnitOfMeasureRepository.GetByName(sapUnitOfMeasureNameVarString).GetAwaiter().GetResult();
+                    if (foundSapUnitOfMeasureDTO == null)
+                    {
+                        foundSapUnitOfMeasureDTO = _sapUnitOfMeasureRepository.GetByShortName(sapUnitOfMeasureNameVarString).GetAwaiter().GetResult();
+                        if (foundSapUnitOfMeasureDTO == null)
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 21. Единица измерения SAP с наименованием или сокр. наименованием " + sapUnitOfMeasureNameVarString +
+                                " не найдена в справочнике Единиц измерения SAP. Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+                    if (foundSapUnitOfMeasureDTO != null)
+                    {
+                        changedMesParamDTO.SapUnitOfMeasureId = foundSapUnitOfMeasureDTO.Id;
+                        changedMesParamDTO.SapUnitOfMeasureDTOFK = foundSapUnitOfMeasureDTO;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(daysRequestInPastVarString))
+                {
+                    changedMesParamDTO.DaysRequestInPast = null;
+                }
+                else
+                {
+                    int daysRequestInPastVarInt;
+                    try
+                    {
+                        daysRequestInPastVarInt = int.Parse(daysRequestInPastVarString);
+                    }
+                    catch (Exception ex)
+                    {
+                        haveErrors = true;
+                        daysRequestInPastVarInt = 0;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 12. Не удалось получить целое число \"Глубина опроса в днях\"" +
+                            " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    changedMesParamDTO.DaysRequestInPast = daysRequestInPastVarInt;
+                }
+
+                changedMesParamDTO.TI = String.IsNullOrEmpty(TIVarString) ? null : TIVarString;
+                changedMesParamDTO.NameTI = String.IsNullOrEmpty(nameTIVarString) ? null : nameTIVarString;
+                changedMesParamDTO.TM = String.IsNullOrEmpty(TMVarString) ? null : TMVarString;
+                changedMesParamDTO.NameTM = String.IsNullOrEmpty(nameTMVarString) ? null : nameTMVarString;
+
+                if (String.IsNullOrEmpty(mesToSirUnitOfMeasureKoefVarString))
+                {
+                    changedMesParamDTO.MesToSirUnitOfMeasureKoef = 1;
+                }
+                else
+                {
+                    decimal mesToSirUnitOfMeasureKoefVarInt;
+                    try
+                    {
+                        mesToSirUnitOfMeasureKoefVarInt = decimal.Parse(mesToSirUnitOfMeasureKoefVarString);
+                    }
+                    catch (Exception ex)
+                    {
+                        haveErrors = true;
+                        mesToSirUnitOfMeasureKoefVarInt = 0;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 27. Не удалось получить число \"Коэффициент пересчёта данных по тэгу ед. изм. MES в ед. изм. СИР\"" +
+                            " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                        worksheet.Cell(rowNumber, 34).Value = resultString;
+                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                        loadFromExcelPage.RefreshSate();
+                        rowNumber++;
+                        continue;
+                    }
+                    changedMesParamDTO.MesToSirUnitOfMeasureKoef = mesToSirUnitOfMeasureKoefVarInt;
+                }
+
+                changedMesParamDTO.NeedWriteToSap = needWriteToSapVarString.ToUpper() == "ДА" ? true : false;
+                changedMesParamDTO.NeedReadFromSap = needReadFromSapVarString.ToUpper() == "ДА" ? true : false;
+                changedMesParamDTO.NeedReadFromMes = needReadFromMesVarString.ToUpper() == "ДА" ? true : false;
+                changedMesParamDTO.NeedWriteToMes = needWriteToMesVarString.ToUpper() == "ДА" ? true : false;
+                changedMesParamDTO.IsNdo = isNdoVarString.ToUpper() == "ДА" ? true : false;
+
+                if ((changedMesParamDTO.IsNdo == true) && ((bool)changedMesParamDTO.NeedReadFromSap || (bool)changedMesParamDTO.NeedWriteToMes))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", поля \"Параметр НДО\", \"Читать из SAP\", \"Передавать в MES\". Тэг СИР с признаком \"Параметр НДО\" не может иметь признаки \"Читать из SAP\" или \"Передавать в MES\"." +
+                        " Изменения не применялись";
+                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
+                if (((bool)changedMesParamDTO.NeedReadFromMes && (bool)changedMesParamDTO.NeedWriteToMes))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", поля \"Читать из MES\", \"Передавать в MES\". Тэг СИР не может одновременно иметь включенными признаки \"Читать из MES\" и \"Передавать в MES\"." +
+                        " Изменения не применялись";
+                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
+                if (((bool)changedMesParamDTO.NeedReadFromSap && (bool)changedMesParamDTO.NeedWriteToSap))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", поля \"Передавать в SAP\", \"Читать из SAP\". Тэг СИР не может одновременно иметь включенными признаки \"Передавать в SAP\" и \"Читать из SAP\"." +
+                        " Изменения не применялись";
+                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
+                if (((bool)changedMesParamDTO.NeedWriteToSap && (bool)changedMesParamDTO.NeedWriteToMes))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", поля \"Передавать в SAP\", \"Передавать в MES\". Тэг СИР не может одновременно иметь включенными признаки \"Передавать в SAP\" и \"Передавать в MES\"." +
+                        " Изменения не применялись";
+                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
+                if (((bool)changedMesParamDTO.NeedReadFromSap && (bool)changedMesParamDTO.NeedReadFromMes))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", поля \"Читать из SAP\", \"Читать из MES\". Тэг СИР не может одновременно иметь включенными признаки \"Читать из SAP\" и \"Читать из MES\"." +
+                        " Изменения не применялись";
+                    worksheet.Cell(rowNumber, 34).Value = resultString;
+                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
+                switch (isUpdateOrAddMode)
+                {
+                    case "ADD":
+                        {
+                            if (String.IsNullOrEmpty(isArchiveVarString))
+                                changedMesParamDTO.IsArchive = false;
+                            else
+                                changedMesParamDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            MesParamDTO? newMesParamDTO = await _mesParamRepository.Create(changedMesParamDTO);
+
+                            await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: newMesParamDTO, "Добавление тэга СИР", "Тэг СИР: ", _authorizationRepository);
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Тэг СИР добавлен с ИД " + newMesParamDTO.Id.ToString()
+                                + ". " + duplicateMesParamSourceLink;
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            if (String.IsNullOrEmpty(duplicateMesParamSourceLink))
+                            {
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Green;
+                                loadFromExcelPage.console.Log(resultString);
+                            }
+                            else
+                            {
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.PowderBlue;
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
+                            }
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    case "UPDATE":
+                        {
+                            if (String.IsNullOrEmpty(isArchiveVarString))
+                            {
+                                changedMesParamDTO.IsArchive = false;
+                            }
+                            else
+                            {
+                                changedMesParamDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
+                            }
+                            await _mesParamRepository.Update(changedMesParamDTO);
+
+                            if (changedMesParamDTO.IsArchive != foundMesParamDTO.IsArchive)
+                            {
+                                SD.UpdateMode updMode;
+                                if (changedMesParamDTO.IsArchive == true)
+                                {
+                                    updMode = SD.UpdateMode.MoveToArchive;
+                                }
+                                else
+                                {
+                                    updMode = SD.UpdateMode.RestoreFromArchive;
+                                }
+                                await _mesParamRepository.Delete(changedMesParamDTO.Id, updMode);
+                                await _logEventRepository.ToLog<MesParamDTO>(oldObject: foundMesParamDTO, newObject: changedMesParamDTO, "Изменение тэга СИР", "Тэг СИР: ", _authorizationRepository);
+                            }
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. " + duplicateMesParamSourceLink;
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            if (String.IsNullOrEmpty(duplicateMesParamSourceLink))
+                            {
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Green;
+                                loadFromExcelPage.console.Log(resultString);
+                            }
+                            else
+                            {
+                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.PowderBlue;
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
+                            }
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    default:
+                        {
+                            resultString = "!!! Для строки " + rowNumber.ToString() + " определен не предусмотренный режим обработки = " + isUpdateOrAddMode + ". Изменения не производились.";
+                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                }
+            }
+
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа SapEquipment в справочник Ресурсов SAP");
             loadFromExcelPage.RefreshSate();
 
             return haveErrors;
+
         }
 
         //public int? GetIntValue(object obj, string propertyName)
