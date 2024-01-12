@@ -169,6 +169,63 @@ namespace DictionaryManagement_Models.IntDBModels
         }
 
         [NotMapped]
+        [Display(Name = "Передавать в SAP")]
+        public bool NeedWriteToSapBool
+        {
+            get
+            {
+                return NeedWriteToSap == null ? false : (bool)NeedWriteToSap;
+            }
+            set
+            {
+                NeedWriteToSapBool = value;
+            }
+        }
+
+        [NotMapped]
+        [Display(Name = "Читать из SAP")]
+        public bool NeedReadFromSapBool
+        {
+            get
+            {
+                return NeedReadFromSap == null ? false : (bool)NeedReadFromSap;
+            }
+            set
+            {
+                NeedReadFromSapBool = value;
+            }
+        }
+
+        [NotMapped]
+        [Display(Name = "Читать из MES")]
+        public bool NeedReadFromMesBool
+        {
+            get
+            {
+                return NeedReadFromMes == null ? false : (bool)NeedReadFromMes;
+            }
+            set
+            {
+                NeedReadFromMesBool = value;
+            }
+        }
+
+        [NotMapped]
+        [Display(Name = "Передавать в MES")]
+        public bool NeedWriteToMesBool
+        {
+            get
+            {
+                return NeedWriteToMes == null ? false : (bool)NeedWriteToMes;
+            }
+            set
+            {
+                NeedWriteToMesBool = value;
+            }
+        }
+
+
+        [NotMapped]
         [Display(Name = "ИД")]
         public string ToStringId
         {
@@ -181,6 +238,7 @@ namespace DictionaryManagement_Models.IntDBModels
                 ToStringId = value;
             }
         }
+
 
         public override string ToString()
         {

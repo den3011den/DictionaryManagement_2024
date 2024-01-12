@@ -332,15 +332,13 @@
 
     async Task ReportTemplateDownloadFile(Guid id)
     {
-        reportTemplateDownloadFileBusyFlag = true;
-        //reportTemplateDownloadFileWithDataBusyFlag = true;
+        reportTemplateDownloadFileBusyFlag = true;        
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
             IsAdmin = true;
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportTemplateFile/" + id.ToString(), "_blank");
         }
-        reportTemplateDownloadFileBusyFlag = false;
-        //reportTemplateDownloadFileWithDataBusyFlag = false;
+        reportTemplateDownloadFileBusyFlag = false;       
     }
 
     async Task ReportTemplateDownloadFileWithData(Guid id)

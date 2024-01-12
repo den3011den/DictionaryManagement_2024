@@ -1275,9 +1275,12 @@ namespace DictionaryManagement_Business.Repository
                 ws.Cell(excelRowNum, excelColNum).Value = "Ушло из СИР в MES (MesGoneTime)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД пред. записи (PreviousRecordId)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Передавать в Sap (NeedWriteToSap)";
+
 
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Причина корректировки (CorrectionReason.Nmae)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Причина корректировки (CorrectionReason.Name)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Комментарий корректировки (MesMovementsComment.CorrectionComment)";
 
@@ -1326,6 +1329,9 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.MesGoneTime == null ? "" : ((DateTime)mesMovementsDTO.MesGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.PreviousRecordId == null ? "" : mesMovementsDTO.PreviousRecordId.ToString();
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.NeedWriteToSap == true ? "Да" : "Нет";
+
 
                     string correctionNames = "";
                     string correctionComments = "";

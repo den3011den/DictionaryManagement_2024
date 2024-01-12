@@ -41,7 +41,8 @@
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" />
+                                <RadzenButton title="Загрузка данных из Excel в Витрины SAP - НДО-выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                                @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -135,7 +136,7 @@
                     </RadzenDataGridColumnApp>
 
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="SapNdoOUTDTO" Context="sapNdoOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+@*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapNdoOUTDTO" Context="sapNdoOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
                         <Template Context="sapNdoOUTDTO">
                             <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
@@ -143,7 +144,7 @@
                             </RadzenButton>
                         </Template>
                     </RadzenDataGridColumnApp>
-                </Columns>
+ *@                </Columns>
             </RadzenDataGridApp>
         }
         else
@@ -298,16 +299,16 @@
     }
 
 
-    async Task EditRow(SapNdoOUTDTO? sapNdoOUTDTO)
-    {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-    }
+    // async Task EditRow(SapNdoOUTDTO? sapNdoOUTDTO)
+    // {
+    //     await _jsRuntime.ToastrSuccess("Не реализовано");
+    // }
 
 
-    async Task DeleteRow(SapNdoOUTDTO sapNdoOUTDTO)
-    {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-    }
+    // async Task DeleteRow(SapNdoOUTDTO sapNdoOUTDTO)
+    // {
+    //     await _jsRuntime.ToastrSuccess("Не реализовано");
+    // }
 
 
     async Task ExcelExport()
@@ -342,10 +343,21 @@
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
     }
-}
 
-@code
-{
-
+    async Task ExcelImport()
+    {
+        await _jsRuntime.ToastrSuccess("Не реализовано");
+        return;
+        IsLoading = true;
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            SapMaterialDTO dialogResult = null;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - НДО-выход)", new Dictionary
+                    <string, object>
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+            IsLoading = false;
+        }
+    }
 
 }

@@ -40,6 +40,7 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.ReportGuid = objectToAddDTO.ReportGuid;
             objectToAdd.PreviousRecordId = objectToAddDTO.PreviousRecordId;
             objectToAdd.MesGone = objectToAddDTO.MesGone;
+            objectToAdd.NeedWriteToSap = objectToAddDTO.NeedWriteToSap;
             objectToAdd.MesGoneTime = objectToAddDTO.MesGoneTime;
 
             var addedMesMovements = _db.MesMovements.Add(objectToAdd);
@@ -298,6 +299,8 @@ namespace DictionaryManagement_Business.Repository
                 if (objectToUpdateDTO.MesGoneTime != objectToUpdate.MesGoneTime)
                     objectToUpdate.MesGoneTime = objectToUpdateDTO.MesGoneTime;
 
+                if (objectToUpdateDTO.NeedWriteToSap != objectToUpdate.NeedWriteToSap)
+                    objectToUpdate.NeedWriteToSap = objectToUpdateDTO.NeedWriteToSap;
 
                 _db.MesMovements.Update(objectToUpdate);
                 _db.SaveChanges();

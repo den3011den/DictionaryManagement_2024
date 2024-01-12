@@ -41,7 +41,8 @@
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" />
+                                <RadzenButton title="Загрузка данных из Excel Архив данных СИР" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                                @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -295,14 +296,21 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="MesMovementsDTO" Context="mesMovementsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="NeedWriteToSapBool" Title="Передавать в SAP" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.NeedWriteToSapBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+@*                     <RadzenDataGridColumnApp Title="Действия" TItem="MesMovementsDTO" Context="mesMovementsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
                         <Template Context="mesMovementsDTO">
                             <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesMovementsDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
                             <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesMovementsDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
                         </Template>
-                    </RadzenDataGridColumnApp>
+                    </RadzenDataGridColumnApp> *@
                 </Columns>
             </RadzenDataGridApp>
         }
@@ -498,16 +506,16 @@
     }
 
 
-    async Task EditRow(MesMovementsDTO? mesMovementsDTO)
-    {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-    }
+    // async Task EditRow(MesMovementsDTO? mesMovementsDTO)
+    // {
+    //     await _jsRuntime.ToastrSuccess("Не реализовано");
+    // }
 
 
-    async Task DeleteRow(MesMovementsDTO mesMovementsDTO)
-    {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-    }
+    // async Task DeleteRow(MesMovementsDTO mesMovementsDTO)
+    // {
+    //     await _jsRuntime.ToastrSuccess("Не реализовано");
+    // }
 
 
     async Task ExcelExport()
@@ -681,5 +689,22 @@
             await InvokeAsync(StateHasChanged);
         }
     }
+
+    async Task ExcelImport()
+    {
+        await _jsRuntime.ToastrSuccess("Не реализовано");
+        return;
+        IsLoading = true;
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            SapMaterialDTO dialogResult = null;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Архив данных)", new Dictionary
+                    <string, object>
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+            IsLoading = false;
+        }
+    }
+
 }
 

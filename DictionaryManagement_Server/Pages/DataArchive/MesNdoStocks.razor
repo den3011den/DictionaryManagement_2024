@@ -41,7 +41,8 @@
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" />
+                                @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
+                                <RadzenButton title="Загрузка данных из Excel Архив данных НДО СИР" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -232,7 +233,7 @@
                     </RadzenDataGridColumnApp>
 
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="MesNdoStocksDTO" Context="mesNdoStocksDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+@*                     <RadzenDataGridColumnApp Title="Действия" TItem="MesNdoStocksDTO" Context="mesNdoStocksDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
                         <Template Context="mesNdoStocksDTO">
                             <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesNdoStocksDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
@@ -240,7 +241,7 @@
                             </RadzenButton>
                         </Template>
                     </RadzenDataGridColumnApp>
-                </Columns>
+ *@                </Columns>
             </RadzenDataGridApp>
         }
         else
@@ -411,16 +412,16 @@
     }
 
 
-    async Task EditRow(MesNdoStocksDTO? mesNdoStocksDTO)
-    {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-    }
+    // async Task EditRow(MesNdoStocksDTO? mesNdoStocksDTO)
+    // {
+    //     await _jsRuntime.ToastrSuccess("Не реализовано");
+    // }
 
 
-    async Task DeleteRow(MesNdoStocksDTO mesNdoStocksDTO)
-    {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-    }
+    // async Task DeleteRow(MesNdoStocksDTO mesNdoStocksDTO)
+    // {
+    //     await _jsRuntime.ToastrSuccess("Не реализовано");
+    // }
 
 
     async Task ExcelExport()
@@ -559,6 +560,22 @@
             await InvokeAsync(SaveStateAsync);
             await Task.Delay(200);
             await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    async Task ExcelImport()
+    {
+        await _jsRuntime.ToastrSuccess("Не реализовано");
+        return;
+        IsLoading = true;
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            SapMaterialDTO dialogResult = null;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Архив данных НДО)", new Dictionary
+                    <string, object>
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+            IsLoading = false;
         }
     }
 }

@@ -94,6 +94,16 @@
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Description" Title="Описание">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.Description
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
                     <RadzenDataGridColumnApp TItem="MesParamDTO" Title="Источник" Property="MesParamSourceTypeDTOFK.ToStringValue" Type="typeof(IEnumerable<string>)"
                                              FilterValue="@selectedMesParamSourceType" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
@@ -197,6 +207,68 @@
                             <div style="white-space:pre-wrap; font-size: 12px">
                                 @(data1.SapUnitOfMeasureDTOFK == null ? "" : data1.SapUnitOfMeasureDTOFK.ShortName)
                             </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="DaysRequestInPast" Title="Глубина опроса в днях">
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="TI" Title="Точка измерения">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.TI
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="NameTI" Title="Наименование точки измерения">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.NameTI
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="TM" Title="Технологическое место">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.TM
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="NameTI" Title="Наименование технологического места">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.NameTM
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="MesToSirUnitOfMeasureKoef" Title="Коэффициент пересчёта данных по тэгу из ед. изм. MES в ед. изм. СИР">
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="NeedWriteToSapBool" Title="Передавать в SAP" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.NeedWriteToSapBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="NeedReadFromSapBool" Title="Читать из SAP" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.NeedReadFromSapBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="NeedReadFromMesBool" Title="Читать из MES" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.NeedReadFromMesBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="NeedWriteToMesBool" Title="Передавать в MES" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.NeedWriteToMesBool ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
 

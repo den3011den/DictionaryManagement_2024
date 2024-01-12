@@ -152,8 +152,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesParamSourceLink == null ? "" : mesParamDTOItem.MesParamSourceLink;
                 excelColNum++;
-                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesParamSourceLink == null ? "" : mesParamDTOItem.MesParamSourceLink;
-                excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesDepartmentDTOFK == null ? "" : mesParamDTOItem.MesDepartmentDTOFK.Id.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.MesDepartmentDTOFK == null ? "" : mesParamDTOItem.MesDepartmentDTOFK.Name;
@@ -181,8 +179,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapMaterialDTOFK == null ? "" : mesParamDTOItem.SapMaterialDTOFK.Name.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.SapUnitOfMeasureDTOFK == null ? "" : mesParamDTOItem.SapUnitOfMeasureDTOFK.Name.ToString();
-                excelColNum++;
-                worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.DaysRequestInPast == null ? "" : mesParamDTOItem.DaysRequestInPast.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.DaysRequestInPast == null ? "" : mesParamDTOItem.DaysRequestInPast.ToString();
                 excelColNum++;

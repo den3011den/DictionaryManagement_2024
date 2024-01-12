@@ -80,6 +80,9 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "Время ушло из СИРа в MES")]
         public DateTime? MesGoneTime { get; set; }
 
+        [Display(Name = "Передавать в SAP")]
+        public bool? NeedWriteToSap { get; set; }
+
         [Display(Name = "Комментарии")]
         public IEnumerable<MesMovementsCommentDTO>? MesMovementsCommentListDTO { get; set; }
 
@@ -224,6 +227,19 @@ namespace DictionaryManagement_Models.IntDBModels
             }
         }
 
+        [NotMapped]
+        [Display(Name = "Передавать в SAP")]
+        public bool NeedWriteToSapBool
+        {
+            get
+            {
+                return NeedWriteToSap == null ? false : (bool)NeedWriteToSap;
+            }
+            set
+            {
+                NeedWriteToSapBool = value;
+            }
+        }
     }
 }
 

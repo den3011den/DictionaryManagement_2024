@@ -60,5 +60,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
 
         public virtual ICollection<MesMovementsComment>? MesMovementsCommentList { get; set; }
 
+        public bool? NeedWriteToSap { get; set; }
+
     }
 }
