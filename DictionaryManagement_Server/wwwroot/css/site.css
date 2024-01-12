@@ -79,13 +79,12 @@ a, .btn-link {
     right: 0;
     bottom: 0;
     background-color: rgba(0,0,0,0.75); /* Black background with opacity */
-    z-index: 1000 !important; /* Specify a stack order in case you're using a different order for other elements */
-    text-align: center;
+    z-index: 1000 !important; /* Specify a stack order in case you're using a different order for other elements */    
 }
 
     #blazor-error-ui p {
         font-size: 1.2em;
-        width: 400px;
+        width: 700px;
         padding: 25px;
         border-radius: 10px;
         color: white;
