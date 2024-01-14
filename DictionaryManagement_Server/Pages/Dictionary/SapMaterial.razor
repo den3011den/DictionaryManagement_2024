@@ -514,6 +514,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px"});
             IsLoading = false;
+            await this.OnAfterRenderAsync(true);
         }
     }
 }

@@ -214,11 +214,13 @@ namespace DictionaryManagement_Server.Extensions.Repository
             IAuthorizationRepository _authorizationRepository)
         {
             bool haveErrors = false;
-
             loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
             loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в справочник Материалов " + worksheet.Name.Substring(0, 3));
             loadFromExcelPage.RefreshSate();
 
+            loadFromExcelPage.haveChanges = false;
+
+            int resultColumnNumber = 7;
             int rowNumber = 9;
 
             bool isEmptyString = false;
@@ -231,11 +233,17 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 var rowVar = worksheet.Row(rowNumber);
 
+                worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+
+
                 string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
                 string codeVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
                 string nameVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
                 string shortNameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
                 string isArchiveVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+
                 string resultString = "";
                 int idVarInt = 0;
 
@@ -251,9 +259,13 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     idVarInt = 0;
                     resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3. И ИД записи, и Код материала пустые. Изменения не применялись.";
-                    worksheet.Cell(rowNumber, 7).Value = resultString;
-                    worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -280,9 +292,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         idVarInt = 0;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -293,9 +310,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -310,9 +332,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -395,11 +422,49 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         needCheckName = true;
                         needCheckShortName = true;
 
+                        changedMaterialDTO.Id = foundMaterialDTO.Id;
                         changedMaterialDTO.Code = foundMaterialDTO.Code;
                         changedMaterialDTO.Name = nameVarString;
                         changedMaterialDTO.ShortName = shortNameVarString;
                     }
                 }
+
+                if (String.IsNullOrEmpty(changedMaterialDTO.Name))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Наименование материала не может быть пустым. Изменения не применялись.";
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 4).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 4).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(changedMaterialDTO.ShortName))
+                {
+                    haveErrors = true;
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Сокращённое наименование материала не может быть пустым. Изменения не применялись.";
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 5).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                    loadFromExcelPage.RefreshSate();
+                    rowNumber++;
+                    continue;
+                }
+
 
                 if (needCheckCode)
                 {
@@ -429,9 +494,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом материала " + codeVarString
                                 + ". ИД записи: " + objectForCheckCode.Id.ToString() +
                                 ". Наименование: " + objectForCheckCode.ShortName + ". Изменения не применялись."; ;
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -469,9 +539,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с наименованием " + nameVarString
                                         + ". ИД записи: " + objectForCheckName.Id.ToString() +
                                         ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 4).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 4).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -508,9 +583,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Уже есть запись с сокр. наименованием " + shortNameVarString
                                         + ". ИД записи: " + objectForCheckShortName.Id.ToString() +
                                         ". Код: " + objectForCheckShortName.Code + ". Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 5).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -540,9 +620,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 await _logEventRepository.ToLog<MesMaterialDTO>(oldObject: null, newObject: new MesMaterialDTO(newMaterialDTO), "Добавление материала MES", "Материал MES: ", _authorizationRepository);
                             }
 
+                            loadFromExcelPage.haveChanges = true;
                             resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Материал добавлен с кодом " + newMaterialDTO.Id.ToString();
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Value = "OK";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+
                             loadFromExcelPage.console.Log(resultString);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -587,9 +672,13 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 }
                             }
 
+                            loadFromExcelPage.haveChanges = true;
                             resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Value = "OK";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -598,8 +687,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     default:
                         {
                             resultString = "!!! Для строки " + rowNumber.ToString() + " определен не предусмотренный режим обработки = " + isUpdateOrAddMode + ". Изменения не производились.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -633,6 +725,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
                 loadFromExcelPage.RefreshSate();
 
+                worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+
                 var rowVar = worksheet.Row(rowNumber);
 
                 string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
@@ -640,9 +736,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 string erpIdVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
                 string nameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
                 string isWarehouseVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
-                string isArchiveVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string isArchiveVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
                 string resultString = "";
                 int idVarInt = 0;
+
+                int resultColumnNumber = 8;
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(erpPlantIdVarString) && String.IsNullOrEmpty(erpIdVarString)
                         && String.IsNullOrEmpty(nameVarString)
@@ -657,9 +755,20 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     idVarInt = 0;
                     resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3, 4. Пустые: ИД записи, и одно из полей \"Код завода SAP\" или . \"Код ресурса/склада SAP\". Изменения не применялись.";
-                    worksheet.Cell(rowNumber, 7).Value = resultString;
-                    worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 4).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 4).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+
+
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -686,9 +795,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         idVarInt = 0;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -699,9 +813,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -714,9 +833,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 3, 4. Если указан ИД записи (режим редактирования записи), то \"Код завода SAP\" и \"Код ресурса/склада SAP\" должны быть" +
                             " или оба пусты (тогда останутся без изменений), или оба заполнены. Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 4).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 4).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -730,9 +856,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 7).Value = resultString;
-                        worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -774,15 +905,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             changedSapEquipmentDTO.Name = nameVarString;
                         }
                     }
-
-                    if (String.IsNullOrEmpty(isWarehouseVarString))
-                    {
-                        changedSapEquipmentDTO.IsWarehouse = false;
-                    }
-                    else
-                    {
-                        changedSapEquipmentDTO.IsWarehouse = isWarehouseVarString.ToUpper() == "ДА" ? true : false;
-                    }
                 }
                 else
                 {
@@ -798,27 +920,37 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             changedSapEquipmentDTO.ErpPlantId = erpPlantIdVarString;
                             changedSapEquipmentDTO.ErpId = erpIdVarString;
                             changedSapEquipmentDTO.Name = nameVarString;
+
+                            if (String.IsNullOrEmpty(changedSapEquipmentDTO.Name))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Наименование Ресурса SAP не может быть пустым. Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 5).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
+
+
                         }
                         else  // редактирование
                         {
                             isUpdateOrAddMode = "UPDATE";
                             needCheckErpPlantIdPlusErpId = false;
                             needCheckName = true;
-
+                            changedSapEquipmentDTO.Id = foundSapEquipmentDTO.Id;
                             changedSapEquipmentDTO.ErpPlantId = foundSapEquipmentDTO.ErpPlantId;
                             changedSapEquipmentDTO.ErpId = foundSapEquipmentDTO.ErpId;
                             changedSapEquipmentDTO.Name = nameVarString;
                         }
-
-                        if (String.IsNullOrEmpty(isWarehouseVarString))
-                        {
-                            changedSapEquipmentDTO.IsWarehouse = false;
-                        }
-                        else
-                        {
-                            changedSapEquipmentDTO.IsWarehouse = isWarehouseVarString.ToUpper() == "Да" ? true : false;
-                        }
-
                     }
                 }
 
@@ -846,9 +978,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 3, 4. Уже есть запись с сочетанием \"Код завода SAP\" + \"Код ресурса/склада SAP\" равным " +
                                 "\"" + erpPlantIdVarString + "\" + \"" + erpIdVarString + "\". ИД записи: " + objectForCheckErpPlantIdPlusErpId.Id.ToString() +
                                 ". Наименование: " + objectForCheckErpPlantIdPlusErpId.Name + ". Изменения не применялись."; ;
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 4).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 4).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -893,21 +1032,33 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             else
                                 changedSapEquipmentDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
 
+                            if (String.IsNullOrEmpty(isWarehouseVarString))
+                                changedSapEquipmentDTO.IsWarehouse = false;
+                            else
+                                changedSapEquipmentDTO.IsWarehouse = isWarehouseVarString.ToUpper().Equals("ДА") ? true : false;
+
                             SapEquipmentDTO? newSapEquipmentDTO = await _sapEquipmentRepository.Create(changedSapEquipmentDTO);
 
                             await _logEventRepository.ToLog<SapEquipmentDTO>(oldObject: null, newObject: newSapEquipmentDTO, "Добавление ресурса SAP", "Ресурс SAP: ", _authorizationRepository);
 
                             resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Ресурс Sap добавлен с кодом " + newSapEquipmentDTO.Id.ToString()
                                 + ". " + duplicateNameString;
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
                             if (String.IsNullOrEmpty(duplicateNameString))
                             {
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Value = "ОК";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
                             else
                             {
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.PowderBlue;
+                                worksheet.Cell(rowNumber, 1).Value = "!!! ОК";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
                             loadFromExcelPage.RefreshSate();
@@ -924,6 +1075,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             {
                                 changedSapEquipmentDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
                             }
+
+                            if (String.IsNullOrEmpty(isWarehouseVarString))
+                                changedSapEquipmentDTO.IsWarehouse = false;
+                            else
+                                changedSapEquipmentDTO.IsWarehouse = isWarehouseVarString.ToUpper().Equals("ДА") ? true : false;
+
                             await _sapEquipmentRepository.Update(changedSapEquipmentDTO, SD.UpdateMode.Update);
 
                             if (changedSapEquipmentDTO.IsArchive != foundSapEquipmentDTO.IsArchive)
@@ -942,15 +1099,21 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             }
 
                             resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. " + duplicateNameString;
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
                             if (String.IsNullOrEmpty(duplicateNameString))
                             {
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Value = "OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
                             else
                             {
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.PowderBlue;
+                                worksheet.Cell(rowNumber, 1).Value = "!!! ОК";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
                             loadFromExcelPage.RefreshSate();
@@ -960,8 +1123,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     default:
                         {
                             resultString = "!!! Для строки " + rowNumber.ToString() + " определен не предусмотренный режим обработки = " + isUpdateOrAddMode + ". Изменения не производились.";
-                            worksheet.Cell(rowNumber, 7).Value = resultString;
-                            worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -989,6 +1155,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
             int rowNumber = 9;
 
+            int resultColumnNumber = 34;
+
             bool isEmptyString = false;
 
             while (isEmptyString == false)
@@ -996,6 +1164,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
                 loadFromExcelPage.RefreshSate();
+
+                worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
                 var rowVar = worksheet.Row(rowNumber);
 
@@ -1074,9 +1246,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     idVarInt = 0;
                     resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3. Пустые одновременно поля \"ИД записи\" и \"Код тэга СИР\". Изменения не применялись.";
-                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -1085,8 +1260,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 string isUpdateOrAddMode = "NONE";
                 bool needCheckCode = true;
-                bool needCheckName = true;
-                bool needCheckMapping = true;
                 bool needCheckMesParamSourceLink = true;
                 string duplicateMesParamSourceLink = "";
 
@@ -1113,9 +1286,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         idVarInt = 0;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1126,9 +1304,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1141,9 +1324,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ". Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1186,9 +1374,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 {
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", столбец 6, 7. Поля \"Источник\" и \"Тэг/ИД источника\" могут быть или оба проставлены, или оба пустые. Изменения не применялись.";
-                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 6).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 6).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -1220,9 +1415,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом Тэга СИР " + codeVarString
                                 + ". ИД записи: " + objectForCheckCode.Id.ToString() +
                                 ". Наименование: " + objectForCheckCode.Name + ". Изменения не применялись."; ;
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1231,41 +1431,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     }
                 }
 
-                if (needCheckName)
-                {
-                    MesParamDTO? objectForCheckName;
-                    objectForCheckName = _mesParamRepository.GetByName(nameVarString).Result;
-
-                    if (objectForCheckName != null)
-                    {
-                        bool isBad = false;
-                        if (isUpdateOrAddMode == "UPDATE")
-                        {
-                            if (objectForCheckName.Id != foundMesParamDTO.Id)
-                            {
-                                isBad = true;
-                            }
-                        }
-                        else  // это добавление записи
-                        {
-                            isBad = true;
-                        }
-                        if (isBad)
-                        {
-                            haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с Наименованием тэга СИР " + nameVarString
-                                        + ". ИД записи: " + objectForCheckName.Id.ToString() +
-                                        ". Код: " + objectForCheckName.Code + ". Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
-                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
-                            rowNumber++;
-                            continue;
-                        }
-                    }
-                }
 
                 if (needCheckMesParamSourceLink)
                 {
@@ -1297,29 +1462,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     }
                 }
 
-                if (String.IsNullOrEmpty(nameVarString))
-                {
-                    if (isUpdateOrAddMode == "ADD")
-                    {
-                        haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. У добавляемой записи не может быть пустое наименование. Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
-                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
-                        rowNumber++;
-                        continue;
-                    }
-                    if (isUpdateOrAddMode == "UPDATE")
-                    {
-                        changedMesParamDTO.Name = foundMesParamDTO.Name;
-                    }
-                    else
-                    {
-                        changedMesParamDTO.Name = nameVarString;
-                    }
-                }
+                changedMesParamDTO.Name = nameVarString;
                 changedMesParamDTO.Description = descriptionVarString;
 
                 if (String.IsNullOrEmpty(mesParamSourceTypeNameVarString))
@@ -1371,9 +1514,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             departmentIdVarInt = 0;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 8. Не удалось получить целое число ИД производства." +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 8).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 8).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1386,9 +1534,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 8. Не удалось найти производство с \"ИД производства\" равным " + departmentIdVarInt.ToString() + ". Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 8).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 8).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1396,38 +1549,25 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     }
 
-                    if (!String.IsNullOrEmpty(departmentNameVarString))
+                    if (foundMesDepartment == null)
                     {
-                        foundMesDepartmentList = _mesDepartmentRepository.GetByNameList(departmentNameVarString).GetAwaiter().GetResult();
-                        if (foundMesDepartmentList != null)
+                        if (!String.IsNullOrEmpty(departmentNameVarString))
                         {
-                            if (foundMesDepartmentList.Count() > 1)
-                            {
-                                haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
-                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
-                                rowNumber++;
-                                continue;
-                            }
-                            foundMesDepartment = foundMesDepartmentList.First();
-                        }
-                        if (foundMesDepartment == null)
-                        {
-                            foundMesDepartmentList = null;
-                            foundMesDepartmentList = _mesDepartmentRepository.GetByShortNameList(departmentNameVarString).GetAwaiter().GetResult();
+                            foundMesDepartmentList = _mesDepartmentRepository.GetByNameList(departmentNameVarString).GetAwaiter().GetResult();
                             if (foundMesDepartmentList != null)
                             {
                                 if (foundMesDepartmentList.Count() > 1)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с сокращённым наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
-                                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
+                                    worksheet.Cell(rowNumber, 9).Style.Font.FontColor = XLColor.Red;
+                                    worksheet.Cell(rowNumber, 9).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                                     loadFromExcelPage.RefreshSate();
                                     rowNumber++;
@@ -1435,16 +1575,48 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 }
                                 foundMesDepartment = foundMesDepartmentList.First();
                             }
+                            if (foundMesDepartment == null)
+                            {
+                                foundMesDepartmentList = null;
+                                foundMesDepartmentList = _mesDepartmentRepository.GetByShortNameList(departmentNameVarString).GetAwaiter().GetResult();
+                                if (foundMesDepartmentList != null)
+                                {
+                                    if (foundMesDepartmentList.Count() > 1)
+                                    {
+                                        haveErrors = true;
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с сокращённым наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
+                                        worksheet.Cell(rowNumber, 9).Style.Font.FontColor = XLColor.Red;
+                                        worksheet.Cell(rowNumber, 9).Style.Font.SetBold(true);
+                                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                                        loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                        loadFromExcelPage.RefreshSate();
+                                        rowNumber++;
+                                        continue;
+                                    }
+                                    foundMesDepartment = foundMesDepartmentList.First();
+                                }
+                            }
                         }
                     }
-
-                    if (foundMesDepartment == null)
+                    if (foundMesDepartment == null && (!String.IsNullOrEmpty(departmentIdVarString) || !String.IsNullOrEmpty(departmentNameVarString)))
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9. не найдено производство. Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 8).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 8).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 9).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 9).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1457,7 +1629,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     }
                 }
 
-                if (String.IsNullOrEmpty(sapEquipmentIdSourceVarString) && String.IsNullOrEmpty(erpPlantIdSourceVarString) && !String.IsNullOrEmpty(erpIdSourceVarString) && !String.IsNullOrEmpty(erpNameSourceVarString))
+                if (String.IsNullOrEmpty(sapEquipmentIdSourceVarString) && String.IsNullOrEmpty(erpPlantIdSourceVarString) && String.IsNullOrEmpty(erpIdSourceVarString) && String.IsNullOrEmpty(erpNameSourceVarString))
                 {
                     changedMesParamDTO.SapEquipmentIdSource = null;
                     changedMesParamDTO.SapEquipmentSourceDTOFK = null;
@@ -1477,9 +1649,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             sapEquipmentIdSourceVarInt = 0;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Не удалось получить целое число \"ИД ресурса-источника SAP\"" +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 10).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 10).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1492,9 +1669,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Не найден Ресурс-источник SAP c \"ИД ресурса-источника SAP\" равным " + sapEquipmentIdSourceVarInt.ToString() + ". Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 10).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 10).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1502,7 +1684,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     }
 
-                    if (foundSapEquipmentSourceDTO == null)
+                    if (foundSapEquipmentSourceDTO == null && (!String.IsNullOrEmpty(erpPlantIdSourceVarString) || !String.IsNullOrEmpty(erpIdSourceVarString)))
                     {
                         if (!String.IsNullOrEmpty(erpPlantIdSourceVarString) && !String.IsNullOrEmpty(erpIdSourceVarString))
                         {
@@ -1512,9 +1694,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 haveErrors = true;
                                 resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12. Ресурс SAP с \"Кодом завода ресурса-источника SAP\" равным " + erpPlantIdSourceVarString +
                                     " и \"Кодом ресурса/склада ресурса-источника SAP\" равным " + erpIdSourceVarString + " не найден в справочнике Ресурсов SAP. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 11).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 11).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 12).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 12).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                                 loadFromExcelPage.RefreshSate();
                                 rowNumber++;
@@ -1527,9 +1716,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             {
                                 haveErrors = true;
                                 resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12. Поля \"Код завода ресурса-источника SAP\" и \"Код ресурса/склада ресурса-источника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 11).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 11).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 12).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 12).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                                 loadFromExcelPage.RefreshSate();
                                 rowNumber++;
@@ -1538,24 +1734,26 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     }
 
-                    if (foundSapEquipmentSourceDTO == null)
+                    if (foundSapEquipmentSourceDTO == null && !String.IsNullOrEmpty(erpNameSourceVarString))
                     {
-                        if (!String.IsNullOrEmpty(erpNameSourceVarString))
+                        foundSapEquipmentSourceDTO = await _sapEquipmentRepository.GetByName(erpNameSourceVarString);
+                        if (foundSapEquipmentSourceDTO == null)
                         {
-                            foundSapEquipmentSourceDTO = await _sapEquipmentRepository.GetByName(erpNameSourceVarString);
-                            if (foundSapEquipmentSourceDTO == null)
-                            {
-                                haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 13. Ресурс-источник SAP с наименованием равным " + erpNameSourceVarString +
-                                    " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
-                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
-                                rowNumber++;
-                                continue;
-                            }
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 13. Ресурс-источник SAP с наименованием равным " + erpNameSourceVarString +
+                                " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 13).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 13).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
                         }
                     }
 
@@ -1563,9 +1761,20 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 10, 11, 12, 13. Ресурс-источник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 10).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 10).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 11).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 11).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 12).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 12).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 13).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 13).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1578,7 +1787,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     }
                 }
 
-                if (String.IsNullOrEmpty(sapEquipmentIdDestVarString) && String.IsNullOrEmpty(erpPlantIdDestVarString) && !String.IsNullOrEmpty(erpIdDestVarString) && !String.IsNullOrEmpty(erpNameDestVarString))
+                if (String.IsNullOrEmpty(sapEquipmentIdDestVarString) && String.IsNullOrEmpty(erpPlantIdDestVarString) && String.IsNullOrEmpty(erpIdDestVarString) && String.IsNullOrEmpty(erpNameDestVarString))
                 {
                     changedMesParamDTO.SapEquipmentIdDest = null;
                     changedMesParamDTO.SapEquipmentDestDTOFK = null;
@@ -1598,9 +1807,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             sapEquipmentIdDestVarInt = 0;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 14. Не удалось получить целое число \"ИД ресурса-приёмника SAP\"" +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 14).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 14).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1613,9 +1827,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 14. Не найден Ресурс-приёмник SAP c \"ИД ресурса-приёмника SAP\" равным " + sapEquipmentIdDestVarInt.ToString() + ". Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 14).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 14).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1623,7 +1842,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     }
 
-                    if (foundSapEquipmentDestDTO == null)
+                    if (foundSapEquipmentDestDTO == null && (!String.IsNullOrEmpty(erpPlantIdDestVarString) || !String.IsNullOrEmpty(erpIdDestVarString)))
                     {
                         if (!String.IsNullOrEmpty(erpPlantIdDestVarString) && !String.IsNullOrEmpty(erpIdDestVarString))
                         {
@@ -1633,9 +1852,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 haveErrors = true;
                                 resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16. Ресурс SAP с \"Кодом завода ресурса-приёмника SAP\" равным " + erpPlantIdDestVarString +
                                     " и \"Кодом ресурса/склада ресурса-приёмника SAP\" равным " + erpIdDestVarString + " не найден в справочнике Ресурсов SAP. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 15).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 15).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 16).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 16).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                                 loadFromExcelPage.RefreshSate();
                                 rowNumber++;
@@ -1648,9 +1874,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             {
                                 haveErrors = true;
                                 resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16. Поля \"Код завода ресурса-приёмника SAP\" и \"Код ресурса/склада ресурса-приёмника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 15).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 15).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 16).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 16).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                                 loadFromExcelPage.RefreshSate();
                                 rowNumber++;
@@ -1659,24 +1892,26 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     }
 
-                    if (foundSapEquipmentDestDTO == null)
+                    if (foundSapEquipmentDestDTO == null && !String.IsNullOrEmpty(erpNameDestVarString))
                     {
-                        if (!String.IsNullOrEmpty(erpNameDestVarString))
+                        foundSapEquipmentDestDTO = await _sapEquipmentRepository.GetByName(erpNameDestVarString);
+                        if (foundSapEquipmentDestDTO == null)
                         {
-                            foundSapEquipmentDestDTO = await _sapEquipmentRepository.GetByName(erpNameDestVarString);
-                            if (foundSapEquipmentDestDTO == null)
-                            {
-                                haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 17. Ресурс-приёмник SAP с наименованием равным " + erpNameDestVarString +
-                                    " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
-                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
-                                rowNumber++;
-                                continue;
-                            }
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 17. Ресурс-приёмник SAP с наименованием равным " + erpNameDestVarString +
+                                " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 17).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 17).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
                         }
                     }
 
@@ -1684,9 +1919,20 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 14, 15, 16, 17. Ресурс-приёмник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 14).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 14).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 15).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 15).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 16).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 16).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 17).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 17).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1699,7 +1945,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     }
                 }
 
-                if (String.IsNullOrEmpty(sapMaterialIdVarString) && String.IsNullOrEmpty(sapMaterialNameVarString))
+                if (String.IsNullOrEmpty(sapMaterialIdVarString) && String.IsNullOrEmpty(sapMaterialCodeVarString) && String.IsNullOrEmpty(sapMaterialNameVarString))
                 {
                     changedMesParamDTO.SapMaterialId = null;
                     changedMesParamDTO.SapMaterialDTOFK = null;
@@ -1719,9 +1965,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             sapMaterialIdVarInt = 0;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 18. Не удалось получить целое число \"ИД материала SAP\"" +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 18).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 18).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1734,9 +1985,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 18. Не найден Материал SAP c \"ИД материала SAP\" равным " + sapMaterialIdVarInt.ToString() + ". Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 18).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 18).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1744,19 +2000,48 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     }
 
-                    if (foundSapMaterialDTO == null)
+                    if (foundSapMaterialDTO == null && !String.IsNullOrEmpty(sapMaterialCodeVarString))
                     {
-                        if (!String.IsNullOrEmpty(sapMaterialCodeVarString))
+                        foundSapMaterialDTO = await _sapMaterialRepository.GetByCode(sapMaterialCodeVarString);
+                        if (foundSapMaterialDTO == null)
                         {
-                            foundSapMaterialDTO = await _sapMaterialRepository.GetByCode(sapMaterialCodeVarString);
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 19. Материал SAP с кодом равным " + sapMaterialCodeVarString +
+                                " не найден в справочнике Материалы SAP. Изменения не применялись.";
+                            worksheet.Cell(rowNumber, 19).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 19).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                            loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    }
+
+                    if (foundSapMaterialDTO == null && !String.IsNullOrEmpty(sapMaterialNameVarString))
+                    {
+                        foundSapMaterialDTO = await _sapMaterialRepository.GetByName(sapMaterialNameVarString);
+                        if (foundSapMaterialDTO == null)
+                        {
+                            foundSapMaterialDTO = await _sapMaterialRepository.GetByShortName(sapMaterialNameVarString);
                             if (foundSapMaterialDTO == null)
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 19. Материал SAP с кодом равным " + sapMaterialCodeVarString +
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 20. Материал SAP с наименованием или сокр. наименованием " + sapMaterialNameVarString +
                                     " не найден в справочнике Материалы SAP. Изменения не применялись.";
-                                worksheet.Cell(rowNumber, 34).Value = resultString;
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 20).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 20).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                                 loadFromExcelPage.RefreshSate();
                                 rowNumber++;
@@ -1764,38 +2049,22 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             }
                         }
                     }
-
-                    if (foundSapMaterialDTO == null)
-                    {
-                        if (!String.IsNullOrEmpty(sapMaterialNameVarString))
-                        {
-                            foundSapMaterialDTO = await _sapMaterialRepository.GetByName(sapMaterialNameVarString);
-                            if (foundSapMaterialDTO == null)
-                            {
-                                foundSapMaterialDTO = await _sapMaterialRepository.GetByShortName(sapMaterialNameVarString);
-                                if (foundSapMaterialDTO == null)
-                                {
-                                    haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 20. Материал SAP с наименованием или сокр. наименованием " + sapMaterialNameVarString +
-                                        " не найден в справочнике Материалы SAP. Изменения не применялись.";
-                                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
-                                    loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                    loadFromExcelPage.RefreshSate();
-                                    rowNumber++;
-                                    continue;
-                                }
-                            }
-                        }
-                    }
                     if (foundSapMaterialDTO == null)
                     {
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 18, 19, 20. Материал SAP не найден в справочнике Материалы SAP. Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 18).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 18).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 19).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 19).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 20).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 20).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1814,26 +2083,60 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if ((changedMesParamDTO.SapEquipmentIdSource != null) && (changedMesParamDTO.SapEquipmentIdDest != null) && (changedMesParamDTO.SapMaterialId != null))
                     {
                         var foundBySapMapping = await _mesParamRepository.GetBySapMappingNotInArchive(changedMesParamDTO.SapEquipmentIdSource, changedMesParamDTO.SapEquipmentIdDest, changedMesParamDTO.SapMaterialId, 0);
+
                         if (foundBySapMapping != null)
                         {
-                            haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ". Уже есть не архивный Тэг СИР с таким же маппингом \"Ресурс-источник SAP + Ресурс-приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + "). Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
-                            loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
-                            rowNumber++;
-                            continue;
+                            bool isBad = false;
+                            if (isUpdateOrAddMode == "UPDATE")
+                            {
+                                if (foundBySapMapping.Id != foundMesParamDTO.Id)
+                                {
+                                    isBad = true;
+                                }
+                            }
+                            else  // это добавление записи
+                            {
+                                isBad = true;
+                            }
+                            if (isBad == true)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ". Уже есть не архивный Тэг СИР с таким же маппингом \"Ресурс-источник SAP + Ресурс-приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + "). Изменения не применялись.";
+                                worksheet.Cell(rowNumber, 10).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 11).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 12).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 13).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 14).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 15).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 16).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 17).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 18).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 19).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 20).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 10).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 11).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 12).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 13).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 14).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 15).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 16).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 17).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 18).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 19).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 20).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 1).Value = "!!!";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
+                                loadFromExcelPage.RefreshSate();
+                                rowNumber++;
+                                continue;
+                            }
                         }
                     }
                     else
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ". Не полный мэппинг Тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны или все 3 параметра, или ни одного. Изменения не применялись.";
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        resultString = "! Строка " + rowNumber.ToString() + ". Не полный мэппинг Тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть проставлены или все 3 параметра, или ни одного. Изменения не применялись.";
+                        worksheet.Cell(rowNumber, 10).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 11).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 12).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 13).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 14).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 15).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 16).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 17).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 18).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 19).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 20).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 10).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 11).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 12).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 13).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 14).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 15).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 16).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 17).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 18).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 19).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 20).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1857,9 +2160,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             haveErrors = true;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 21. Единица измерения SAP с наименованием или сокр. наименованием " + sapUnitOfMeasureNameVarString +
                                 " не найдена в справочнике Единиц измерения SAP. Изменения не применялись.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                            worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 21).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 21).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;
@@ -1888,11 +2196,16 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         daysRequestInPastVarInt = 0;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 12. Не удалось получить целое число \"Глубина опроса в днях\"" +
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 22. Не удалось получить целое число \"Глубина опроса в днях\"" +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 22).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 22).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1923,9 +2236,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         mesToSirUnitOfMeasureKoefVarInt = 0;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 27. Не удалось получить число \"Коэффициент пересчёта данных по тэгу ед. изм. MES в ед. изм. СИР\"" +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        worksheet.Cell(rowNumber, 34).Value = resultString;
-                        worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                        worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 27).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 27).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, 1).Value = "!!!";
+                        worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                        worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                        worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                         loadFromExcelPage.RefreshSate();
                         rowNumber++;
@@ -1945,9 +2263,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Параметр НДО\", \"Читать из SAP\", \"Передавать в MES\". Тэг СИР с признаком \"Параметр НДО\" не может иметь признаки \"Читать из SAP\" или \"Передавать в MES\"." +
                         " Изменения не применялись";
-                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 29).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 31).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 32).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 29).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 31).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 32).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -1959,9 +2282,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Читать из MES\", \"Передавать в MES\". Тэг СИР не может одновременно иметь включенными признаки \"Читать из MES\" и \"Передавать в MES\"." +
                         " Изменения не применялись";
-                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 30).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 31).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 30).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 31).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -1973,9 +2301,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Передавать в SAP\", \"Читать из SAP\". Тэг СИР не может одновременно иметь включенными признаки \"Передавать в SAP\" и \"Читать из SAP\"." +
                         " Изменения не применялись";
-                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 28).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 29).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 28).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 29).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -1987,9 +2320,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Передавать в SAP\", \"Передавать в MES\". Тэг СИР не может одновременно иметь включенными признаки \"Передавать в SAP\" и \"Передавать в MES\"." +
                         " Изменения не применялись";
-                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 28).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 31).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 28).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 31).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -2001,9 +2339,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Читать из SAP\", \"Читать из MES\". Тэг СИР не может одновременно иметь включенными признаки \"Читать из SAP\" и \"Читать из MES\"." +
                         " Изменения не применялись";
-                    worksheet.Cell(rowNumber, 34).Value = resultString;
-                    worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Red;
-                    worksheet.Cell(rowNumber, 34).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 29).Style.Font.FontColor = XLColor.Red; worksheet.Cell(rowNumber, 30).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 29).Style.Font.SetBold(true); worksheet.Cell(rowNumber, 30).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                    worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                     loadFromExcelPage.RefreshSate();
                     rowNumber++;
@@ -2025,15 +2368,23 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                             resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Тэг СИР добавлен с ИД " + newMesParamDTO.Id.ToString()
                                 + ". " + duplicateMesParamSourceLink;
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
                             if (String.IsNullOrEmpty(duplicateMesParamSourceLink))
                             {
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Value = "OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
                             else
                             {
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.PowderBlue;
+                                worksheet.Cell(rowNumber, 1).Value = "!!! OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
                             loadFromExcelPage.RefreshSate();
@@ -2042,6 +2393,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     case "UPDATE":
                         {
+                            changedMesParamDTO.Id = foundMesParamDTO.Id;
                             if (String.IsNullOrEmpty(isArchiveVarString))
                             {
                                 changedMesParamDTO.IsArchive = false;
@@ -2068,15 +2420,23 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             }
 
                             resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. " + duplicateMesParamSourceLink;
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
                             if (String.IsNullOrEmpty(duplicateMesParamSourceLink))
                             {
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Value = "OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
                             else
                             {
-                                worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.PowderBlue;
+                                worksheet.Cell(rowNumber, 1).Value = "OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
                             loadFromExcelPage.RefreshSate();
@@ -2086,8 +2446,13 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     default:
                         {
                             resultString = "!!! Для строки " + rowNumber.ToString() + " определен не предусмотренный режим обработки = " + isUpdateOrAddMode + ". Изменения не производились.";
-                            worksheet.Cell(rowNumber, 34).Value = resultString;
-                            worksheet.Cell(rowNumber, 34).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Row(rowNumber).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 1).Value = "!!!";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
                             loadFromExcelPage.RefreshSate();
                             rowNumber++;

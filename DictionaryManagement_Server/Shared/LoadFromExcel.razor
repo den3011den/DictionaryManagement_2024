@@ -213,6 +213,8 @@
     public bool isClickedLoadExcelFile = false;
     public string reportTemplateDownloadFileWithDataBusyText = "Выполняется ...";
 
+    public bool haveChanges = false;
+
     public bool IsLoading { get; set; }
     public bool IsAdmin { get; set; }
 
@@ -231,7 +233,6 @@
         Task.Delay(1);
         InvokeAsync(StateHasChanged);
     }
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -322,11 +323,10 @@
 
             if (System.IO.File.Exists(fileTemplateFullPath))
                 foundActiveReportTemplateFile = true;
-
+           
             IsLoading = false;
             IsAdmin = true;
-            StateHasChanged();
-
+            StateHasChanged();                        
         }
     }
 
@@ -426,6 +426,8 @@
         ResultFileId = Guid.Empty;
 
         isClickedLoadExcelFile = true;
+
+        haveChanges = false;
 
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
@@ -572,7 +574,7 @@
                     try
                     {
                         console.Log($"Загрузка листа SapEquipment");
-                        worksheetSapMaterial = workbook.Worksheet("SapEquipment");
+                        worksheetSapEquipment = workbook.Worksheet("SapEquipment");
                     }
                     catch (Exception ex)
                     {
@@ -611,7 +613,7 @@
                             {
                                 haveErrorsSapMaterial = await _loadFromExcelRepository.MaterialExcelFileLoad(this, worksheetSapMaterial, _authorizationRepository);
                             }
-                            if (worksheetSapMaterial != null)
+                            if (worksheetSapEquipment != null)
                             {
                                 haveErrorsSapEquipment = await _loadFromExcelRepository.SapEquipmentExcelFileLoad(this, worksheetSapEquipment, _authorizationRepository);
                             }
