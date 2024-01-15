@@ -2586,7 +2586,15 @@ namespace DictionaryManagement_Business.Repository
                 else
                     pathVar = (await _settingsRepository.GetByName(SD.ReportDownloadPathSettingName)).Value;
 
-                string fileName = reportEntityDTO.DownloadReportFileName;
+                string fileName = "";
+                if (String.IsNullOrEmpty(reportEntityDTO.DownloadReportFileName))
+                {
+                    fileName = reportEntityDTO.Id.ToString() + ".xlsx";
+                }
+                else
+                {
+                    fileName = reportEntityDTO.DownloadReportFileName;
+                }
                 string file = System.IO.Path.Combine(pathVar, fileName);
                 var extension = Path.GetExtension(fileName);
                 if (System.IO.File.Exists(file))
@@ -2641,6 +2649,10 @@ namespace DictionaryManagement_Business.Repository
                     return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не удалось загрузить лист: " + sheetName, workbook);
                 }
 
+                if (worksheet == null)
+                {
+                    return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не найден лист: " + sheetName, workbook);
+                }
                 ExcelSheetWithSirTagsDTOList reportList = new ExcelSheetWithSirTagsDTOList();
 
                 var headerRows = worksheet.Row(1);
