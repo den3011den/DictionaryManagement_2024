@@ -220,18 +220,18 @@
 
     private string Title { get; set; } = "Загрузка данных из Excel";
 
-    public delegate void DelegateHandler();
+    public delegate Task DelegateHandler();
 
     DelegateHandler? delegateHandler;
-    public void RegisterHandler(DelegateHandler deleg)
+    public async Task RegisterHandler(DelegateHandler deleg)
     {
-        delegateHandler = deleg;
+        delegateHandler = deleg;        
     }
 
-    public void RefreshSate()
+    public async Task RefreshSate()
     {
-        Task.Delay(1);
-        InvokeAsync(StateHasChanged);
+        await Task.Delay(1);
+        await InvokeAsync(StateHasChanged);        
     }
 
     protected override async Task OnInitializedAsync()
@@ -353,7 +353,7 @@
             await Task.Delay(200);
             await InvokeAsync(StateHasChanged);
 
-            RegisterHandler(RefreshSate);
+            await RegisterHandler(RefreshSate);
 
             try
             {

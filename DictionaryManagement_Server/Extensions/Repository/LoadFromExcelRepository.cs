@@ -39,7 +39,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
         {
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Материалов " + worksheet.Name.Substring(0, 3);
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             IEnumerable<MaterialDTO> MaterialDTOList;
             if (worksheet.Name.Equals("SapMaterial"))
@@ -60,7 +60,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 if ((recordOrder == 1) || (recordOrder % 50) == 0)
                 {
                     loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                 }
 
                 excelColNum = 2;
@@ -82,7 +82,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
         public async Task<string> SapEquipmentReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
         {
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Ресурсов SAP)";
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             IEnumerable<SapEquipmentDTO> sapEquipmentDTOList = (await _sapEquipmentRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
 
@@ -97,7 +97,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 if ((recordOrder == 1) || (recordOrder % 50) == 0)
                 {
                     loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                 }
 
                 excelColNum = 2;
@@ -121,7 +121,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
 
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Тэгов СИР)";
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             IEnumerable<MesParamDTO> mesParamDTOList = (await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
 
@@ -136,7 +136,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 if ((recordOrder == 1) || (recordOrder % 50) == 0)
                 {
                     loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                 }
 
                 excelColNum = 2;
@@ -216,7 +216,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             bool haveErrors = false;
             loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
             loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в справочник Материалов " + worksheet.Name.Substring(0, 3));
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             loadFromExcelPage.haveChanges = false;
 
@@ -229,7 +229,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
-                loadFromExcelPage.RefreshSate();
+                await loadFromExcelPage.RefreshSate();
 
                 var rowVar = worksheet.Row(rowNumber);
 
@@ -267,7 +267,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -301,7 +301,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -319,7 +319,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -341,7 +341,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -442,7 +442,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -460,7 +460,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -503,7 +503,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -548,7 +548,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -592,7 +592,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -629,7 +629,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
 
                             loadFromExcelPage.console.Log(resultString);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -680,7 +680,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
                             worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -693,7 +693,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -702,7 +702,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             }
 
             loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в справочник Материалов " + worksheet.Name.Substring(0, 3));
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
             return haveErrors;
         }
 
@@ -713,7 +713,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
             loadFromExcelPage.console.Log($"Лист SapEquipment загружен в память");
             loadFromExcelPage.console.Log($"Начало загрузки данных листа SapEquipment в справочник Ресурсов SAP");
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
 
@@ -723,7 +723,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
-                loadFromExcelPage.RefreshSate();
+                await loadFromExcelPage.RefreshSate();
 
                 worksheet.Cell(rowNumber, 1).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
@@ -770,7 +770,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -804,7 +804,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -822,7 +822,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -844,7 +844,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -865,7 +865,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -934,7 +934,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
+                                await loadFromExcelPage.RefreshSate();
                                 rowNumber++;
                                 continue;
                             }
@@ -989,7 +989,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1061,7 +1061,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1116,7 +1116,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1129,7 +1129,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1137,7 +1137,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             }
 
             loadFromExcelPage.console.Log($"Окончание загрузки данных листа SapEquipment в справочник Ресурсов SAP");
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             return haveErrors;
         }
@@ -1151,7 +1151,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
             loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
             loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в справочник Тэгов СИР");
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
 
@@ -1163,7 +1163,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
-                loadFromExcelPage.RefreshSate();
+                await loadFromExcelPage.RefreshSate();
 
                 worksheet.Cell(rowNumber, 1).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
@@ -1253,7 +1253,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -1295,7 +1295,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -1313,7 +1313,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -1333,7 +1333,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -1385,7 +1385,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
 
@@ -1424,7 +1424,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1523,7 +1523,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1543,7 +1543,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1569,7 +1569,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                    loadFromExcelPage.RefreshSate();
+                                    await loadFromExcelPage.RefreshSate();
                                     rowNumber++;
                                     continue;
                                 }
@@ -1594,7 +1594,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                        loadFromExcelPage.RefreshSate();
+                                        await loadFromExcelPage.RefreshSate();
                                         rowNumber++;
                                         continue;
                                     }
@@ -1618,7 +1618,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -1658,7 +1658,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1678,7 +1678,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1705,7 +1705,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
+                                await loadFromExcelPage.RefreshSate();
                                 rowNumber++;
                                 continue;
                             }
@@ -1727,7 +1727,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
+                                await loadFromExcelPage.RefreshSate();
                                 rowNumber++;
                                 continue;
                             }
@@ -1751,7 +1751,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1776,7 +1776,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -1816,7 +1816,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1836,7 +1836,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1863,7 +1863,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
+                                await loadFromExcelPage.RefreshSate();
                                 rowNumber++;
                                 continue;
                             }
@@ -1885,7 +1885,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
+                                await loadFromExcelPage.RefreshSate();
                                 rowNumber++;
                                 continue;
                             }
@@ -1909,7 +1909,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1934,7 +1934,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -1974,7 +1974,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -1994,7 +1994,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -2017,7 +2017,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -2043,7 +2043,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
+                                await loadFromExcelPage.RefreshSate();
                                 rowNumber++;
                                 continue;
                             }
@@ -2066,7 +2066,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -2115,7 +2115,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                                loadFromExcelPage.RefreshSate();
+                                await loadFromExcelPage.RefreshSate();
                                 rowNumber++;
                                 continue;
                             }
@@ -2138,7 +2138,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -2169,7 +2169,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -2207,7 +2207,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -2245,7 +2245,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                         worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                         loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                        loadFromExcelPage.RefreshSate();
+                        await loadFromExcelPage.RefreshSate();
                         rowNumber++;
                         continue;
                     }
@@ -2272,7 +2272,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -2291,7 +2291,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -2310,7 +2310,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -2329,7 +2329,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -2348,7 +2348,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.SetBold(true);
                     loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                    loadFromExcelPage.RefreshSate();
+                    await loadFromExcelPage.RefreshSate();
                     rowNumber++;
                     continue;
                 }
@@ -2387,7 +2387,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -2439,7 +2439,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -2454,7 +2454,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
                             loadFromExcelPage.console.Log(resultString, AlertStyle.Danger);
-                            loadFromExcelPage.RefreshSate();
+                            await loadFromExcelPage.RefreshSate();
                             rowNumber++;
                             continue;
                         }
@@ -2462,7 +2462,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             }
 
             loadFromExcelPage.console.Log($"Окончание загрузки данных листа SapEquipment в справочник Ресурсов SAP");
-            loadFromExcelPage.RefreshSate();
+            await loadFromExcelPage.RefreshSate();
 
             return haveErrors;
 
