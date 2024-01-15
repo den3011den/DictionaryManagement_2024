@@ -79,7 +79,9 @@
                     <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Code" Title="Код тэга СИР">
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                @data1.Code
+                                <strong>
+                                    @data1.Code
+                                </strong>
                             </div>
                         </Template>
 
@@ -88,9 +90,7 @@
                     <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Name" Title="Наименование">
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                <strong>
-                                    @data1.Name
-                                </strong>
+                                @data1.Name
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
