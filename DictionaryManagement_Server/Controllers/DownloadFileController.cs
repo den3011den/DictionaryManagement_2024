@@ -52,7 +52,13 @@ namespace DictionaryManagement_Server.Controllers
 
 
             string pathVar = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
-            ReportTemplateDTO foundTemplate = await _reportTemplateRepository.GetById(reportTemplateId);
+            ReportTemplateDTO? foundTemplate = await _reportTemplateRepository.GetById(reportTemplateId);
+            if (foundTemplate == null)
+            {
+                return StatusCode(500, "Запись по шаблону отчёта " + reportTemplateId.ToString() + " не найдена в БД");
+            }
+
+
             string fileName = foundTemplate.TemplateFileName;
             string file = System.IO.Path.Combine(pathVar, fileName);
             var extension = Path.GetExtension(fileName);
@@ -98,7 +104,12 @@ namespace DictionaryManagement_Server.Controllers
 
 
             string pathVar = (await _settingsRepository.GetByName("ReportDownloadPath")).Value;
-            ReportEntityDTO foundEntity = await _reportEntityRepository.GetById(reportEntityId);
+            ReportEntityDTO? foundEntity = await _reportEntityRepository.GetById(reportEntityId);
+
+            if (foundEntity == null)
+            {
+                return StatusCode(500, "Запись об экземпляре отчёта " + reportEntityId.ToString() + " не найдена в БД");
+            }
             string fileName = foundEntity.DownloadReportFileName;
             string file = System.IO.Path.Combine(pathVar, fileName);
             var extension = Path.GetExtension(fileName);
@@ -149,11 +160,15 @@ namespace DictionaryManagement_Server.Controllers
 
 
             string pathVar = (await _settingsRepository.GetByName("ReportUploadPath")).Value;
-            ReportEntityDTO foundEntity = await _reportEntityRepository.GetById(reportEntityId);
+            ReportEntityDTO? foundEntity = await _reportEntityRepository.GetById(reportEntityId);
             //string fileName = foundEntity.UploadReportFileName;
             // в шестёрке решили в UploadReportFileName сохранять имя загружаемого пользователем файла
             // теперь приходится брать реально храняшееся имя файла из DownloadReportFileName
-            string fileName = foundEntity.UploadReportFileName;
+            if (foundEntity == null)
+            {
+                return StatusCode(500, "Запись об экземпляре отчёта " + reportEntityId.ToString() + " не найдена в БД");
+            }
+            string fileName = foundEntity.Id.ToString() + ".xlsx";
             string file = System.IO.Path.Combine(pathVar, fileName);
             var extension = Path.GetExtension(fileName);
             if (System.IO.File.Exists(file))
