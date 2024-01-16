@@ -259,6 +259,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     idVarInt = 0;
                     resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3. И ИД записи, и Код материала пустые. Изменения не применялись.";
+                    worksheet.Cell(rowNumber, 1).Value = "!!!";
+                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Red;
+                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
                     worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Red;
                     worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
                     worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Red;
