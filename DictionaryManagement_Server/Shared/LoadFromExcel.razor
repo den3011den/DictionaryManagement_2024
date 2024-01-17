@@ -482,6 +482,7 @@
                 reportEntityForCreateDTO.UploadUserId = userId;
                 reportEntityForCreateDTO.UploadReportFileName = reportEntityId.ToString() + ".xlsx";
                 reportEntityForCreateDTO.UploadSuccessFlag = true;
+                reportEntityForCreateDTO.ResendMode = false;
 
                 ReportEntityDTO createdReportEntityDTO = _reportEntityRepository.Create(reportEntityForCreateDTO).GetAwaiter().GetResult();
 

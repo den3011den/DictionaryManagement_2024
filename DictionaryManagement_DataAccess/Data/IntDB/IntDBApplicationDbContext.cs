@@ -53,6 +53,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
 
         public DbSet<MesMovementsComment> MesMovementsComment { get; set; }
 
+        public DbSet<ReportEntityResendDates> ReportEntityResendDates { get; set; }
 
 
 

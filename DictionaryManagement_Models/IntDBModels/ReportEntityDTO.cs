@@ -62,6 +62,10 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "Успешно загружен")]
         public bool UploadSuccessFlag { get; set; } = false;
 
+        public bool ResendMode { get; set; } = false;
+
+        [Display(Name = "Даты переотправки данных в SAP")]
+        public IEnumerable<ReportEntityResendDatesDTO>? ReportEntityResendDatesListDTO { get; set; }
 
         [NotMapped]
         [Display(Name = "Ид записи")]

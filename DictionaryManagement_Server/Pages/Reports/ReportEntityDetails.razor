@@ -37,7 +37,6 @@
         <RadzenTabs @bind-SelectedIndex=@selectedTabIndex Change="@(args => OnTabChange(args))">
             <Tabs>
                 <RadzenTabsItem Text="Детали">
-
                     <RadzenRow Gap="1rem">
                         <RadzenColumn Size="12" SizeMD="6">
                             <RadzenStack>
@@ -673,8 +672,56 @@
                         }
                     </div>
                 </RadzenTabsItem>
-            </Tabs>
+                @if (ActiveReportEntityDTO.ResendMode == true)
+                {
+                    <RadzenTabsItem Text="Даты переотправки в SAP">
+                        <div class="row">
+                            @if (IsLoading != true)
+                            {
+                                <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="false" EditMode="DataGridEditMode.Single"
+                                Data="@(ActiveReportEntityDTO.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))" TItem="ReportEntityResendDatesDTO"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterMode="FilterMode.SimpleWithMenu"
+                                Density=Density.Compact
+                                ShowPagingSummary="true"
+                                Style="height:70vh"
+                                AllowVirtualization="false"
+                                AllowColumnReorder="false"
+                                AllowColumnResize="false"
+                                ColumnWidth="200px"
+                                GridLines="DataGridGridLines.Both"
+                                ShowCleanGridSettingsHeaderButton="false"
+                                ShowCleanGridFiltersHeaderButton="false"
+                                ShowCleanGridSortsHeaderButton="false">
+                                    <Columns>
+                                        <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDate" Title="Дата переотправки в SAP" TextAlign="TextAlign.Center"
+                                            Width="200px" Filterable="true" Sortable="true">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    <strong>
+                                                        @data1.ResendDate.ToString("dd.MM.yyyy")
+                                                    </strong>
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                    </Columns>
+                                </RadzenDataGridApp>
 
+                            }
+                            else
+                            {
+                                if (IsLoading)
+                                {
+                                    //отображение gif загрузки
+                                    <div class="text-center">
+                                        <img src="/images/loading.gif">
+                                </div>
+                            }
+                        }
+                    </div>
+                </RadzenTabsItem>
+                }
+            </Tabs>
         </RadzenTabs>
 
         @*    <div class="form-group py-2">

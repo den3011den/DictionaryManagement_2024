@@ -65,6 +65,10 @@ namespace DictionaryManagement_Business.Repository
                 ws.Cell(excelRowNum, excelColNum).Value = "Время загрузки (Upload)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Кто загрузил (Upload)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Загружен в СИР в режиме переотправки в SAP (ResendMode)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Даты переотправки в SAP (ReportEntityResendDates)";
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
                 ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;
@@ -101,6 +105,36 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = reportEntity.UploadTime == null ? "" : ((DateTime)reportEntity.UploadTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = reportEntity.UploadUserDTOFK == null ? "" : reportEntity.UploadUserDTOFK.UserName.ToString();
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportEntity.ResendMode == true ? "Да" : "";
+
+                    string reportEntityResendDatesListString = "";
+                    if (reportEntity.ReportEntityResendDatesListDTO != null)
+                    {
+                        int datesInRowCount = 1;
+                        foreach (ReportEntityResendDatesDTO reportEntityResendDatesDTO in reportEntity.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))
+                        {
+                            if (String.IsNullOrEmpty(reportEntityResendDatesListString))
+                                reportEntityResendDatesListString = reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                            else
+                            {
+                                if (datesInRowCount % 4 == 0)
+                                {
+                                    reportEntityResendDatesListString = reportEntityResendDatesListString + "\n" + reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                                    datesInRowCount = 1;
+                                }
+                                else
+                                {
+                                    reportEntityResendDatesListString = reportEntityResendDatesListString + "     " + reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                                }
+                            }
+                            datesInRowCount++;
+                        }
+                    }
+
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportEntityResendDatesListString;
+                    ws.Cell(excelRowNum, excelColNum).Style.Alignment.WrapText = true;
 
                     excelRowNum++;
                 }

@@ -46,6 +46,7 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.UploadUserId = objectToAddDTO.UploadUserId;
             objectToAdd.UploadReportFileName = objectToAddDTO.UploadReportFileName;
             objectToAdd.UploadSuccessFlag = objectToAddDTO.UploadSuccessFlag;
+            objectToAdd.ResendMode = objectToAddDTO.ResendMode;
 
             var addedReportEntity = _db.ReportEntity.Add(objectToAdd);
             _db.SaveChanges();
@@ -70,6 +71,7 @@ namespace DictionaryManagement_Business.Repository
                             .Include("ReportDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
                             .Include("DownloadUserFK")
                             .Include("UploadUserFK")
+                            .Include("ReportEntityResendDatesList")
                             .FirstOrDefaultWithNoLock(u => u.Id == id);
             if (objToGet != null)
             {
@@ -95,6 +97,7 @@ namespace DictionaryManagement_Business.Repository
                             .Include("ReportDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
                             .Include("ReportDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
                             .Include("DownloadUserFK")
+                            .Include("ReportEntityResendDatesList")
                             .Include("UploadUserFK").ToListWithNoLock();
             return _mapper.Map<IEnumerable<ReportEntity>, IEnumerable<ReportEntityDTO>>(hhh1);
         }
@@ -122,6 +125,7 @@ namespace DictionaryManagement_Business.Repository
                             .Include("ReportDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
                             .Include("DownloadUserFK")
                             .Include("UploadUserFK")
+                            .Include("ReportEntityResendDatesList")
                             .Where(u => u.DownloadTime >= startDownloadTime && u.DownloadTime <= endDownloadTime).ToListWithNoLock();
             return _mapper.Map<IEnumerable<ReportEntity>, IEnumerable<ReportEntityDTO>>(hhh1);
 
@@ -150,6 +154,7 @@ namespace DictionaryManagement_Business.Repository
                             .Include("ReportDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
                             .Include("DownloadUserFK")
                             .Include("UploadUserFK")
+                            .Include("ReportEntityResendDatesList")
                 .Where(u => u.UploadTime >= startUploadTime && u.UploadTime <= endUploadTime).ToListWithNoLock();
             return _mapper.Map<IEnumerable<ReportEntity>, IEnumerable<ReportEntityDTO>>(hhh1);
         }
@@ -171,6 +176,7 @@ namespace DictionaryManagement_Business.Repository
                             .Include("ReportDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
                             .Include("DownloadUserFK")
                             .Include("UploadUserFK")
+                            .Include("ReportEntityResendDatesList")
                .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
 
             if (objectToUpdate != null)
@@ -262,6 +268,9 @@ namespace DictionaryManagement_Business.Repository
 
                 if (objectToUpdateDTO.UploadSuccessFlag != objectToUpdate.UploadSuccessFlag)
                     objectToUpdate.UploadSuccessFlag = objectToUpdateDTO.UploadSuccessFlag;
+
+                if (objectToUpdateDTO.ResendMode != objectToUpdate.ResendMode)
+                    objectToUpdate.ResendMode = objectToUpdateDTO.ResendMode;
 
                 _db.ReportEntity.Update(objectToUpdate);
                 _db.SaveChanges();

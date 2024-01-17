@@ -87,6 +87,7 @@ builder.Services.AddScoped<ISapMovementsINRepository, SapMovementsINRepository>(
 builder.Services.AddScoped<ISapMovementsOUTRepository, SapMovementsOUTRepository>();
 builder.Services.AddScoped<ILogEventRepository, LogEventRepository>();
 builder.Services.AddScoped<ILoadFromExcelRepository, LoadFromExcelRepository>();
+builder.Services.AddScoped<IReportEntityResendDatesRepository, ReportEntityResendDatesRepository>();
 
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

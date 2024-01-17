@@ -125,13 +125,15 @@ namespace DictionaryManagement_Business.Mapper
                     .ForMember(dest => dest.ReportTemplateDTOFK, opt => opt.MapFrom(src => src.ReportTemplateFK))
                     .ForMember(dest => dest.ReportDepartmentDTOFK, opt => opt.MapFrom(src => src.ReportDepartmentFK))
                     .ForMember(dest => dest.UploadUserDTOFK, opt => opt.MapFrom(src => src.UploadUserFK))
-                    .ForMember(dest => dest.DownloadUserDTOFK, opt => opt.MapFrom(src => src.DownloadUserFK));
+                    .ForMember(dest => dest.DownloadUserDTOFK, opt => opt.MapFrom(src => src.DownloadUserFK))
+                    .ForMember(dest => dest.ReportEntityResendDatesListDTO, opt => opt.MapFrom(src => src.ReportEntityResendDatesList));
 
             CreateMap<ReportEntityDTO, ReportEntity>()
                     .ForMember(dest => dest.ReportTemplateFK, opt => opt.MapFrom(src => src.ReportTemplateDTOFK))
                     .ForMember(dest => dest.ReportDepartmentFK, opt => opt.MapFrom(src => src.ReportDepartmentDTOFK))
                     .ForMember(dest => dest.UploadUserFK, opt => opt.MapFrom(src => src.UploadUserDTOFK))
-                    .ForMember(dest => dest.DownloadUserFK, opt => opt.MapFrom(src => src.DownloadUserDTOFK));
+                    .ForMember(dest => dest.DownloadUserFK, opt => opt.MapFrom(src => src.DownloadUserDTOFK))
+                    .ForMember(dest => dest.ReportEntityResendDatesList, opt => opt.MapFrom(src => src.ReportEntityResendDatesListDTO));
 
             CreateMap<ReportEntityLog, ReportEntityLogDTO>()
                     .ForMember(dest => dest.ReportEntityDTOFK, opt => opt.MapFrom(src => src.ReportEntityFK));
@@ -258,6 +260,12 @@ namespace DictionaryManagement_Business.Mapper
             CreateMap<MesMovementsCommentDTO, MesMovementsComment>()
                 .ForMember(dest => dest.MesMovementsFK, opt => opt.MapFrom(src => src.MesMovementsDTOFK))
                 .ForMember(dest => dest.CorrectionReasonFK, opt => opt.MapFrom(src => src.CorrectionReasonDTOFK));
+
+            CreateMap<ReportEntityResendDates, ReportEntityResendDatesDTO>()
+                .ForMember(dest => dest.ReportEntityDTOFK, opt => opt.MapFrom(src => src.ReportEntityFK));
+
+            CreateMap<ReportEntityResendDatesDTO, ReportEntityResendDates>()
+                .ForMember(dest => dest.ReportEntityFK, opt => opt.MapFrom(src => src.ReportEntityDTOFK));
         }
     }
 }
