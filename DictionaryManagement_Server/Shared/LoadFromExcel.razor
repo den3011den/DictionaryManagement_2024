@@ -168,9 +168,9 @@
 
 @code {
 
-    int selectedTabIndex = 0;
+        int selectedTabIndex = 0;
 
-    _Dialogs? _dialogs { get; set; }
+        _Dialogs? _dialogs { get; set; }
 
     public EventConsole console;
 
@@ -323,7 +323,7 @@
 
             if (System.IO.File.Exists(fileTemplateFullPath))
                 foundActiveReportTemplateFile = true;
-           
+
             IsLoading = false;
             IsAdmin = true;
             StateHasChanged();                        
@@ -526,6 +526,25 @@
 
                 console.Log($"Файл загружен в память");
 
+                if (!objectName.Equals("MesParam"))
+                {
+                    if(workbook.Worksheets.Count()>1)
+                    {                        
+                        bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Загрузка из Excel", "В загружаемом Excel-файле есть другие листы помимо " + objectName + ". " +
+                        "Возможно вы загружаете файл, выгруженный для другого справочника (например Тэги СИР). Всё равно продолжить загрузку ?", "Продолжить", "Отмена");
+                        if (selectionResult == false)
+                        {
+                            console.Log($"Отмена загрузки пользователем", AlertStyle.Warning);
+                            loadExcelFileBusyFlag = false;
+                            if (workbook != null)
+                                workbook.Dispose();
+                            await Task.Delay(1);
+                            await InvokeAsync(StateHasChanged);
+                            return;                            
+                        }                    
+                    }
+                }
+
                 ResultFileId = createdReportEntityDTO.Id;
 
                 IXLWorksheet worksheet = null;
@@ -583,7 +602,6 @@
                         await InvokeAsync(StateHasChanged);
                         worksheetSapEquipment = null;
                     }
-
                 }
 
                 bool haveErrors = false;
