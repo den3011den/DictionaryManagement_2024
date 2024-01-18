@@ -467,10 +467,13 @@
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Ресурсы SAP)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{ "DataList", null } }
+                    , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }
+        IsLoading = false;
     }
 
 }

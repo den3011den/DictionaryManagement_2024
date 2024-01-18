@@ -178,10 +178,10 @@
 
     RadzenDataGrid<SapNdoOUTDTO> sapNdoOUTDTOGrid;
 
-    DateTime startDate = DateTime.Today.AddDays(-7);
-    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime minEndDate = DateTime.Today.AddMonths(-1).AddDays(-8);
+    DateTime? startDate = null;
+    DateTime? endDate = null;
+    DateTime? maxEndDate = null;
+    DateTime? minEndDate = null;
 
     bool excelExportFlag = false;
 
@@ -207,12 +207,13 @@
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                //await GetRows();
-
-                startDate = DateTime.Today.AddDays(-7);
-                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+                if (startDate == null || endDate == null || maxEndDate == null || minEndDate == null)
+                {
+                    startDate = DateTime.Today.AddDays(-7);
+                    endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                    maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                    minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+                }
 
                 IsLoading = true;
                 await LoadStateAsync();
@@ -269,8 +270,8 @@
     private async Task ChangeStartDate()
     {
         ApplyButtonDisabled = false;
-        maxEndDate = startDate.AddMonths(1).AddSeconds(-1);
-        minEndDate = startDate.AddDays(-1);
+        maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
+        minEndDate = ((DateTime)startDate).AddDays(-1);
         if (endDate > maxEndDate)
             endDate = maxEndDate;
 
@@ -346,8 +347,6 @@
 
     async Task ExcelImport()
     {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-        return;
         IsLoading = true;
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
@@ -355,9 +354,9 @@
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - НДО-выход)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
-            IsLoading = false;
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });            
         }
+        IsLoading = false;
     }
 
 }

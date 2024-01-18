@@ -528,14 +528,16 @@
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Материалы MES)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{ "DataList", null } }
+                    , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
             // if (dialogResult==true)
             // {
                 await this.OnAfterRenderAsync(true);
             // }
-
             IsLoading = false;
         }
+        IsLoading = false;
     }
 
 

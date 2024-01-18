@@ -116,9 +116,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
             }
             return "SapEquipment_Example_with_data_";
         }
+
+
         public async Task<string> MesParamReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
         {
-
 
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Тэгов СИР)";
             await loadFromExcelPage.RefreshSate();
@@ -208,6 +209,106 @@ namespace DictionaryManagement_Server.Extensions.Repository
             }
 
             return "MesParam_Example_with_data_";
+        }
+
+
+        public async Task<string> MesNdoStocksReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MesNdoStocksDTO>? mesNdoStocksList)
+        {
+
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей Архива данных НДО)";
+            await loadFromExcelPage.RefreshSate();
+
+            if (mesNdoStocksList == null || mesNdoStocksList.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей Архива данных НДО");
+                return "MesNdoStocks_Example_with_data_";
+            }
+
+            int recordCount = mesNdoStocksList.Count();
+            int recordOrder = 0;
+
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var mesNdoStocksItem in mesNdoStocksList)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    await loadFromExcelPage.RefreshSate();
+                }
+
+                excelColNum = 3;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.AddUserId.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.AddUserDTOFK.UserName;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.MesParamDTOFK.Code;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.Value.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.ValueDifference.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.ReportGuid == null ? "" : mesNdoStocksItem.ReportGuid.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesNdoStocksItem.SapNdoOutId == null ? "" : mesNdoStocksItem.SapNdoOutId.ToString();
+                excelRowNum++;
+            }
+
+            return "MesNdoStocks_Example_with_data_";
+        }
+
+
+        public async Task<string> SapNdoOUTReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<SapNdoOUTDTO>? sapNdoOUTList)
+        {
+
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
+            await loadFromExcelPage.RefreshSate();
+
+            if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
+                return "SapNdoOUT_Example_with_data_";
+            }
+
+            int recordCount = sapNdoOUTList.Count();
+            int recordOrder = 0;
+
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var sapNdoOUTItem in sapNdoOUTList)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    await loadFromExcelPage.RefreshSate();
+                }
+
+                excelColNum = 3;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelRowNum++;
+            }
+
+            return "SapNdoOUT_Example_with_data_";
         }
 
         public async Task<bool> MaterialExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,

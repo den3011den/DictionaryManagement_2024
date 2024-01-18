@@ -217,10 +217,10 @@
     List<string> distinctLogEventTypesInList = new List<string>();
     List<string> distinctUsersInList = new List<string>();
 
-    DateTime startDate = DateTime.Today.AddDays(-1);
-    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime minEndDate = DateTime.Today.AddDays(-3);
+    DateTime? startDate = null;
+    DateTime? endDate = null;
+    DateTime? maxEndDate = null;
+    DateTime? minEndDate = null;
 
     bool excelExportFlag = false;
 
@@ -247,11 +247,13 @@
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                startDate = DateTime.Today.AddDays(-1);
-                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                minEndDate = DateTime.Today.AddDays(-3);
-
+                if (startDate == null || endDate == null || maxEndDate == null || minEndDate == null)
+                {
+                    startDate = DateTime.Today.AddDays(-1);
+                    endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                    maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                    minEndDate = DateTime.Today.AddDays(-3);
+                }
                 IsLoading = true;
                 await LoadStateAsync();
                 StateHasChanged();
@@ -321,8 +323,8 @@
     private async Task ChangeStartDate()
     {
         ApplyButtonDisabled = false;
-        maxEndDate = startDate.AddDays(2).AddSeconds(-1);
-        minEndDate = startDate.AddDays(-1);
+        maxEndDate = ((DateTime)startDate).AddDays(2).AddSeconds(-1);
+        minEndDate = ((DateTime)startDate).AddDays(-1);
         if (endDate > maxEndDate)
             endDate = maxEndDate;
 

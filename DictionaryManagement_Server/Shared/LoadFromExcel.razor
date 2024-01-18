@@ -1,4 +1,4 @@
-﻿@page "/dictionary/LoadFromExcel/{LoadFromExcelReportTemplateTypeNameSettingName}"
+﻿@page "/dictionary/LoadFromExcel/{LoadFromExcelReportTemplateTypeNameSettingName}/{DataList}"
 
 @attribute [Authorize]
 
@@ -168,14 +168,19 @@
 
 @code {
 
-        int selectedTabIndex = 0;
+    int selectedTabIndex = 0;
 
-        _Dialogs? _dialogs { get; set; }
+    _Dialogs? _dialogs { get; set; }
 
     public EventConsole console;
 
     [Parameter]
     public string LoadFromExcelReportTemplateTypeNameSettingName { get; set; }
+
+    [Parameter]
+    public IEnumerable<object>? DataList { get; set; }
+
+
 
     RadzenUpload upload;
 
@@ -205,6 +210,9 @@
     public ReportTemplateDTO? ActiveReportTemplateDTO { get; set; }
     public SettingsDTO? ActiveSettingDTO { get; set; }
 
+    public IEnumerable<MesNdoStocksDTO>? MesNdoStocksListDTO { get; set; }
+    public IEnumerable<SapNdoOUTDTO>? SapNdoOUTListDTO { get; set; }
+
     public bool foundActiveReportTemplateFile = false;
     public bool errorFlag = false;
     public bool reportTemplateDownloadFileBusyFlag = false;
@@ -231,8 +239,37 @@
     public async Task RefreshSate()
     {
         await Task.Delay(1);
-        await InvokeAsync(StateHasChanged);        
+        await InvokeAsync(StateHasChanged);
     }
+
+
+    public delegate Task ShowToastrWarningDelegateHandler(string warningStr);
+    ShowToastrWarningDelegateHandler? showToastrWarningDelegateHandler;
+    public async Task RegisterHandler(ShowToastrWarningDelegateHandler deleg)
+    {
+        showToastrWarningDelegateHandler = deleg;
+    }
+
+    public async Task ShowToastrWarning(string warningStr)
+    {
+        await Task.Delay(1);
+        await _jsRuntime.ToastrWarning(warningStr);
+    }
+     
+    
+    public delegate Task ShowSwalDelegateHandler(string swalMode, string swalMessage);
+    ShowSwalDelegateHandler? showSwalDelegateHandler;
+    public async Task RegisterHandler(ShowSwalDelegateHandler deleg)
+    {
+        showSwalDelegateHandler = deleg;
+    }
+
+    public async Task ShowSwal(string swalMode, string swalMessage)
+    {
+        await Task.Delay(1);
+        await _jsRuntime.InvokeVoidAsync("ShowSwal", swalMode, swalMessage);        
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -247,8 +284,7 @@
             if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName))
             {
                 Title = "Загрузка данных из Excel в справочник Материалы SAP";
-                objectName = "SapMaterial";
-            }
+                objectName = "SapMaterial";            }
             if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName))
             {
                 Title = "Загрузка данных из Excel в справочник Материалы MES";
@@ -266,6 +302,21 @@
             {
                 Title = "Загрузка данных из Excel в справочник Тэгов СИР";
                 objectName = "MesParam";
+            }
+
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в Архив данных НДО (MesNdoStocks)";
+                objectName = "MesNdoStocks";
+                MesNdoStocksListDTO = (IEnumerable<MesNdoStocksDTO>?) DataList;
+            }
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в витрину SAP НДО-выход (SapNdoOUT)";
+                objectName = "SapNdoOUT";
+                SapNdoOUTListDTO = (IEnumerable<SapNdoOUTDTO>?)DataList;
             }
 
             foundActiveReportTemplateFile = false;
@@ -389,6 +440,17 @@
                                 filename = await _loadFromExcelRepository.MesParamReportTemplateDownloadFileWithData(this, worksheet);
                                 break;
                             }
+                        case "MesNdoStocks":
+                            {
+                                filename = await _loadFromExcelRepository.MesNdoStocksReportTemplateDownloadFileWithData(this, worksheet, MesNdoStocksListDTO);
+                                break;
+                            }
+
+                        case "SapNdoOUT":
+                            {
+                                filename = await _loadFromExcelRepository.SapNdoOUTReportTemplateDownloadFileWithData(this, worksheet, SapNdoOUTListDTO);
+                                break;
+                            }
                         default:
                             {
                                 await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet);
@@ -508,6 +570,13 @@
                 catch (Exception ex)
                 {
                     console.Log($"! Не удалось загрузить в память файл: " + fileUploadFullPath + ". Сообщение ошибки: " + ex.Message, AlertStyle.Danger);
+                    _reportEntityRepository.Delete(createdReportEntityDTO.Id).GetAwaiter().GetResult();
+                    try
+                    {
+                        File.Delete(fileUploadFullPath);
+                    }
+                    catch
+                    { }
                     loadExcelFileBusyFlag = false;
                     await Task.Delay(1);
                     await InvokeAsync(StateHasChanged);
@@ -520,6 +589,13 @@
                     loadExcelFileBusyFlag = false;
                     if (workbook != null)
                         workbook.Dispose();
+                    _reportEntityRepository.Delete(createdReportEntityDTO.Id).GetAwaiter().GetResult();
+                    try
+                    {
+                        File.Delete(fileUploadFullPath);
+                    }
+                    catch
+                    { }
                     await Task.Delay(1);
                     await InvokeAsync(StateHasChanged);
                     return;
@@ -539,6 +615,13 @@
                             loadExcelFileBusyFlag = false;
                             if (workbook != null)
                                 workbook.Dispose();
+                            _reportEntityRepository.Delete(createdReportEntityDTO.Id).GetAwaiter().GetResult();
+                            try
+                            {
+                                File.Delete(fileUploadFullPath);
+                            }
+                            catch
+                            { }
                             await Task.Delay(1);
                             await InvokeAsync(StateHasChanged);
                             return;                            
@@ -562,6 +645,13 @@
                     loadExcelFileBusyFlag = false;
                     if (workbook != null)
                         workbook.Dispose();
+                    _reportEntityRepository.Delete(createdReportEntityDTO.Id).GetAwaiter().GetResult();
+                    try
+                    {
+                        File.Delete(fileUploadFullPath);
+                    }
+                    catch
+                    { }
                     await Task.Delay(1);
                     await InvokeAsync(StateHasChanged);
                     return;
@@ -572,6 +662,13 @@
                     loadExcelFileBusyFlag = false;
                     if (workbook != null)
                         workbook.Dispose();
+                    _reportEntityRepository.Delete(createdReportEntityDTO.Id).GetAwaiter().GetResult();
+                    try
+                    {
+                        File.Delete(fileUploadFullPath);
+                    }
+                    catch
+                    { }
                     await Task.Delay(1);
                     await InvokeAsync(StateHasChanged);
                     return;
@@ -648,7 +745,7 @@
                             break;
                         }
                 }
-           
+
                 console.Log($"Сохранение файла результата");
 
                 workbook.SaveAs(fileUploadFullPath);
@@ -740,6 +837,7 @@
         {
             case 0:
                 {
+                    uploadFileWarning = "";
                     break;
                 }
 
@@ -749,11 +847,13 @@
                 }
             case 2:
                 {
+                    uploadFileWarning = "";
                     break;
                 }
 
             default:
                 {
+                    uploadFileWarning = "";
                     break;
                 }
         }

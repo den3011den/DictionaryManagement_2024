@@ -357,10 +357,10 @@
 
     RadzenDataGrid<MesMovementsDTO> mesMovementsDTOGrid;
 
-    DateTime startDate = DateTime.Today.AddDays(-7);
-    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+    DateTime? startDate = null;
+    DateTime? endDate = null;
+    DateTime? maxEndDate = null;
+    DateTime? minEndDate = null;
 
     bool excelExportFlag = false;
 
@@ -386,11 +386,13 @@
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                startDate = DateTime.Today.AddDays(-7);
-                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
-
+                if (startDate == null || endDate == null || maxEndDate == null || minEndDate == null)
+                {
+                    startDate = DateTime.Today.AddDays(-7);
+                    endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                    maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                    minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+                }
                 IsLoading = true;
                 await LoadStateAsync();
                 StateHasChanged();
@@ -470,8 +472,8 @@
     private async Task ChangeStartDate()
     {
         ApplyButtonDisabled = false;
-        maxEndDate = startDate.AddMonths(1).AddSeconds(-1);
-        minEndDate = startDate.AddDays(-1);
+        maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
+        minEndDate = ((DateTime)startDate).AddDays(-1);
         if (endDate > maxEndDate)
             endDate = maxEndDate;
 
@@ -702,9 +704,9 @@
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Архив данных)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
-            await this.OnAfterRenderAsync(true);
-            IsLoading = false;
+            await this.OnAfterRenderAsync(true);         
         }
+        IsLoading = false;
     }
 
 }

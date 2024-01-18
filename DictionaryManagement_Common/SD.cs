@@ -69,10 +69,10 @@ namespace DictionaryManagement_Common
         public static string SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName = "SapEquipmentLoadFromExcelReportTemplateTypeName";
         public static string MesParamLoadFromExcelReportTemplateTypeNameSettingName = "MesParamLoadFromExcelReportTemplateTypeName";
         public static string MesMovementsLoadFromExcelReportTemplateTypeNameSettingName = "MesMovementsLoadFromExcelReportTemplateTypeName";
-        public static string MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName = "MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName";
-        public static string SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName";
-        public static string SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName";
-        public static string SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName";
+        public static string MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName = "MesNdoStocksLoadFromExcelReportTemplateTypeName";
+        public static string SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsINLoadFromExcelReportTemplateTypeName";
+        public static string SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsOUTLoadFromExcelReportTemplateTypeName";
+        public static string SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapNdoOUTLoadFromExcelReportTemplateTypeName";
 
         public static String RemoveInvalidCharsFromFilename(this String file_name, int? maxFileNameLength = 200)
         {
