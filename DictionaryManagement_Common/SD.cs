@@ -73,6 +73,9 @@ namespace DictionaryManagement_Common
         public static string SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsINLoadFromExcelReportTemplateTypeName";
         public static string SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsOUTLoadFromExcelReportTemplateTypeName";
         public static string SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapNdoOUTLoadFromExcelReportTemplateTypeName";
+        public static string UsersLoadFromExcelReportTemplateTypeNameSettingName = "UsersLoadFromExcelReportTemplateTypeName";
+        public static string ADGroupsLoadFromExcelReportTemplateTypeNameSettingName = "ADGroupsLoadFromExcelReportTemplateTypeName";
+
 
         public static String RemoveInvalidCharsFromFilename(this String file_name, int? maxFileNameLength = 200)
         {

@@ -311,6 +311,232 @@ namespace DictionaryManagement_Server.Extensions.Repository
             return "SapNdoOUT_Example_with_data_";
         }
 
+
+
+        public async Task<string> MesMovementsReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MesMovementsDTO>? mesMovementsListDTO)
+        {
+            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
+            //await loadFromExcelPage.RefreshSate();
+
+            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
+            //{
+            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
+            //    return "SapNdoOUT_Example_with_data_";
+            //}
+
+            //int recordCount = sapNdoOUTList.Count();
+            //int recordOrder = 0;
+
+            //int excelRowNum = 9;
+            //int excelColNum;
+            //foreach (var sapNdoOUTItem in sapNdoOUTList)
+            //{
+            //    recordOrder++;
+            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
+            //    {
+            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+            //        await loadFromExcelPage.RefreshSate();
+            //    }
+
+            //    excelColNum = 3;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelRowNum++;
+            //}
+
+            return "MesMovements_Example_with_data_";
+        }
+
+        public async Task<string> SapMovementsOUTReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<SapMovementsOUTDTO>? sapMovementsOUTListDTO)
+        {
+            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
+            //await loadFromExcelPage.RefreshSate();
+
+            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
+            //{
+            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
+            //    return "SapNdoOUT_Example_with_data_";
+            //}
+
+            //int recordCount = sapNdoOUTList.Count();
+            //int recordOrder = 0;
+
+            //int excelRowNum = 9;
+            //int excelColNum;
+            //foreach (var sapNdoOUTItem in sapNdoOUTList)
+            //{
+            //    recordOrder++;
+            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
+            //    {
+            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+            //        await loadFromExcelPage.RefreshSate();
+            //    }
+
+            //    excelColNum = 3;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelRowNum++;
+            //}
+
+            return "SapMovementsOUT_Example_with_data_";
+        }
+        public async Task<string> SapMovementsINReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<SapMovementsINDTO>? sapMovementsINListDTO)
+        {
+            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
+            //await loadFromExcelPage.RefreshSate();
+
+            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
+            //{
+            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
+            //    return "SapNdoOUT_Example_with_data_";
+            //}
+
+            //int recordCount = sapNdoOUTList.Count();
+            //int recordOrder = 0;
+
+            //int excelRowNum = 9;
+            //int excelColNum;
+            //foreach (var sapNdoOUTItem in sapNdoOUTList)
+            //{
+            //    recordOrder++;
+            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
+            //    {
+            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+            //        await loadFromExcelPage.RefreshSate();
+            //    }
+
+            //    excelColNum = 3;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelRowNum++;
+            //}
+
+            return "SapMovementsIN_Example_with_data_";
+        }
+
+        public async Task<string> UserReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<UserDTO>? userListDTO)
+        {
+            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
+            //await loadFromExcelPage.RefreshSate();
+
+            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
+            //{
+            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
+            //    return "SapNdoOUT_Example_with_data_";
+            //}
+
+            //int recordCount = sapNdoOUTList.Count();
+            //int recordOrder = 0;
+
+            //int excelRowNum = 9;
+            //int excelColNum;
+            //foreach (var sapNdoOUTItem in sapNdoOUTList)
+            //{
+            //    recordOrder++;
+            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
+            //    {
+            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+            //        await loadFromExcelPage.RefreshSate();
+            //    }
+
+            //    excelColNum = 3;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelRowNum++;
+            //}
+
+            return "User_Example_with_data_";
+        }
+        public async Task<string> ADGroupReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<ADGroupDTO>? adGroupListDTO)
+        {
+            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
+            //await loadFromExcelPage.RefreshSate();
+
+            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
+            //{
+            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
+            //    return "SapNdoOUT_Example_with_data_";
+            //}
+
+            //int recordCount = sapNdoOUTList.Count();
+            //int recordOrder = 0;
+
+            //int excelRowNum = 9;
+            //int excelColNum;
+            //foreach (var sapNdoOUTItem in sapNdoOUTList)
+            //{
+            //    recordOrder++;
+            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
+            //    {
+            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+            //        await loadFromExcelPage.RefreshSate();
+            //    }
+
+            //    excelColNum = 3;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
+            //    excelColNum++;
+            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+            //    excelRowNum++;
+            //}
+
+            return "ADGroup_Example_with_data_";
+        }
+
+
         public async Task<bool> MaterialExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
             IAuthorizationRepository _authorizationRepository)
         {

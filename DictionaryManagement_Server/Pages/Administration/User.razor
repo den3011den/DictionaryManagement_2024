@@ -34,6 +34,7 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить нового пользователя" Click="@(args => EditRow(null))" />
                 <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton class="mt-2 mb-4" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@UserGridSettings" SettingsName="UserGridSettings" @ref="userDTOGrid" AllowAlternatingRows="true"
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
@@ -328,6 +329,24 @@
         excelExportFlag = false;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
+    }
+
+    async Task ExcelImport()
+    {
+        IsLoading = true;
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        {
+            SapMaterialDTO dialogResult = null;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Пользователи)", new Dictionary
+                    <string, object>
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.UsersLoadFromExcelReportTemplateTypeNameSettingName }
+                        ,{ "DataList", null }}
+                , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+            IsLoading = false;
+            await this.OnAfterRenderAsync(true);
+        }
+        IsLoading = false;
     }
 
 }

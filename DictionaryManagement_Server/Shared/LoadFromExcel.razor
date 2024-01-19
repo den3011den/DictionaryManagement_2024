@@ -15,7 +15,6 @@
 @inject ISettingsRepository _settingsRepository
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject IReportTemplateRepository _reportTemplateRepository
-@inject ISapMaterialRepository _sapMaterialRepository
 @inject ILoadFromExcelRepository _loadFromExcelRepository
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 
@@ -212,6 +211,12 @@
 
     public IEnumerable<MesNdoStocksDTO>? MesNdoStocksListDTO { get; set; }
     public IEnumerable<SapNdoOUTDTO>? SapNdoOUTListDTO { get; set; }
+    public IEnumerable<MesMovementsDTO>? MesMovementsListDTO { get; set; }
+    public IEnumerable<SapMovementsOUTDTO>? SapMovementsOUTListDTO { get; set; }
+    public IEnumerable<SapMovementsINDTO>? SapMovementsINListDTO { get; set; }
+    public IEnumerable<UserDTO>? UserListDTO { get; set; }
+    public IEnumerable<ADGroupDTO>? ADGroupListDTO { get; set; }
+
 
     public bool foundActiveReportTemplateFile = false;
     public bool errorFlag = false;
@@ -317,6 +322,41 @@
                 Title = "Загрузка данных из Excel в витрину SAP НДО-выход (SapNdoOUT)";
                 objectName = "SapNdoOUT";
                 SapNdoOUTListDTO = (IEnumerable<SapNdoOUTDTO>?)DataList;
+            }
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в Архив данных (MesMovements)";
+                objectName = "MesMovements";
+                MesMovementsListDTO = (IEnumerable<MesMovementsDTO>?)DataList;
+            }
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в витрину SAP Движения-выход (SapMovementsOUT)";
+                objectName = "SapMovementsOUT";
+                SapMovementsOUTListDTO = (IEnumerable<SapMovementsOUTDTO>?)DataList;
+            }
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в витрину SAP Движения-вход (SapMovementsIN)";
+                objectName = "SapMovementsIN";
+                SapMovementsOUTListDTO = (IEnumerable<SapMovementsOUTDTO>?)DataList;
+            }
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.UsersLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в Справочник пользователей (User)";
+                objectName = "User";
+                UserListDTO = (IEnumerable<UserDTO>?)DataList;
+            }
+
+            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.ADGroupsLoadFromExcelReportTemplateTypeNameSettingName))
+            {
+                Title = "Загрузка данных из Excel в Справочник групп AD (ADGroup)";
+                objectName = "ADGroups";
+                ADGroupListDTO = (IEnumerable<ADGroupDTO>?)DataList;
             }
 
             foundActiveReportTemplateFile = false;
@@ -451,10 +491,36 @@
                                 filename = await _loadFromExcelRepository.SapNdoOUTReportTemplateDownloadFileWithData(this, worksheet, SapNdoOUTListDTO);
                                 break;
                             }
+                        case "MesMovements":
+                            {
+                                filename = await _loadFromExcelRepository.MesMovementsReportTemplateDownloadFileWithData(this, worksheet, MesMovementsListDTO);
+                                break;
+                            }
+                        case "SapMovementsOUT":
+                            {
+                                filename = await _loadFromExcelRepository.SapMovementsOUTReportTemplateDownloadFileWithData(this, worksheet, SapMovementsOUTListDTO);
+                                break;
+                            }
+                        case "SapMovementsIN":
+                            {
+                                filename = await _loadFromExcelRepository.SapMovementsINReportTemplateDownloadFileWithData(this, worksheet, SapMovementsINListDTO);
+                                break;
+                            }
+                        case "Users":
+                            {
+                                filename = await _loadFromExcelRepository.UserReportTemplateDownloadFileWithData(this, worksheet, UserListDTO);
+                                break;
+                            }
+                        case "ADGroups":
+                            {
+                                filename = await _loadFromExcelRepository.ADGroupReportTemplateDownloadFileWithData(this, worksheet, ADGroupListDTO);
+                                break;
+                            }
                         default:
                             {
-                                await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet);
-                                break;
+                                if (workbook != null)
+                                    workbook.Dispose();
+                                throw new Exception("Не предусмотренное имя листа " + objectName);                                
                             }
                     }
 
