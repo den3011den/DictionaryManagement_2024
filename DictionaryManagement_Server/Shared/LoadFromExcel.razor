@@ -806,21 +806,36 @@
                                 haveErrors = true;
                             break;
                         }
-                    // case "SapNdoOUT":
-                    //     {
-                    //         haveErrors = await _loadFromExcelRepository.SapNdoOUTExcelFileLoad(this, worksheet, _authorizationRepository);
-                    //         break;
-                    //     }
-                    // case "MesNdoStocks":
-                    //     {
-                    //         haveErrors = await _loadFromExcelRepository.MesNdoStocksExcelFileLoad(this, worksheet, _authorizationRepository);
-                    //         break;
-                    //     }
-                    // case "MesMovements":
-                    //     {
-                    //         haveErrors = await _loadFromExcelRepository.MesMovementsExcelFileLoad(this, worksheet, _authorizationRepository);
-                    //         break;
-                    //     }
+                    case "SapNdoOUT":
+                        {
+                            haveErrors = await _loadFromExcelRepository.SapNdoOUTExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "MesNdoStocks":
+                        {
+                            haveErrors = await _loadFromExcelRepository.MesNdoStocksExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "MesMovements":
+                        {
+                            haveErrors = await _loadFromExcelRepository.MesMovementsExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "SapMovementsOUT":
+                        {
+                            haveErrors = await _loadFromExcelRepository.SapMovementsOUTExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "Users":
+                        {
+                            haveErrors = await _loadFromExcelRepository.UsersExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
+                    case "ADGroups":
+                        {
+                            haveErrors = await _loadFromExcelRepository.ADGroupsExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
                     default:
                         {
                             break;

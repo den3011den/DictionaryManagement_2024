@@ -25,6 +25,23 @@ namespace DictionaryManagement_Server.Extensions.Repository.IRepository
         public Task<bool> MesParamExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
         IAuthorizationRepository _authorizationRepository);
 
+        public Task<bool> SapNdoOUTExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository);
+
+        public Task<bool> MesNdoStocksExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository);
+
+        public Task<bool> MesMovementsExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository);
+
+        public Task<bool> SapMovementsOUTExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository);
+
+        public Task<bool> UsersExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository);
+
+        public Task<bool> ADGroupsExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository);
 
     }
 }
