@@ -19,6 +19,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
         private readonly IMesDepartmentRepository _mesDepartmentRepository;
         private readonly ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository;
         private readonly IADGroupRepository _adGroupRepository;
+        private readonly IUserRepository _userRepository;
 
         public LoadFromExcelRepository(ISapMaterialRepository sapMaterialRepository, IMesMaterialRepository mesMaterialRepository,
             ISapEquipmentRepository sapEquipmentRepository,
@@ -26,7 +27,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
             IMesParamSourceTypeRepository mesParamSourceTypeRepository,
             IMesDepartmentRepository mesDepartmentRepository,
             ISapUnitOfMeasureRepository sapUnitOfMeasureRepository,
-            IADGroupRepository adGroupRepository)
+            IADGroupRepository adGroupRepository,
+            IUserRepository userRepository)
         {
             _sapMaterialRepository = sapMaterialRepository;
             _mesMaterialRepository = mesMaterialRepository;
@@ -37,6 +39,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             _mesDepartmentRepository = mesDepartmentRepository;
             _sapUnitOfMeasureRepository = sapUnitOfMeasureRepository;
             _adGroupRepository = adGroupRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
@@ -2368,7 +2371,352 @@ namespace DictionaryManagement_Server.Extensions.Repository
         public async Task<bool> UsersExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
                 IAuthorizationRepository _authorizationRepository)
         {
-            return false;
+            bool haveErrors = false;
+
+            loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
+            loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            await loadFromExcelPage.RefreshSate();
+
+            int rowNumber = 9;
+
+            bool isEmptyString = false;
+
+            while (isEmptyString == false)
+            {
+
+                worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+                worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+
+                var rowVar = worksheet.Row(rowNumber);
+
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string loginVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string userNameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string descriptionVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string isSyncWithADVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string syncWithADGroupsLastTimeVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
+                string isServiceUserVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
+                string isArchiveVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
+
+                string resultString = "";
+                Guid idVarGuid = Guid.Empty;
+
+                int resultColumnNumber = 11;
+
+                if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(loginVarString) && String.IsNullOrEmpty(userNameVarString)
+                        && String.IsNullOrEmpty(descriptionVarString) && String.IsNullOrEmpty(isSyncWithADVarString)
+                        && String.IsNullOrEmpty(syncWithADGroupsLastTimeVarString) && String.IsNullOrEmpty(isServiceUserVarString)
+                        && String.IsNullOrEmpty(isArchiveVarString))
+                {
+                    isEmptyString = true;
+                    continue;
+                }
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                await loadFromExcelPage.RefreshSate();
+
+                UserDTO? foundUserDTO = null;
+                UserDTO changedUserDTO = new UserDTO();
+
+                if (!String.IsNullOrEmpty(idVarString))
+                {
+                    try
+                    {
+                        idVarGuid = Guid.Parse(idVarString);
+                    }
+                    catch (Exception ex)
+                    {
+                        haveErrors = true;
+                        idVarGuid = Guid.Empty;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД Пользователя\"). Не удалось получить ИД записи." +
+                            " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                        rowNumber++;
+                        continue;
+                    }
+                }
+
+                switch (actionVarString.Trim().ToUpper())
+                {
+                    case "ИЗМЕНИТЬ":
+                        {
+                            if (idVarGuid == Guid.Empty)
+                            {
+                                haveErrors = true;
+                                idVarGuid = Guid.Empty;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД Пользователя\"). В режиме \"Изменить\" должен быть указан ИД Пользователя. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            foundUserDTO = await _userRepository.Get(idVarGuid);
+                            if (foundUserDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД Пользователя\"). Не найден Пользователь с ИД: " + idVarGuid.ToString() + ". Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            changedUserDTO.Id = idVarGuid;
+
+                            if (String.IsNullOrEmpty(loginVarString))
+                                changedUserDTO.Login = foundUserDTO.Login;
+                            else
+                                changedUserDTO.Login = loginVarString;
+
+                            UserDTO? objectForCheckLogin = _userRepository.GetByLogin(changedUserDTO.Login).Result;
+
+                            if (objectForCheckLogin != null)
+                            {
+                                if (objectForCheckLogin.Id != objectForCheckLogin.Id)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Логин\"). Уже есть запись с таким логином. ИД записи: " + objectForCheckLogin.Id.ToString() + ". Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            if (String.IsNullOrEmpty(userNameVarString))
+                                changedUserDTO.UserName = foundUserDTO.UserName;
+                            else
+                                changedUserDTO.UserName = userNameVarString;
+
+                            UserDTO? objectForCheckUserName = _userRepository.GetByUserName(changedUserDTO.UserName).Result;
+                            if (objectForCheckUserName != null)
+                            {
+                                if (objectForCheckUserName.Id != objectForCheckUserName.Id)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ФИО\"). Уже есть запись с таким ФИО. ИД записи: " + objectForCheckUserName.Id.ToString() + ". Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            changedUserDTO.Description = descriptionVarString;
+
+                            if (String.IsNullOrEmpty(isSyncWithADVarString))
+                            {
+                                changedUserDTO.IsSyncWithAD = false;
+                            }
+                            else
+                            {
+                                changedUserDTO.IsSyncWithAD = isSyncWithADVarString.ToUpper().Equals("ДА") ? true : false;
+                            }
+
+                            if (!String.IsNullOrEmpty(syncWithADGroupsLastTimeVarString))
+                            {
+                                try
+                                {
+                                    changedUserDTO.SyncWithADGroupsLastTime = DateTime.Parse(syncWithADGroupsLastTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    idVarGuid = Guid.Empty;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 8 (\"Время последней синхронизации пользователя с AD\"). Не удалось получить Время последней синхронизации пользователя с AD." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 8 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+                            else
+                                changedUserDTO.SyncWithADGroupsLastTime = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
+
+                            if (String.IsNullOrEmpty(isServiceUserVarString))
+                            {
+                                changedUserDTO.IsServiceUser = false;
+                            }
+                            else
+                            {
+                                changedUserDTO.IsServiceUser = isServiceUserVarString.ToUpper().Equals("ДА") ? true : false;
+                            }
+
+                            if (String.IsNullOrEmpty(isArchiveVarString))
+                            {
+                                changedUserDTO.IsArchive = false;
+                            }
+                            else
+                            {
+                                changedUserDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
+                            }
+                            await _userRepository.Update(changedUserDTO, SD.UpdateMode.Update);
+
+                            if (changedUserDTO.IsArchive != foundUserDTO.IsArchive)
+                            {
+                                SD.UpdateMode updMode;
+                                if (changedUserDTO.IsArchive == true)
+                                {
+                                    updMode = SD.UpdateMode.MoveToArchive;
+                                }
+                                else
+                                {
+                                    updMode = SD.UpdateMode.RestoreFromArchive;
+                                }
+                                await _userRepository.Update(changedUserDTO, updMode);
+                                await _logEventRepository.ToLog<UserDTO>(oldObject: foundUserDTO, newObject: changedUserDTO, "Изменение пользователя", "Пользователь: ", _authorizationRepository);
+                            }
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. ";
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+
+                            worksheet.Cell(rowNumber, 1).Value = "OK";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString);
+                            break;
+                        }
+                    case "ДОБАВИТЬ":
+                        {
+                            if (idVarGuid != Guid.Empty)
+                            {
+                                UserDTO? objectForCheckId = _userRepository.Get(idVarGuid).Result;
+                                if (objectForCheckId != null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД Пользователя\"). Уже есть запись с таким ИД пользователя. Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedUserDTO.Id = idVarGuid;
+                            }
+
+                            if (String.IsNullOrEmpty(loginVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Логин\"). В режиме добавления Логин не может быть пустым. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            UserDTO? objectForCheckLogin = _userRepository.GetByLogin(loginVarString).Result;
+
+                            if (objectForCheckLogin != null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Логин\"). Уже есть запись с таким логином. ИД записи: " + objectForCheckLogin.Id.ToString() + ". Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+                            changedUserDTO.Login = loginVarString;
+
+                            if (String.IsNullOrEmpty(loginVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Логин\"). В режиме добавления Логин не может быть пустым. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            UserDTO? objectForCheckUserName = _userRepository.GetByUserName(userNameVarString).Result;
+
+                            if (objectForCheckUserName != null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ФИО\"). Уже есть запись с таким ФИО. ИД записи: " + objectForCheckUserName.Id.ToString() + ". Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+                            changedUserDTO.UserName = userNameVarString;
+                            changedUserDTO.Description = descriptionVarString;
+
+                            if (String.IsNullOrEmpty(isSyncWithADVarString))
+                                changedUserDTO.IsSyncWithAD = false;
+                            else
+                                changedUserDTO.IsSyncWithAD = isSyncWithADVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            if (!String.IsNullOrEmpty(syncWithADGroupsLastTimeVarString))
+                            {
+                                try
+                                {
+                                    changedUserDTO.SyncWithADGroupsLastTime = DateTime.Parse(syncWithADGroupsLastTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    idVarGuid = Guid.Empty;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 8 (\"Время последней синхронизации пользователя с AD\"). Не удалось получить Время последней синхронизации пользователя с AD." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 8 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+                            else
+                                changedUserDTO.SyncWithADGroupsLastTime = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
+
+                            if (changedUserDTO.SyncWithADGroupsLastTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue)
+                                changedUserDTO.SyncWithADGroupsLastTime = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
+                            if (changedUserDTO.SyncWithADGroupsLastTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue)
+                                changedUserDTO.SyncWithADGroupsLastTime = (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue;
+
+                            if (String.IsNullOrEmpty(isServiceUserVarString))
+                                changedUserDTO.IsServiceUser = false;
+                            else
+                                changedUserDTO.IsServiceUser = isServiceUserVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            if (String.IsNullOrEmpty(isArchiveVarString))
+                                changedUserDTO.IsArchive = false;
+                            else
+                                changedUserDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            UserDTO? newUserDTO = await _userRepository.Create(changedUserDTO);
+
+                            await _logEventRepository.ToLog<UserDTO>(oldObject: null, newObject: newUserDTO, "Добавление пользователя", "Пользователь: ", _authorizationRepository);
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Пользователь добавлен. ИД " + newUserDTO.Id.ToString();
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, 1).Value = "ОК";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 3).Value = newUserDTO.Id.ToString();
+                            worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+
+                            worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString);
+                            await loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    default:
+                        {
+                            haveErrors = true;
+                            idVarGuid = Guid.Empty;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2 (\"Действие\"). Не предусмотренное значение действия = " + actionVarString + ". Для Справочника пользователей допустимы действия \"Добавить\" или \"Изменить\". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                            rowNumber++;
+                            continue;
+                        }
+                }
+            }
+
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            await loadFromExcelPage.RefreshSate();
+
+            return haveErrors;
         }
 
 
@@ -2590,7 +2938,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             idVarGuid = Guid.Empty;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2 (\"Действие\"). Не предусмотренное значение действия = " + actionVarString + ". Для Справочника пользователей допустимы действия \"Добавить\" или \"Изменить\". Изменения не применялись.";
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2 (\"Действие\"). Не предусмотренное значение действия = " + actionVarString + ". Для Справочника групп AD допустимы действия \"Добавить\" или \"Изменить\". Изменения не применялись.";
                             await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
                             rowNumber++;
                             continue;
