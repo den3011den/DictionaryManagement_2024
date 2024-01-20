@@ -315,223 +315,316 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
         public async Task<string> MesMovementsReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MesMovementsDTO>? mesMovementsListDTO)
         {
-            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
-            //await loadFromExcelPage.RefreshSate();
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей Архива данных)";
+            await loadFromExcelPage.RefreshSate();
 
-            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
-            //{
-            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
-            //    return "SapNdoOUT_Example_with_data_";
-            //}
+            if (mesMovementsListDTO == null || mesMovementsListDTO.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей Архива данных");
+                return "MesMovements_Example_with_data_";
+            }
 
-            //int recordCount = sapNdoOUTList.Count();
-            //int recordOrder = 0;
+            int recordCount = mesMovementsListDTO.Count();
+            int recordOrder = 0;
 
-            //int excelRowNum = 9;
-            //int excelColNum;
-            //foreach (var sapNdoOUTItem in sapNdoOUTList)
-            //{
-            //    recordOrder++;
-            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
-            //    {
-            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-            //        await loadFromExcelPage.RefreshSate();
-            //    }
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var mesMovementsItemDTO in mesMovementsListDTO)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    await loadFromExcelPage.RefreshSate();
+                }
 
-            //    excelColNum = 3;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelRowNum++;
-            //}
+                excelColNum = 3;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.AddUserDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.AddUserDTOFK.UserName;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.MesParamDTOFK.Code;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.Value.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.SapMovementInId == null ? "" : mesMovementsItemDTO.SapMovementInId.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.SapMovementOutId == null ? "" : mesMovementsItemDTO.SapMovementOutId.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.DataSourceDTOFK == null ? "" : mesMovementsItemDTO.DataSourceDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.DataTypeDTOFK == null ? "" : mesMovementsItemDTO.DataTypeDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.ReportGuid == null ? "" : mesMovementsItemDTO.ReportGuid.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.MesGone == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.NeedWriteToSap == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.PreviousRecordId == null ? "" : mesMovementsItemDTO.PreviousRecordId.ToString();
+
+                excelRowNum++;
+            }
 
             return "MesMovements_Example_with_data_";
         }
 
         public async Task<string> SapMovementsOUTReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<SapMovementsOUTDTO>? sapMovementsOUTListDTO)
         {
-            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
-            //await loadFromExcelPage.RefreshSate();
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP Движения-выход)";
+            await loadFromExcelPage.RefreshSate();
 
-            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
-            //{
-            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
-            //    return "SapNdoOUT_Example_with_data_";
-            //}
+            if (sapMovementsOUTListDTO == null || sapMovementsOUTListDTO.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP Движения-выход");
+                return "SapMovementsOUT_Example_with_data_";
+            }
 
-            //int recordCount = sapNdoOUTList.Count();
-            //int recordOrder = 0;
+            int recordCount = sapMovementsOUTListDTO.Count();
+            int recordOrder = 0;
 
-            //int excelRowNum = 9;
-            //int excelColNum;
-            //foreach (var sapNdoOUTItem in sapNdoOUTList)
-            //{
-            //    recordOrder++;
-            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
-            //    {
-            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-            //        await loadFromExcelPage.RefreshSate();
-            //    }
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var sapMovementsOUTItemDTO in sapMovementsOUTListDTO)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    await loadFromExcelPage.RefreshSate();
+                }
 
-            //    excelColNum = 3;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelRowNum++;
-            //}
+                excelColNum = 3;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.BatchNo == null ? "" : sapMovementsOUTItemDTO.BatchNo;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.MesParamId.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.MesParamDTOFK.Code;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.MesParamDTOFK.Name == null ? "" : sapMovementsOUTItemDTO.MesParamDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapMaterialDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapMaterialCode;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapMaterialDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpPlantIdSource;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpIdSource;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.IsWarehouseSource == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentDestDTOFK.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpPlantIdDest;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpIdDest;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentDestDTOFK.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.IsWarehouseDest == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.Value.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.Correction2Previous.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.IsReconciled == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapUnitOfMeasure == null ? "" : sapMovementsOUTItemDTO.SapUnitOfMeasure;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapUnitOfMeasure == null ? "" : sapMovementsOUTItemDTO.SapUnitOfMeasure;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapGone == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapGoneTime == null ? "" : ((DateTime)sapMovementsOUTItemDTO.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapErrorMessage == null ? "" : sapMovementsOUTItemDTO.SapErrorMessage;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.MesMovementId == null ? "" : sapMovementsOUTItemDTO.MesMovementId.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.PreviousRecordId == null ? "" : sapMovementsOUTItemDTO.PreviousRecordId.ToString();
 
+                excelRowNum++;
+            }
             return "SapMovementsOUT_Example_with_data_";
         }
+
         public async Task<string> SapMovementsINReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<SapMovementsINDTO>? sapMovementsINListDTO)
         {
-            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
-            //await loadFromExcelPage.RefreshSate();
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP Движения-вход)";
+            await loadFromExcelPage.RefreshSate();
 
-            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
-            //{
-            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
-            //    return "SapNdoOUT_Example_with_data_";
-            //}
+            if (sapMovementsINListDTO == null || sapMovementsINListDTO.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP Движения-вход");
+                return "SapMovementsIN_Example_with_data_";
+            }
 
-            //int recordCount = sapNdoOUTList.Count();
-            //int recordOrder = 0;
+            int recordCount = sapMovementsINListDTO.Count();
+            int recordOrder = 0;
 
-            //int excelRowNum = 9;
-            //int excelColNum;
-            //foreach (var sapNdoOUTItem in sapNdoOUTList)
-            //{
-            //    recordOrder++;
-            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
-            //    {
-            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-            //        await loadFromExcelPage.RefreshSate();
-            //    }
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var sapMovementsINItemOUT in sapMovementsINListDTO)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    await loadFromExcelPage.RefreshSate();
+                }
 
-            //    excelColNum = 3;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelRowNum++;
-            //}
+                excelColNum = 3;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.ErpId;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.SapDocumentEnterTime.ToString("dd.MM.yyyy HH:mm:ss");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.BatchNo == null ? "" : sapMovementsINItemOUT.BatchNo;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.SapMaterialCode;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.ErpPlantIdSource;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.ErpIdSource;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.IsWarehouseSource == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.ErpPlantIdDest;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.ErpIdDest;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.IsWarehouseDest == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.SapDocumentPostTime.ToString("dd.MM.yyyy HH:mm:ss");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.Value.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.SapUnitOfMeasure;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.IsStorno == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.MesGone == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.MesGoneTime == null ? "" : ((DateTime)sapMovementsINItemOUT.MesGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.MesError == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.MesErrorMessage == null ? "" : sapMovementsINItemOUT.MesErrorMessage;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.MesMovementId == null ? "" : sapMovementsINItemOUT.MesMovementId.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.PreviousErpId == null ? "" : sapMovementsINItemOUT.PreviousErpId;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsINItemOUT.MoveType == null ? "" : sapMovementsINItemOUT.MoveType;
+
+                excelRowNum++;
+            }
 
             return "SapMovementsIN_Example_with_data_";
         }
 
         public async Task<string> UserReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<UserDTO>? userListDTO)
         {
-            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
-            //await loadFromExcelPage.RefreshSate();
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка отображаемых записей Справочника пользователей)";
+            await loadFromExcelPage.RefreshSate();
 
-            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
-            //{
-            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
-            //    return "SapNdoOUT_Example_with_data_";
-            //}
+            if (userListDTO == null || userListDTO.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените фильтры в отображаемом списке Справочника пользователей");
+                return "User_Example_with_data_";
+            }
 
-            //int recordCount = sapNdoOUTList.Count();
-            //int recordOrder = 0;
+            int recordCount = userListDTO.Count();
+            int recordOrder = 0;
 
-            //int excelRowNum = 9;
-            //int excelColNum;
-            //foreach (var sapNdoOUTItem in sapNdoOUTList)
-            //{
-            //    recordOrder++;
-            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
-            //    {
-            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-            //        await loadFromExcelPage.RefreshSate();
-            //    }
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var userListItemDTO in userListDTO)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    await loadFromExcelPage.RefreshSate();
+                }
 
-            //    excelColNum = 3;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelRowNum++;
-            //}
+                excelColNum = 3;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.Login;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.UserName;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.Description == null ? "" : userListItemDTO.Description;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.IsSyncWithAD == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.SyncWithADGroupsLastTime == null ? "" : userListItemDTO.SyncWithADGroupsLastTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.IsServiceUser == true ? "Да" : "Нет";
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = userListItemDTO.IsArchive == true ? "Да" : "Нет";
+
+                excelRowNum++;
+            }
 
             return "User_Example_with_data_";
         }
         public async Task<string> ADGroupReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<ADGroupDTO>? adGroupListDTO)
         {
-            //loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей витрины SAP НДО-выход)";
-            //await loadFromExcelPage.RefreshSate();
+            loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей справочника Группы AD)";
+            await loadFromExcelPage.RefreshSate();
 
-            //if (sapNdoOUTList == null || sapNdoOUTList.Count() <= 0)
-            //{
-            //    await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените интервал дат или фильтры в отображаемом списке записей витрины SAP НДО-выход");
-            //    return "SapNdoOUT_Example_with_data_";
-            //}
+            if (adGroupListDTO == null || adGroupListDTO.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Выгрузился пустой список. Измените фильтры в отображаемом списке Справочника групп AD");
+                return "ADGroup_Example_with_data_";
+            }
 
-            //int recordCount = sapNdoOUTList.Count();
-            //int recordOrder = 0;
+            int recordCount = adGroupListDTO.Count();
+            int recordOrder = 0;
 
-            //int excelRowNum = 9;
-            //int excelColNum;
-            //foreach (var sapNdoOUTItem in sapNdoOUTList)
-            //{
-            //    recordOrder++;
-            //    if ((recordOrder == 1) || (recordOrder % 50) == 0)
-            //    {
-            //        loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
-            //        await loadFromExcelPage.RefreshSate();
-            //    }
+            int excelRowNum = 9;
+            int excelColNum;
+            foreach (var adGroupItemDTO in adGroupListDTO)
+            {
+                recordOrder++;
+                if ((recordOrder == 1) || (recordOrder % 50) == 0)
+                {
+                    loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (обрабатывается запись " + recordOrder.ToString() + " из " + recordCount.ToString() + ")";
+                    await loadFromExcelPage.RefreshSate();
+                }
 
-            //    excelColNum = 3;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Id.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.TagName;
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.ValueTime.ToString("dd.MM.yyyy HH:mm:ss");
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.Value.ToString();
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGone == true ? "Да" : "Нет";
-            //    excelColNum++;
-            //    worksheet.Cell(excelRowNum, excelColNum).Value = sapNdoOUTItem.SapGoneTime == null ? "" : ((DateTime)sapNdoOUTItem.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
-            //    excelRowNum++;
-            //}
+                excelColNum = 3;
+                worksheet.Cell(excelRowNum, excelColNum).Value = adGroupItemDTO.Id.ToString();
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = adGroupItemDTO.Name;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = adGroupItemDTO.Description;
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = adGroupItemDTO.IsArchive == true ? "Да" : "Нет";
+
+                excelRowNum++;
+            }
 
             return "ADGroup_Example_with_data_";
         }
@@ -555,9 +648,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             while (isEmptyString == false)
             {
 
-                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
-                await loadFromExcelPage.RefreshSate();
-
                 var rowVar = worksheet.Row(rowNumber);
 
                 worksheet.Cell(rowNumber, 1).Value = "";
@@ -580,6 +670,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     isEmptyString = true;
                     continue;
                 }
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                await loadFromExcelPage.RefreshSate();
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString))
                 {
@@ -1052,9 +1145,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             while (isEmptyString == false)
             {
 
-                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
-                await loadFromExcelPage.RefreshSate();
-
                 worksheet.Cell(rowNumber, 1).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -1079,6 +1169,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     isEmptyString = true;
                     continue;
                 }
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                await loadFromExcelPage.RefreshSate();
 
                 if (String.IsNullOrEmpty(idVarString) && (String.IsNullOrEmpty(erpPlantIdVarString) || String.IsNullOrEmpty(erpIdVarString)))
                 {
@@ -1492,9 +1585,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             while (isEmptyString == false)
             {
 
-                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
-                await loadFromExcelPage.RefreshSate();
-
                 worksheet.Cell(rowNumber, 1).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -1570,6 +1660,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     isEmptyString = true;
                                     continue;
                                 }
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                await loadFromExcelPage.RefreshSate();
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString))
                 {

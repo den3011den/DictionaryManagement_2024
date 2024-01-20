@@ -313,8 +313,8 @@
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Тэги СИР)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.ADGroupsLoadFromExcelReportTemplateTypeNameSettingName }
-                    ,{ "DataList", null }}
-                    , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    ,{"DataList", (IEnumerable<ADGroupDTO>)adGroupDTOGrid.View }}
+                , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

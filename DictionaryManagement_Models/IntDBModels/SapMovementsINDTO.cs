@@ -130,6 +130,59 @@ namespace DictionaryManagement_Models.IntDBModels
                 ToStringMesMovementId = value;
             }
         }
+
+        [NotMapped]
+        [Display(Name = "Материал SAP")]
+        public string? ToStringSapMaterialDTOFK
+        {
+            get
+            {
+                if (SapMaterialDTOFK != null)
+                    return SapMaterialDTOFK.ToStringCodeName;
+                else
+                    return "НЕ НАЙДЕН";
+            }
+            set
+            {
+                ToStringSapMaterialDTOFK = value;
+            }
+        }
+
+        [NotMapped]
+        [Display(Name = "Источник в СИР")]
+        public string? ToStringSapEquipmentSourceDTOFK
+        {
+            get
+            {
+                if (SapEquipmentSourceDTOFK != null)
+                    return SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName;
+                else
+                    return "НЕ НАЙДЕН";
+            }
+            set
+            {
+                ToStringSapEquipmentSourceDTOFK = value;
+            }
+        }
+
+
+        [NotMapped]
+        [Display(Name = "Приёмник в СИР")]
+        public string? ToStringSapEquipmentDestDTOFK
+        {
+            get
+            {
+                if (SapEquipmentDestDTOFK != null)
+                    return SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName;
+                else
+                    return "НЕ НАЙДЕН";
+            }
+            set
+            {
+                ToStringSapEquipmentDestDTOFK = value;
+            }
+        }
+
     }
 }
 

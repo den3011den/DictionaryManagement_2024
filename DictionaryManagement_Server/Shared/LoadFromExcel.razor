@@ -342,13 +342,13 @@
             {
                 Title = "Загрузка данных из Excel в витрину SAP Движения-вход (SapMovementsIN)";
                 objectName = "SapMovementsIN";
-                SapMovementsOUTListDTO = (IEnumerable<SapMovementsOUTDTO>?)DataList;
+                SapMovementsINListDTO = (IEnumerable<SapMovementsINDTO>?)DataList;
             }
 
             if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.UsersLoadFromExcelReportTemplateTypeNameSettingName))
             {
                 Title = "Загрузка данных из Excel в Справочник пользователей (User)";
-                objectName = "User";
+                objectName = "Users";
                 UserListDTO = (IEnumerable<UserDTO>?)DataList;
             }
 
@@ -806,6 +806,21 @@
                                 haveErrors = true;
                             break;
                         }
+                    // case "SapNdoOUT":
+                    //     {
+                    //         haveErrors = await _loadFromExcelRepository.SapNdoOUTExcelFileLoad(this, worksheet, _authorizationRepository);
+                    //         break;
+                    //     }
+                    // case "MesNdoStocks":
+                    //     {
+                    //         haveErrors = await _loadFromExcelRepository.MesNdoStocksExcelFileLoad(this, worksheet, _authorizationRepository);
+                    //         break;
+                    //     }
+                    // case "MesMovements":
+                    //     {
+                    //         haveErrors = await _loadFromExcelRepository.MesMovementsExcelFileLoad(this, worksheet, _authorizationRepository);
+                    //         break;
+                    //     }
                     default:
                         {
                             break;

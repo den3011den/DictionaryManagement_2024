@@ -1,5 +1,4 @@
-﻿using DictionaryManagement_Common;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
@@ -48,6 +47,7 @@ namespace DictionaryManagement_Server.Extensions
             base.Density = Density.Compact;
             base.EmptyTemplate = EmptyTemplateRender;
             base.HeaderTemplate = HeaderTemplateRender;
+            this.VirtualizationOverscanCount = 50;
         }
 
 
@@ -63,7 +63,6 @@ namespace DictionaryManagement_Server.Extensions
         {
             if (ShowCleanGridSettingsHeaderButton == true || ShowCleanGridFiltersHeaderButton == true || ShowCleanGridSortsHeaderButton == true)
             {
-
                 if (ShowCleanGridSettingsHeaderButton == true)
                 {
                     builder.OpenComponent<RadzenButton>(1);
@@ -103,6 +102,17 @@ namespace DictionaryManagement_Server.Extensions
                             (args) => CleanAllOrders()
                             )));
 
+                    builder.CloseComponent();
+                }
+                if (!this.Data.GetType().ToString().ToUpper().Contains("MESDEPARTMENTDTO"))
+                {
+                    builder.OpenComponent<RadzenButton>(22);
+                    builder.AddAttribute(23, "Size", ButtonSize.Small);
+                    builder.AddAttribute(24, "Style", "text-transform:none;");
+                    builder.AddAttribute(25, "Text", String.Concat("Записей с учётом фильтров ", this.View == null ? "0" : this.View.Count().ToString(),
+                        " из ", this.Data == null ? "0" : this.Data.Count().ToString(), " в выборке"));
+                    builder.AddAttribute(26, "ButtonStyle", ButtonStyle.Primary);
+                    builder.AddAttribute(27, "Variant", Variant.Text);
                     builder.CloseComponent();
                 }
             }

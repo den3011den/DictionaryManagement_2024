@@ -341,7 +341,7 @@
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Пользователи)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.UsersLoadFromExcelReportTemplateTypeNameSettingName }
-                        ,{ "DataList", null }}
+                        ,{"DataList", (IEnumerable<UserDTO>)userDTOGrid.View }}
                 , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);

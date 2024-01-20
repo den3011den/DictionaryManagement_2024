@@ -43,7 +43,7 @@
                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                                 <RadzenButton title="Загрузка данных из Excel в Витрины SAP - Движения - вход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
-@*                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
+                                @*                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -78,6 +78,9 @@
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
                     </RadzenButton>
+                    <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @sapMovementsINDTOGrid.View.Count().ToString()+" из "+(sapMovementsINDTOs == null ? "0" : sapMovementsINDTOs.Count().ToString())+" в выборке")
+                                  ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
+                    </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="ErpId" Title="Ид записи" TextAlign="TextAlign.Center"
@@ -111,21 +114,21 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="SapMaterialDTOFK.ToStringCodeName" Title="Материал в СИР" TextAlign="TextAlign.Center"
-                                             FilterOperator="FilterOperator.Contains" Filterable="true" Sortable="true">
+                    <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="ToStringSapMaterialDTOFK" Title="Материал в СИР" TextAlign="TextAlign.Center"
+                                             FilterOperator="FilterOperator.Contains" Filterable="true" Sortable="true" FilterProperty="ToStringSapMaterialDTOFK">
                         <Template Context="data1">
-                            @if (data1.SapMaterialDTOFK != null)
+                            @if (!data1.ToStringSapMaterialDTOFK.Equals("НЕ НАЙДЕН"))
                             {
                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                     <strong>
-                                        @data1.SapMaterialDTOFK.ToStringCodeName
+                                        @data1.ToStringSapMaterialDTOFK
                                     </strong>
                                 </div>
                             }
                             else
                             {
                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
-                                    НЕ НАЙДЕН
+                                    @data1.ToStringSapMaterialDTOFK
                                 </div>
                             }
                         </Template>
@@ -158,19 +161,19 @@
             </Template>
             </RadzenDataGridColumnApp>
             *@
-                    <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName" Title="Источник в СИР" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="ToStringSapEquipmentSourceDTOFK" Title="Источник в СИР" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                         <Template Context="data1">
-                            @if (data1.SapEquipmentSourceDTOFK != null)
+                            @if (!data1.ToStringSapEquipmentSourceDTOFK.Equals("НЕ НАЙДЕН"))
                             {
                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                    @data1.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName
+                                    @data1.ToStringSapEquipmentSourceDTOFK
                                 </div>
                             }
                             else
                             {
                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
-                                    НЕ НАЙДЕН
+                                    @data1.ToStringSapEquipmentSourceDTOFK
                                 </div>
                             }
                         </Template>
@@ -209,19 +212,19 @@
             </Template>
             </RadzenDataGridColumnApp> *@
 
-                    <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName" Title="Приёмник в СИР" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="ToStringSapEquipmentDestDTOFK" Title="Приёмник в СИР" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                         <Template Context="data1">
-                            @if (data1.SapEquipmentDestDTOFK != null)
+                            @if (!data1.ToStringSapEquipmentDestDTOFK.Equals("НЕ НАЙДЕН"))
                             {
                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                    @data1.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName
+                                    @data1.ToStringSapEquipmentDestDTOFK
                                 </div>
                             }
                             else
                             {
                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
-                                    НЕ НАЙДЕН
+                                    @data1.ToStringSapEquipmentDestDTOFK
                                 </div>
                             }
                         </Template>
@@ -418,15 +421,16 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-@*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapMovementsINDTO" Context="sapMovementsINDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-                        <Template Context="sapMovementsINDTO">
-                            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMovementsINDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMovementsINDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                        </Template>
-                    </RadzenDataGridColumnApp>
- *@                </Columns>
+                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapMovementsINDTO" Context="sapMovementsINDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+            <Template Context="sapMovementsINDTO">
+            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMovementsINDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMovementsINDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            </Template>
+            </RadzenDataGridColumnApp>
+            *@
+                </Columns>
             </RadzenDataGridApp>
         }
         else
@@ -767,8 +771,6 @@
 
     async Task ExcelImport()
     {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-        return;
         IsLoading = true;
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
@@ -776,7 +778,8 @@
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-вход)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{"DataList", (IEnumerable<SapMovementsINDTO>)sapMovementsINDTOGrid.View }}, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

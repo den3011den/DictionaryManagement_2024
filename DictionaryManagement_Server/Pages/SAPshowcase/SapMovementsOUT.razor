@@ -78,6 +78,9 @@
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
                     </RadzenButton>
+                    <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @sapMovementsOUTDTOGrid.View.Count().ToString()+" из "+(sapMovementsOUTDTOs == null ? "0" : sapMovementsOUTDTOs.Count().ToString())+" в выборке")
+                                  ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
+                    </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
@@ -608,8 +611,6 @@
 
     async Task ExcelImport()
     {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-        return;
         IsLoading = true;
         if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
         {
@@ -617,7 +618,8 @@
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-вход)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{"DataList", (IEnumerable<SapMovementsOUTDTO>)sapMovementsOUTDTOGrid.View }}, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

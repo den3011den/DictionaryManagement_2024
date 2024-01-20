@@ -42,7 +42,7 @@
                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                                 <RadzenButton title="Загрузка данных из Excel в Витрины SAP - НДО-выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
-                                @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
+                                @* <RadzenText TextStyle="TextStyle.H6">@(sapNdoOUTDTOGrid.View.Count().ToString())</RadzenText> *@
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -354,7 +354,8 @@
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - НДО-выход)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });            
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{"DataList", (IEnumerable<SapNdoOUTDTO>)sapNdoOUTDTOGrid.View }}, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
         }
         IsLoading = false;
     }
