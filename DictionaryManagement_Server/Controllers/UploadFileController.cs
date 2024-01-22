@@ -28,13 +28,6 @@ namespace DictionaryManagement_Server.Controllers
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
                 }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
-                }
             }
             catch
             {
@@ -57,35 +50,13 @@ namespace DictionaryManagement_Server.Controllers
 
         public async Task UploadTemplateFile(IFormFile file, Guid reportTemplateGuid, string reportTemplatePath)
         {
-            try
-            {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return;
-                }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return;
-                    }
-                }
-            }
-            catch
-            {
-                return;
-            }
-
-
-
             if (file != null && file.Length > 0)
             {
                 var extension = Path.GetExtension(file.FileName);
                 var fullPath = Path.Combine(reportTemplatePath, reportTemplateGuid.ToString() + extension);
                 using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
                 {
-                    await file.CopyToAsync(fileStream);
-
+                    file.CopyTo(fileStream);
                 }
             }
         }
@@ -100,13 +71,6 @@ namespace DictionaryManagement_Server.Controllers
                 if (!User.Identity.IsAuthenticated)
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
-                }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
                 }
             }
             catch
@@ -130,33 +94,13 @@ namespace DictionaryManagement_Server.Controllers
 
         public async Task UploadEntityFile(IFormFile file, Guid reportEntityGuid, string reportEntityPath)
         {
-            try
-            {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return;
-                }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return;
-                    }
-                }
-            }
-            catch
-            {
-                return;
-            }
-
-
             if (file != null && file.Length > 0)
             {
                 var extension = Path.GetExtension(file.FileName);
                 var fullPath = Path.Combine(reportEntityPath, reportEntityGuid.ToString() + extension);
                 using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
                 {
-                    await file.CopyToAsync(fileStream);
+                    file.CopyTo(fileStream);
                     //fileStream.Close();
                     if (fileStream != null)
                         await fileStream.DisposeAsync();

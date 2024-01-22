@@ -37,13 +37,13 @@ namespace DictionaryManagement_Server.Controllers
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
                 }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
-                }
+                //else
+                //{
+                //    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
+                //    {
+                //        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
+                //    }
+                //}
             }
             catch
             {
@@ -89,13 +89,13 @@ namespace DictionaryManagement_Server.Controllers
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
                 }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
-                }
+                //else
+                //{
+                //    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
+                //    {
+                //        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
+                //    }
+                //}
             }
             catch
             {
@@ -143,13 +143,13 @@ namespace DictionaryManagement_Server.Controllers
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
                 }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
-                }
+                //else
+                //{
+                //    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
+                //    {
+                //        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
+                //    }
+                //}
 
             }
             catch
@@ -202,13 +202,13 @@ namespace DictionaryManagement_Server.Controllers
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
                 }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
-                }
+                //else
+                //{
+                //    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
+                //    {
+                //        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
+                //    }
+                //}
             }
             catch
             {
