@@ -20,6 +20,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
         private readonly ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository;
         private readonly IADGroupRepository _adGroupRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ISapNdoOUTRepository _sapNdoOUTRepository;
+        private readonly IMesNdoStocksRepository _mesNdoStocksRepository;
 
         public LoadFromExcelRepository(ISapMaterialRepository sapMaterialRepository, IMesMaterialRepository mesMaterialRepository,
             ISapEquipmentRepository sapEquipmentRepository,
@@ -28,7 +30,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
             IMesDepartmentRepository mesDepartmentRepository,
             ISapUnitOfMeasureRepository sapUnitOfMeasureRepository,
             IADGroupRepository adGroupRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            ISapNdoOUTRepository sapNdoOUTRepository,
+            IMesNdoStocksRepository mesNdoStocksRepository)
         {
             _sapMaterialRepository = sapMaterialRepository;
             _mesMaterialRepository = mesMaterialRepository;
@@ -40,6 +44,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
             _sapUnitOfMeasureRepository = sapUnitOfMeasureRepository;
             _adGroupRepository = adGroupRepository;
             _userRepository = userRepository;
+            _sapNdoOUTRepository = sapNdoOUTRepository;
+            _mesNdoStocksRepository = mesNdoStocksRepository;
         }
 
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
@@ -2347,7 +2353,573 @@ namespace DictionaryManagement_Server.Extensions.Repository
         public async Task<bool> SapNdoOUTExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
                 IAuthorizationRepository _authorizationRepository)
         {
-            return false;
+
+            bool haveErrors = false;
+
+            loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
+            loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в витрину SAP НДО-выход");
+            await loadFromExcelPage.RefreshSate();
+
+            int rowNumber = 9;
+
+            bool isEmptyString = false;
+
+            while (isEmptyString == false)
+            {
+                worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+                worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+
+                var rowVar = worksheet.Row(rowNumber);
+
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string addTimeVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string tagNameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string valueTimeVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string valueVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string sapGoneVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
+                string sapGoneTimeVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
+
+                string resultString = "";
+                Int64 idVarInt64 = 0;
+
+                int resultColumnNumber = 10;
+
+                if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(addTimeVarString) && String.IsNullOrEmpty(tagNameVarString)
+                        && String.IsNullOrEmpty(valueTimeVarString) && String.IsNullOrEmpty(valueVarString)
+                        && String.IsNullOrEmpty(sapGoneVarString) && String.IsNullOrEmpty(sapGoneTimeVarString))
+                {
+                    isEmptyString = true;
+                    continue;
+                }
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                await loadFromExcelPage.RefreshSate();
+
+                SapNdoOUTDTO? foundSapNdoOUTDTO = null;
+                SapNdoOUTDTO changedSapNdoOUTDTO = new SapNdoOUTDTO();
+
+                if (!String.IsNullOrEmpty(idVarString))
+                {
+                    try
+                    {
+                        idVarInt64 = Int64.Parse(idVarString);
+                    }
+                    catch (Exception ex)
+                    {
+                        haveErrors = true;
+                        idVarInt64 = 0;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Не удалось получить ИД записи." +
+                            " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                        rowNumber++;
+                        continue;
+                    }
+                }
+
+                string tagNameWarningString = "";
+
+                switch (actionVarString.Trim().ToUpper())
+                {
+                    case "ИЗМЕНИТЬ":
+                        {
+                            if (idVarInt64 <= 0)
+                            {
+                                haveErrors = true;
+                                idVarInt64 = 0;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). ИД записи должен быть положительным числом." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            foundSapNdoOUTDTO = await _sapNdoOUTRepository.GetById(idVarInt64);
+                            if (foundSapNdoOUTDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Не найдена запись с ИД: " + idVarInt64.ToString() + ". Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            changedSapNdoOUTDTO.Id = idVarInt64;
+
+                            DateTime addTimeVarDateTime;
+
+                            if (!String.IsNullOrEmpty(addTimeVarString))
+                            {
+                                try
+                                {
+                                    addTimeVarDateTime = DateTime.Parse(addTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    idVarInt64 = 0;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Время добавления записи\"). Не удалось получить Время добавления записи." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.AddTime = addTimeVarDateTime;
+                            }
+                            else
+                                changedSapNdoOUTDTO.AddTime = foundSapNdoOUTDTO.AddTime;
+
+                            changedSapNdoOUTDTO.AddTime = changedSapNdoOUTDTO.AddTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapNdoOUTDTO.AddTime;
+                            changedSapNdoOUTDTO.AddTime = changedSapNdoOUTDTO.AddTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapNdoOUTDTO.AddTime;
+
+                            if (!String.IsNullOrEmpty(tagNameVarString))
+                            {
+                                MesParamDTO? objectForCheckTagName = await _mesParamRepository.GetByCode(tagNameVarString);
+                                if (objectForCheckTagName == null)
+                                {
+                                    tagNameWarningString = ". Внимание! Код тэга \"" + tagNameVarString + "\" не найден ни у одного тэга СИР.";
+                                }
+                                changedSapNdoOUTDTO.TagName = tagNameVarString;
+                            }
+                            else
+                            {
+                                changedSapNdoOUTDTO.TagName = foundSapNdoOUTDTO.TagName;
+                            }
+
+                            DateTime valueTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(valueTimeVarString))
+                            {
+                                try
+                                {
+                                    valueTimeVarDateTime = DateTime.Parse(valueTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    idVarInt64 = 0;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"Время значения\"). Не удалось получить Время значения." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.ValueTime = valueTimeVarDateTime;
+                            }
+                            else
+                                changedSapNdoOUTDTO.ValueTime = foundSapNdoOUTDTO.ValueTime;
+
+                            changedSapNdoOUTDTO.ValueTime = changedSapNdoOUTDTO.ValueTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapNdoOUTDTO.ValueTime;
+                            changedSapNdoOUTDTO.ValueTime = changedSapNdoOUTDTO.ValueTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapNdoOUTDTO.ValueTime;
+
+                            decimal valueDecimal;
+                            if (!String.IsNullOrEmpty(valueVarString))
+                            {
+                                try
+                                {
+                                    valueDecimal = decimal.Parse(valueVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    idVarInt64 = 0;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Значение\"). Не удалось получить Значение." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.Value = valueDecimal;
+                            }
+                            else
+                                changedSapNdoOUTDTO.Value = 0;
+
+                            if (changedSapNdoOUTDTO.Value < 0)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Значение\"). Значение не может быть отрицательным. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (String.IsNullOrEmpty(sapGoneVarString))
+                            {
+                                changedSapNdoOUTDTO.SapGone = false;
+                            }
+                            else
+                            {
+                                changedSapNdoOUTDTO.SapGone = sapGoneVarString.ToUpper().Equals("ДА") ? true : false;
+                            }
+
+                            DateTime sapGoneTimeVarDateTime;
+
+                            if (!String.IsNullOrEmpty(sapGoneTimeVarString))
+                            {
+                                try
+                                {
+                                    sapGoneTimeVarDateTime = DateTime.Parse(sapGoneTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap забрал\"). Не удалось получить Когда Sap забрал." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.SapGoneTime = sapGoneTimeVarDateTime;
+                                changedSapNdoOUTDTO.SapGoneTime = changedSapNdoOUTDTO.SapGoneTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapNdoOUTDTO.SapGoneTime;
+                                changedSapNdoOUTDTO.SapGoneTime = changedSapNdoOUTDTO.SapGoneTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapNdoOUTDTO.SapGoneTime;
+                            }
+                            else
+                                changedSapNdoOUTDTO.SapGoneTime = null;
+
+                            if (!((changedSapNdoOUTDTO.SapGone == true && changedSapNdoOUTDTO.SapGoneTime != null)
+                                || (changedSapNdoOUTDTO.SapGone != true && changedSapNdoOUTDTO.SapGoneTime == null)))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap забрал\", \"Когда Sap забрал\"). Если \"Sap забрал\" равно \"Да\" время \"Когда Sap забрал\" должно быть заполнено."
+                                    + " Если \"Sap забрал\" равно \"Нет\" или пусто, то время \"Когда Sap забрал\" должно быть пустым."
+                                    + " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 8, 9 }, resultString);
+                                rowNumber++;
+                                continue;
+
+                            }
+
+                            await _sapNdoOUTRepository.Update(changedSapNdoOUTDTO);
+                            await _logEventRepository.ToLog<SapNdoOUTDTO>(oldObject: foundSapNdoOUTDTO, newObject: changedSapNdoOUTDTO, "Изменение записи в витрине SAP НДО-выход SapNdoOUT", "Запись: ", _authorizationRepository);
+
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. " + tagNameVarString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+
+                            if (String.IsNullOrEmpty(tagNameVarString))
+                            {
+                                worksheet.Cell(rowNumber, 1).Value = "ОК";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                                loadFromExcelPage.console.Log(resultString);
+                            }
+                            else
+                            {
+                                worksheet.Cell(rowNumber, 1).Value = "!!! ОК";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.YellowGreen;
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
+                            }
+                            await loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    case "ДОБАВИТЬ":
+                        {
+                            if (!String.IsNullOrEmpty(idVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Для действия \"Добавить\" ИД записи должно быть пустым. Сформируется автоматически." +
+                                        " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            DateTime addTimeVarDateTime;
+
+                            if (!String.IsNullOrEmpty(addTimeVarString))
+                            {
+                                try
+                                {
+                                    addTimeVarDateTime = DateTime.Parse(addTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Время добавления записи\"). Не удалось получить Время добавления записи." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.AddTime = addTimeVarDateTime;
+                                changedSapNdoOUTDTO.AddTime = changedSapNdoOUTDTO.AddTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapNdoOUTDTO.AddTime;
+                                changedSapNdoOUTDTO.AddTime = changedSapNdoOUTDTO.AddTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapNdoOUTDTO.AddTime;
+                            }
+
+
+                            if (!String.IsNullOrEmpty(tagNameVarString))
+                            {
+                                MesParamDTO? objectForCheckTagName = await _mesParamRepository.GetByCode(tagNameVarString);
+                                if (objectForCheckTagName == null)
+                                {
+                                    tagNameWarningString = ". Внимание! Код тэга \"" + tagNameVarString + "\" не найден ни у одного тэга СИР.";
+                                }
+                            }
+                            else
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"Код тэга\"). В режиме \"Добавить\" Код тэга не может быть пустым." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            DateTime valueTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(valueTimeVarString))
+                            {
+                                try
+                                {
+                                    valueTimeVarDateTime = DateTime.Parse(valueTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    idVarInt64 = 0;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"Время значения\"). Не удалось получить Время значения." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.ValueTime = valueTimeVarDateTime;
+                                changedSapNdoOUTDTO.ValueTime = changedSapNdoOUTDTO.ValueTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapNdoOUTDTO.ValueTime;
+                                changedSapNdoOUTDTO.ValueTime = changedSapNdoOUTDTO.ValueTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapNdoOUTDTO.ValueTime;
+
+                            }
+                            else
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"Время значения\"). В режиме \"Добавить\" Время значения не может быть пустым." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+
+                            decimal valueDecimal;
+                            if (!String.IsNullOrEmpty(valueVarString))
+                            {
+                                try
+                                {
+                                    valueDecimal = decimal.Parse(valueVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Значение\"). Не удалось получить Значение." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.Value = valueDecimal;
+                            }
+                            else
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Значение\"). В режиме \"Добавить\" Значение не может быть пустым.\" +." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (changedSapNdoOUTDTO.Value < 0)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Значение\"). Значение не может быть отрицательным. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+
+                            if (String.IsNullOrEmpty(sapGoneVarString))
+                            {
+                                changedSapNdoOUTDTO.SapGone = false;
+                            }
+                            else
+                            {
+                                changedSapNdoOUTDTO.SapGone = sapGoneVarString.ToUpper().Equals("ДА") ? true : false;
+                            }
+
+                            DateTime sapGoneTimeVarDateTime;
+
+                            if (!String.IsNullOrEmpty(sapGoneTimeVarString))
+                            {
+                                try
+                                {
+                                    sapGoneTimeVarDateTime = DateTime.Parse(sapGoneTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap забрал\"). Не удалось получить Когда Sap забрал." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapNdoOUTDTO.SapGoneTime = sapGoneTimeVarDateTime;
+                                changedSapNdoOUTDTO.SapGoneTime = changedSapNdoOUTDTO.SapGoneTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapNdoOUTDTO.SapGoneTime;
+                                changedSapNdoOUTDTO.SapGoneTime = changedSapNdoOUTDTO.SapGoneTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapNdoOUTDTO.SapGoneTime;
+                            }
+                            else
+                                changedSapNdoOUTDTO.SapGoneTime = null;
+
+                            if (!((changedSapNdoOUTDTO.SapGone == true && changedSapNdoOUTDTO.SapGoneTime != null)
+                                || (changedSapNdoOUTDTO.SapGone != true && changedSapNdoOUTDTO.SapGoneTime == null)))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap забрал\", \"Когда Sap забрал\"). Если \"Sap забрал\" равно \"Да\" время \"Когда Sap забрал\" должно быть заполнено."
+                                    + " Если \"Sap забрал\" равно \"Нет\" или пусто, то время \"Когда Sap забрал\" должно быть пустым."
+                                    + " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 8, 9 }, resultString);
+                                rowNumber++;
+                                continue;
+
+                            }
+
+                            SapNdoOUTDTO? newSapNdoOUTDTO = await _sapNdoOUTRepository.Create(changedSapNdoOUTDTO);
+
+                            await _logEventRepository.ToLog<SapNdoOUTDTO>(oldObject: null, newObject: newSapNdoOUTDTO, "Добавление записи в витрину SAP НДО-выход SapNdoOUT", "Запись: ", _authorizationRepository);
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Добавлена запись с ИД " + newSapNdoOUTDTO.Id.ToString()
+                                + ". " + tagNameWarningString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            if (String.IsNullOrEmpty(tagNameWarningString))
+                            {
+                                worksheet.Cell(rowNumber, 1).Value = "OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 3).Value = newSapNdoOUTDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                                loadFromExcelPage.console.Log(resultString);
+                            }
+                            else
+                            {
+                                worksheet.Cell(rowNumber, 1).Value = "!!! OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 3).Value = newSapNdoOUTDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 5).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
+                                loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
+                            }
+                            await loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    case "УДАЛИТЬ":
+                        {
+                            if (String.IsNullOrEmpty(idVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Для действия \"Удалить\" ИД записи единственное необходимое поле. Не может быть пустым." +
+                                        " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (idVarInt64 <= 0)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). ИД записи должен быть положительным числом." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            foundSapNdoOUTDTO = await _sapNdoOUTRepository.GetById(idVarInt64);
+
+                            if (foundSapNdoOUTDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Запись с ИД " + idVarInt64.ToString() + " не найдена в витрине Sap НДО-выход." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            Guid deletedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
+
+                            string mesNdoListString = "";
+                            var mesNdoStocksList = await _mesNdoStocksRepository.GetBySapNdoOutIdList(idVarInt64);
+
+                            if (mesNdoStocksList != null)
+                                if (mesNdoStocksList.Count() > 0)
+                                {
+                                    foreach (var mesNdoStocksItem in mesNdoStocksList)
+                                    {
+                                        await _logEventRepository.AddRecord("Удаление записи из Архива данных НДО MesNdoStocks", deletedUserId, "", "", false, "Удаление записи с ИД " + mesNdoStocksItem.Id.ToString() + ": " + mesNdoStocksItem.ToString());
+                                        await _mesNdoStocksRepository.Delete(mesNdoStocksItem.Id);
+                                        mesNdoListString = mesNdoListString + " " + mesNdoStocksItem.Id.ToString() + ", ";
+                                    }
+                                }
+
+
+
+                            await _logEventRepository.AddRecord("Удаление записи из витрины SAP НДО-выход SapNdoOUT", deletedUserId, "", "", false, "Удаление записи с ИД " + foundSapNdoOUTDTO.Id.ToString() + ": " + foundSapNdoOUTDTO.ToString());
+                            await _sapNdoOUTRepository.Delete(foundSapNdoOUTDTO.Id);
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Удалена запись с ИД " + foundSapNdoOUTDTO.Id.ToString() + ".";
+                            if (!String.IsNullOrEmpty(mesNdoListString))
+                                resultString = resultString + ". Также удалены связанные записи в Архиве данных НДО (MesNdoStocks) с ИД: " + mesNdoListString;
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, 1).Value = "OK";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString);
+
+                            rowNumber++;
+                            continue;
+                        }
+                    default:
+                        {
+                            haveErrors = true;
+                            idVarInt64 = 0;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2 (\"Действие\"). Не предусмотренное значение действия = " + actionVarString + ". Для витрины НДО-выход допустимы действия: \"Добавить\", \"Изменить\", \"Удалить\". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                            rowNumber++;
+                            continue;
+                        }
+                }
+            }
+
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            await loadFromExcelPage.RefreshSate();
+
+            return haveErrors;
+
         }
 
         public async Task<bool> MesNdoStocksExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,

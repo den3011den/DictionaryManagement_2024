@@ -113,6 +113,11 @@ namespace DictionaryManagement_Models.IntDBModels
                 SapGoneBool = value;
             }
         }
+
+        public override string ToString()
+        {
+            return $"{MesParamDTOFK.Code} {ValueTime.ToString()}";
+        }
     }
 }
 
