@@ -105,6 +105,17 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
+        public async Task<IEnumerable<UserDTO>?> GetListByUserName(string userName = "")
+        {
+            var objToGet = _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_db.User.Where(u => ((u.UserName.Trim().ToUpper()) == (userName.Trim().ToUpper()))).ToListWithNoLock());
+            if (objToGet != null)
+            {
+                objToGet.ToList().FindAll(s => s.SyncWithADGroupsLastTime == DateTime.MinValue)
+                    .ForEach(x => x.SyncWithADGroupsLastTime = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue);
+                return objToGet;
+            }
+            return null;
+        }
 
         public async Task<UserDTO> Update(UserDTO objectToUpdateDTO, SD.UpdateMode updateMode = SD.UpdateMode.Update)
         {

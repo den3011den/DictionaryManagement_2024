@@ -473,6 +473,8 @@
                             }
                         case "MesParam":
                             {
+                                var worksheet1 = workbook.Worksheet("Ед_изм(справочно)");
+                                await _loadFromExcelRepository.SapUnitOfMeasureReportTemplateDownloadFileWithData(this, worksheet1);
                                 var worksheet2 = workbook.Worksheet("SapMaterial");
                                 await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet2);
                                 var worksheet3 = workbook.Worksheet("SapEquipment");
