@@ -5487,6 +5487,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     }
                                 }
 
+                            await _mesMovementsRepository.DeleteMesMovementsCommentByMesMovementsId(foundMesMovementsDTO.Id);
+
                             await _logEventRepository.AddRecord("Удаление записи из Архива данных MesMovements", currentUserDTO.Id, "", "", false, "Удаление записи с ИД : " + foundMesMovementsDTO.Id.ToString());
                             await _mesMovementsRepository.Delete(foundMesMovementsDTO.Id);
 

@@ -12,5 +12,6 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<IEnumerable<MesMovementsDTO>> GetAllByReportEntityId(Guid? reportEntityId);
         public Task<IEnumerable<MesMovementsDTO>?> GetListByPreviousRecordId(Guid? idPar);
         public Task<MesMovementsDTO?> CleanPreviousRecordId(MesMovementsDTO objectToUpdateDTO);
+        public Task<int> DeleteMesMovementsCommentByMesMovementsId(Guid objectId);
     }
 }

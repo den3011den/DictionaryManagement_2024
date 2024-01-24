@@ -372,5 +372,25 @@ namespace DictionaryManagement_Business.Repository
             }
             return null;
         }
+
+        public async Task<int> DeleteMesMovementsCommentByMesMovementsId(Guid objectId)
+        {
+            int retVar = 0;
+            var objectToUpdate = _db.MesMovementsComment.Where(u => u.MesMovementsId == objectId).ToListWithNoLock();
+
+            if (objectToUpdate != null)
+            {
+                retVar = objectToUpdate.Count();
+                if (retVar > 0)
+                {
+                    foreach (var item in objectToUpdate)
+                    {
+                        _db.MesMovementsComment.Remove(item);
+                    }
+                }
+                _db.SaveChanges();
+            }
+            return retVar;
+        }
     }
 }
