@@ -103,5 +103,12 @@ namespace DictionaryManagement_Business.Repository
             }
             return objectToUpdateDTO;
         }
+
+        public async Task<IEnumerable<SapEquipmentDTO>?> GetListByName(string name)
+        {
+            return _mapper.Map<IEnumerable<SapEquipment>, IEnumerable<SapEquipmentDTO>>(
+                _db.SapEquipment.Where(u => !String.IsNullOrEmpty(u.Name.Trim()) && u.Name.Trim().ToUpper() == name.Trim().ToUpper()).ToListWithNoLock()
+                );
+        }
     }
 }

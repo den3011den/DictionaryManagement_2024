@@ -356,5 +356,33 @@ namespace DictionaryManagement_Business.Repository
             }
             return null;
         }
+
+        public async Task<IEnumerable<SapMovementsOUTDTO>?> GetListByPreviousRecordId(Guid? idPar)
+        {
+            if ((idPar != null) && (idPar != Guid.Empty))
+            {
+                var objectListToGet = _db.SapMovementsOUT.Where(u => u.PreviousRecordId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<SapMovementsOUT>, IEnumerable<SapMovementsOUTDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<SapMovementsOUTDTO?> CleanPreviousRecordId(SapMovementsOUTDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.SapMovementsOUT
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.PreviousRecordId = null;
+                _db.SapMovementsOUT.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<SapMovementsOUT, SapMovementsOUTDTO>(objectToUpdate);
+            }
+            return null;
+        }
     }
 }

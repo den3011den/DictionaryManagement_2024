@@ -12,6 +12,9 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<SapMaterialDTO> GetByCode(string code = "");
         public Task<SapMaterialDTO> GetByName(string name = "");
         public Task<SapMaterialDTO> GetByShortName(string shortName = "");
+        public Task<IEnumerable<SapMaterialDTO>> GetListByName(string name);
+        public Task<IEnumerable<SapMaterialDTO>> GetListByShortName(string shortName);
+
 
     }
 }

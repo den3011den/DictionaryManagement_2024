@@ -528,5 +528,27 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
+        public async Task<IEnumerable<MesParamDTO>?> GetListByName(string name)
+        {
+            var hhh2 = _db.MesParam
+                  .Include("MesParamSourceTypeFK").AsNoTracking()
+                         .Include("SapEquipmentSourceFK").AsNoTracking()
+                            .Include("SapEquipmentDestFK").AsNoTracking()
+                            .Include("MesMaterialFK").AsNoTracking()
+                            .Include("SapMaterialFK").AsNoTracking()
+                            .Include("MesUnitOfMeasureFK").AsNoTracking()
+                            .Include("SapUnitOfMeasureFK").AsNoTracking()
+                            .Include("MesDepartmentFK").Include("MesDepartmentFK.DepartmentParent")
+                            .Include("MesDepartmentFK.DepartmentParent.DepartmentParent")
+                            .Include("MesDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent")
+                            .Include("MesDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
+                            .Include("MesDepartmentFK.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent.DepartmentParent")
+                            .Where(u => !String.IsNullOrEmpty(u.Name.Trim()) && u.Name.Trim().ToUpper().Equals(name.Trim().ToUpper())).AsNoTracking()
+                            .ToListWithNoLock();
+            if (hhh2 != null)
+                return _mapper.Map<IEnumerable<MesParam>, IEnumerable<MesParamDTO>>(hhh2);
+            else
+                return null;
+        }
     }
 }

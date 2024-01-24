@@ -358,7 +358,7 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<MesMovementsDTO?> CleanMesMovementId(MesMovementsDTO objectToUpdateDTO)
+        public async Task<MesMovementsDTO?> CleanPreviousRecordId(MesMovementsDTO objectToUpdateDTO)
         {
             var objectToUpdate = _db.MesMovements
                .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
@@ -391,6 +391,35 @@ namespace DictionaryManagement_Business.Repository
                 _db.SaveChanges();
             }
             return retVar;
+        }
+
+        public async Task<IEnumerable<MesMovementsDTO>?> GetListBySapMovementOutId(Guid? idPar)
+        {
+            if ((idPar != null) && (idPar != Guid.Empty))
+            {
+                var objectListToGet = _db.MesMovements.Where(u => u.SapMovementOutId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<MesMovements>, IEnumerable<MesMovementsDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<MesMovementsDTO?> CleanSapMovementOutId(MesMovementsDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesMovements
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.SapMovementOutId = null;
+                objectToUpdate.SapMovementsOUTFK = null;
+                _db.MesMovements.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesMovements, MesMovementsDTO>(objectToUpdate);
+            }
+            return null;
         }
     }
 }
