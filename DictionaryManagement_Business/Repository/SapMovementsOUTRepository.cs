@@ -327,5 +327,34 @@ namespace DictionaryManagement_Business.Repository
             }
             return 0;
         }
+
+        public async Task<IEnumerable<SapMovementsOUTDTO>?> GetListByMesMovementId(Guid? idPar)
+        {
+            if ((idPar != null) && (idPar != Guid.Empty))
+            {
+                var objectListToGet = _db.SapMovementsOUT.Where(u => u.MesMovementId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<SapMovementsOUT>, IEnumerable<SapMovementsOUTDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<SapMovementsOUTDTO?> CleanMesMovementId(SapMovementsOUTDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.SapMovementsOUT
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.MesMovementId = null;
+                objectToUpdate.MesMovementsFK = null;
+                _db.SapMovementsOUT.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<SapMovementsOUT, SapMovementsOUTDTO>(objectToUpdate);
+            }
+            return null;
+        }
     }
 }

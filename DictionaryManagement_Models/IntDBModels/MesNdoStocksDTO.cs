@@ -125,7 +125,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         public override string ToString()
         {
-            return $"{MesParamDTOFK.Code} {ValueTime.ToString()}";
+            return $"{Id.ToString()}";
         }
     }
 }

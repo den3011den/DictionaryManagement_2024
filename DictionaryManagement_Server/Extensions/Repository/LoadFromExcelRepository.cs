@@ -23,6 +23,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
         private readonly ISapNdoOUTRepository _sapNdoOUTRepository;
         private readonly IMesNdoStocksRepository _mesNdoStocksRepository;
         private readonly IReportEntityRepository _reportEntityRepository;
+        private readonly IMesMovementsRepository _mesMovementsRepository;
+        private readonly ISapMovementsINRepository _sapMovementsINRepository;
+        private readonly ISapMovementsOUTRepository _sapMovementsOUTRepository;
+        private readonly IDataSourceRepository _dataSourceRepository;
+        private readonly IDataTypeRepository _dataTypeRepository;
 
         public LoadFromExcelRepository(ISapMaterialRepository sapMaterialRepository, IMesMaterialRepository mesMaterialRepository,
             ISapEquipmentRepository sapEquipmentRepository,
@@ -34,7 +39,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
             IUserRepository userRepository,
             ISapNdoOUTRepository sapNdoOUTRepository,
             IMesNdoStocksRepository mesNdoStocksRepository,
-            IReportEntityRepository reportEntityRepository)
+            IReportEntityRepository reportEntityRepository,
+            IMesMovementsRepository mesMovementsRepository,
+            ISapMovementsINRepository sapMovementsINRepository,
+            ISapMovementsOUTRepository sapMovementsOUTRepository,
+            IDataSourceRepository dataSourceRepository,
+            IDataTypeRepository dataTypeRepository)
         {
             _sapMaterialRepository = sapMaterialRepository;
             _mesMaterialRepository = mesMaterialRepository;
@@ -49,6 +59,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
             _sapNdoOUTRepository = sapNdoOUTRepository;
             _mesNdoStocksRepository = mesNdoStocksRepository;
             _reportEntityRepository = reportEntityRepository;
+            _mesMovementsRepository = mesMovementsRepository;
+            _sapMovementsINRepository = sapMovementsINRepository;
+            _sapMovementsOUTRepository = sapMovementsOUTRepository;
+            _dataSourceRepository = dataSourceRepository;
+            _dataTypeRepository = dataTypeRepository;
+
         }
 
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
@@ -700,9 +716,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 var rowVar = worksheet.Row(rowNumber);
 
                 worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
-
 
                 string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
                 string codeVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
@@ -1122,6 +1138,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
+            int resultColumnNumber = 8;
 
             bool isEmptyString = false;
 
@@ -1129,6 +1146,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
@@ -1142,8 +1160,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 string isArchiveVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
                 string resultString = "";
                 int idVarInt = 0;
-
-                int resultColumnNumber = 8;
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(erpPlantIdVarString) && String.IsNullOrEmpty(erpIdVarString)
                         && String.IsNullOrEmpty(nameVarString)
@@ -1488,6 +1504,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
@@ -2421,15 +2438,15 @@ namespace DictionaryManagement_Server.Extensions.Repository
             await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
+            int resultColumnNumber = 10;
 
             bool isEmptyString = false;
 
             while (isEmptyString == false)
             {
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Row(rowNumber).Style.Font.SetBold(false);
-                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
                 worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
@@ -2447,7 +2464,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 string resultString = "";
                 Int64 idVarInt64 = 0;
 
-                int resultColumnNumber = 10;
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(addTimeVarString) && String.IsNullOrEmpty(tagNameVarString)
                         && String.IsNullOrEmpty(valueTimeVarString) && String.IsNullOrEmpty(valueVarString)
@@ -2992,6 +3008,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
+            int resultColumnNumber = 13;
 
             bool isEmptyString = false;
 
@@ -3000,9 +3017,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
             while (isEmptyString == false)
             {
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Row(rowNumber).Style.Font.SetBold(false);
-                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
                 worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
@@ -3023,7 +3039,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 string resultString = "";
                 Int64 idVarInt64 = 0;
 
-                int resultColumnNumber = 13;
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(addTimeVarString) && String.IsNullOrEmpty(addUserIdVarString)
                         && String.IsNullOrEmpty(addUserNameVarString) && String.IsNullOrEmpty(mesParamCodeVarString) && String.IsNullOrEmpty(valueTimeVarString)
@@ -3136,7 +3151,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (userObjectByGuid == null)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ИД добавившего запись пользователя\"). Не найден пользователь с ИД " + userObjectByGuid.Id + " в Справочнике пользователей." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ИД добавившего запись пользователя\"). Не найден пользователь с ИД " + addUserIdVarGuid.ToString() + " в Справочнике пользователей." +
                                         " Изменения не применялись.";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
                                     rowNumber++;
@@ -3347,7 +3362,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     rowNumber++;
                                     continue;
                                 }
-                                changedMesNdoStocksDTO.ReportGuid = reportGuidVarGuid;
+                                changedMesNdoStocksDTO.SapNdoOutId = sapNdoOutIdVarInt64;
                             }
 
                             if (sapNdoOutIdVarInt64 == 0)
@@ -3513,6 +3528,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     rowNumber++;
                                     continue;
                                 }
+                                changedMesNdoStocksDTO.MesParamId = objectForCheckMesParamCode.Id;
+                                changedMesNdoStocksDTO.MesParamDTOFK = objectForCheckMesParamCode;
                             }
                             else
                             {
@@ -3789,12 +3806,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             return haveErrors;
         }
 
-        public async Task<bool> MesMovementsExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
-                IAuthorizationRepository _authorizationRepository)
-        {
-            return false;
-        }
-
         public async Task<bool> SapMovementsOUTExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
                 IAuthorizationRepository _authorizationRepository)
         {
@@ -3811,6 +3822,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
+            int resultColumnNumber = 11;
 
             bool isEmptyString = false;
 
@@ -3818,9 +3830,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Row(rowNumber).Style.Font.SetBold(false);
-                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
                 worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
@@ -3838,8 +3849,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 string resultString = "";
                 Guid idVarGuid = Guid.Empty;
-
-                int resultColumnNumber = 11;
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(loginVarString) && String.IsNullOrEmpty(userNameVarString)
                         && String.IsNullOrEmpty(descriptionVarString) && String.IsNullOrEmpty(isSyncWithADVarString)
@@ -4163,6 +4172,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
+            int resultColumnNumber = 7;
 
             bool isEmptyString = false;
 
@@ -4170,9 +4180,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Row(rowNumber).Style.Font.SetBold(false);
-                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
                 worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
@@ -4185,8 +4194,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 string isArchiveVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
                 string resultString = "";
                 Guid idVarGuid = Guid.Empty;
-
-                int resultColumnNumber = 7;
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(nameVarString) && String.IsNullOrEmpty(descriptionVarString)
                         && String.IsNullOrEmpty(isArchiveVarString))
@@ -4446,6 +4453,1073 @@ namespace DictionaryManagement_Server.Extensions.Repository
         //    bool? propertyValue = varProperty.GetValue(obj, null) as bool?;
         //    return propertyValue;
         //}
+
+
+        public async Task<bool> MesMovementsExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+        IAuthorizationRepository _authorizationRepository)
+        {
+            bool haveErrors = false;
+
+            loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
+            loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в Архив данных");
+            await loadFromExcelPage.RefreshSate();
+
+            int rowNumber = 9;
+            int resultColumnNumber = 19;
+
+            bool isEmptyString = false;
+
+            UserDTO currentUserDTO = await _authorizationRepository.GetCurrentUserDTO();
+
+            while (isEmptyString == false)
+            {
+
+                worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+
+                var rowVar = worksheet.Row(rowNumber);
+
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string addTimeVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string addUserIdVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string addUserNameVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string mesParamCodeVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string valueTimeVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
+                string valueVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
+                string sapMovementOutIdVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
+                string sapMovementInIdVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
+                string dataSourceNameVarString = rowVar.Cell(12).CachedValue.ToString().Trim();
+                string dataTypeNameVarString = rowVar.Cell(13).CachedValue.ToString().Trim();
+                string reportGuidVarString = rowVar.Cell(14).CachedValue.ToString().Trim();
+                string mesGoneVarString = rowVar.Cell(15).CachedValue.ToString().Trim();
+                string mesGoneTimeVarString = rowVar.Cell(16).CachedValue.ToString().Trim();
+                string needWriteToSapVarString = rowVar.Cell(17).CachedValue.ToString().Trim();
+                string previousRecordIdVarString = rowVar.Cell(18).CachedValue.ToString().Trim();
+
+                string resultString = "";
+                Guid idVarGuid = Guid.Empty;
+
+                if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(addTimeVarString) && String.IsNullOrEmpty(addUserIdVarString)
+                        && String.IsNullOrEmpty(addUserNameVarString) && String.IsNullOrEmpty(mesParamCodeVarString) && String.IsNullOrEmpty(valueTimeVarString)
+                        && String.IsNullOrEmpty(valueVarString) && String.IsNullOrEmpty(sapMovementOutIdVarString) && String.IsNullOrEmpty(sapMovementInIdVarString)
+                        && String.IsNullOrEmpty(dataSourceNameVarString) && String.IsNullOrEmpty(dataTypeNameVarString) && String.IsNullOrEmpty(reportGuidVarString)
+                        && String.IsNullOrEmpty(mesGoneVarString) && String.IsNullOrEmpty(mesGoneTimeVarString) && String.IsNullOrEmpty(needWriteToSapVarString)
+                        && String.IsNullOrEmpty(previousRecordIdVarString))
+                {
+                    isEmptyString = true;
+                    continue;
+                }
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                await loadFromExcelPage.RefreshSate();
+
+                MesMovementsDTO? foundMesMovementsDTO = null;
+                MesMovementsDTO changedMesMovementsDTO = new MesMovementsDTO();
+
+                if (!String.IsNullOrEmpty(idVarString))
+                {
+                    try
+                    {
+                        idVarGuid = Guid.Parse(idVarString);
+                    }
+                    catch (Exception ex)
+                    {
+                        haveErrors = true;
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Не удалось получить ИД записи." +
+                            " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                        rowNumber++;
+                        continue;
+                    }
+                }
+
+                string mesMovementsIdWarningString = "";
+
+                switch (actionVarString.Trim().ToUpper())
+                {
+                    case "ИЗМЕНИТЬ":
+                        {
+
+                            foundMesMovementsDTO = await _mesMovementsRepository.GetById(idVarGuid);
+                            if (foundMesMovementsDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Не найдена запись с ИД: " + idVarGuid.ToString() + ". Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            changedMesMovementsDTO.Id = idVarGuid;
+
+                            DateTime addTimeVarDateTime;
+
+                            if (!String.IsNullOrEmpty(addTimeVarString))
+                            {
+                                try
+                                {
+                                    addTimeVarDateTime = DateTime.Parse(addTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Время добавления записи\"). Не удалось получить Время добавления записи." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.AddTime = addTimeVarDateTime;
+                            }
+                            else
+                                changedMesMovementsDTO.AddTime = foundMesMovementsDTO.AddTime;
+
+                            changedMesMovementsDTO.AddTime = changedMesMovementsDTO.AddTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedMesMovementsDTO.AddTime;
+                            changedMesMovementsDTO.AddTime = changedMesMovementsDTO.AddTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedMesMovementsDTO.AddTime;
+
+                            changedMesMovementsDTO.AddUserId = Guid.Empty;
+                            changedMesMovementsDTO.AddUserDTOFK = new UserDTO();
+
+                            Guid addUserIdVarGuid = Guid.Empty;
+
+                            if (!String.IsNullOrEmpty(addUserIdVarString))
+                            {
+                                try
+                                {
+                                    addUserIdVarGuid = Guid.Parse(addUserIdVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ИД добавившего запись пользователя\"). Не удалось получить ИД добавившего запись пользователя." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+
+                                var userObjectByGuid = await _userRepository.Get(addUserIdVarGuid);
+                                if (userObjectByGuid == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ИД добавившего запись пользователя\"). Не найден пользователь с ИД " + addUserIdVarGuid.ToString() + " в Справочнике пользователей." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.AddUserId = userObjectByGuid.Id;
+                                changedMesMovementsDTO.AddUserDTOFK = userObjectByGuid;
+                            }
+
+                            if (changedMesMovementsDTO.AddUserId == Guid.Empty)
+                                if (!String.IsNullOrEmpty(addUserNameVarString))
+                                {
+                                    var userObjectList = await _userRepository.GetListByUserName(addUserNameVarString);
+                                    if (userObjectList != null)
+                                    {
+                                        if (userObjectList.Count() > 1)
+                                        {
+                                            haveErrors = true;
+                                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"ФИО добавившего пользователя\"). Найдено больше одного пользователя с ФИО " + addUserNameVarString + "." +
+                                                " Изменения не применялись.";
+                                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
+                                            rowNumber++;
+                                            continue;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        haveErrors = true;
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"ФИО добавившего пользователя\"). В Справочнике пользователей не найден пользователь с ФИО " + addUserNameVarString + "." +
+                                            " Изменения не применялись.";
+                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
+                                        rowNumber++;
+                                        continue;
+                                    }
+                                    changedMesMovementsDTO.AddUserId = userObjectList.FirstOrDefault().Id;
+                                    changedMesMovementsDTO.AddUserDTOFK = userObjectList.FirstOrDefault();
+                                }
+
+                            if (changedMesMovementsDTO.AddUserId == Guid.Empty)
+                            {
+                                changedMesMovementsDTO.AddUserId = foundMesMovementsDTO.AddUserId;
+                                changedMesMovementsDTO.AddUserDTOFK = foundMesMovementsDTO.AddUserDTOFK;
+                            }
+
+                            if (!String.IsNullOrEmpty(mesParamCodeVarString))
+                            {
+                                MesParamDTO? objectForCheckMesParamCode = await _mesParamRepository.GetByCode(mesParamCodeVarString);
+                                if (objectForCheckMesParamCode == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден тэг с кодом " + objectForCheckMesParamCode + "." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                    rowNumber++;
+                                    continue;
+
+                                }
+                                changedMesMovementsDTO.MesParamId = objectForCheckMesParamCode.Id;
+                                changedMesMovementsDTO.MesParamDTOFK = objectForCheckMesParamCode;
+                            }
+                            else
+                            {
+                                changedMesMovementsDTO.MesParamId = foundMesMovementsDTO.MesParamId;
+                                changedMesMovementsDTO.MesParamDTOFK = foundMesMovementsDTO.MesParamDTOFK;
+                            }
+
+                            DateTime valueTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(valueTimeVarString))
+                            {
+                                try
+                                {
+                                    valueTimeVarDateTime = DateTime.Parse(valueTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 8 (\"Время значения\"). Не удалось получить Время значения." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 8 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.ValueTime = valueTimeVarDateTime;
+                            }
+                            else
+                                changedMesMovementsDTO.ValueTime = foundMesMovementsDTO.ValueTime;
+
+                            changedMesMovementsDTO.ValueTime = changedMesMovementsDTO.ValueTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedMesMovementsDTO.ValueTime;
+                            changedMesMovementsDTO.ValueTime = changedMesMovementsDTO.ValueTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedMesMovementsDTO.ValueTime;
+
+                            decimal valueDecimal;
+                            if (!String.IsNullOrEmpty(valueVarString))
+                            {
+                                try
+                                {
+                                    valueDecimal = decimal.Parse(valueVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Значение\"). Не удалось получить Значение." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.Value = valueDecimal;
+                            }
+                            else
+                                changedMesMovementsDTO.Value = 0;
+
+                            if (changedMesMovementsDTO.Value < 0)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Значение\"). Значение не может быть отрицательным. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (String.IsNullOrEmpty(sapMovementInIdVarString))
+                            {
+                                changedMesMovementsDTO.SapMovementInId = null;
+                                changedMesMovementsDTO.SapMovementsINDTOFK = null;
+                            }
+                            else
+                            {
+                                SapMovementsINDTO? objectForCheckSapMovementsINDTO = await _sapMovementsINRepository.GetById(sapMovementInIdVarString);
+                                if (objectForCheckSapMovementsINDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 10 (\"ИД записи во входной витрине SapMovementsIN\"). Не удалось найти запись в витрине SAP Движения-вход." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 10 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.SapMovementInId = objectForCheckSapMovementsINDTO.ErpId;
+                                    changedMesMovementsDTO.SapMovementsINDTOFK = objectForCheckSapMovementsINDTO;
+                                }
+                            }
+
+                            if (String.IsNullOrEmpty(sapMovementOutIdVarString))
+                            {
+                                changedMesMovementsDTO.SapMovementOutId = null;
+                                changedMesMovementsDTO.SapMovementsOUTDTOFK = null;
+                            }
+                            else
+                            {
+                                Guid sapMovementOutIdVarGuid = Guid.Empty;
+                                try
+                                {
+                                    sapMovementOutIdVarGuid = Guid.Parse(reportGuidVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 11 (\"ИД записи в выходной витрине SapMovementsOUT\"). Не удалось получить ИД записи в выходной витрине SapMovementsOUT." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 11 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+
+                                SapMovementsOUTDTO? objectForCheckSapMovementsOUTDTO = await _sapMovementsOUTRepository.GetById(sapMovementOutIdVarGuid);
+                                if (objectForCheckSapMovementsOUTDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 11 (\"ИД записи в выходной витрине SapMovementsOUT\"). Не удалось найти запись в витрине SAP Движения-выход." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 11 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.SapMovementOutId = objectForCheckSapMovementsOUTDTO.Id;
+                                    changedMesMovementsDTO.SapMovementsOUTDTOFK = objectForCheckSapMovementsOUTDTO;
+                                }
+                            }
+
+                            if (String.IsNullOrEmpty(dataSourceNameVarString))
+                            {
+                                changedMesMovementsDTO.DataSourceId = null;
+                                changedMesMovementsDTO.DataSourceDTOFK = null;
+                            }
+                            else
+                            {
+                                DataSourceDTO? objectForCheckDataSourceDTO = await _dataSourceRepository.GetByName(dataSourceNameVarString);
+                                if (objectForCheckDataSourceDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 13 (\"Источник данных\"). Не удалось найти Источник данных с таким наименованием." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 13 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.DataSourceId = objectForCheckDataSourceDTO.Id;
+                                    changedMesMovementsDTO.DataSourceDTOFK = objectForCheckDataSourceDTO;
+                                }
+                            }
+
+                            if (String.IsNullOrEmpty(dataTypeNameVarString))
+                            {
+                                changedMesMovementsDTO.DataTypeId = null;
+                                changedMesMovementsDTO.DataTypeDTOFK = null;
+                            }
+                            else
+                            {
+                                DataTypeDTO? objectForCheckDataTypeDTO = await _dataTypeRepository.GetByName(dataTypeNameVarString);
+                                if (objectForCheckDataTypeDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 14 (\"Тип данных\"). Не удалось найти Тип данных с таким наименованием." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 14 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.DataTypeId = objectForCheckDataTypeDTO.Id;
+                                    changedMesMovementsDTO.DataTypeDTOFK = objectForCheckDataTypeDTO;
+                                }
+                            }
+
+                            Guid reportGuidVarGuid = Guid.Empty;
+                            if (!String.IsNullOrEmpty(reportGuidVarString))
+                            {
+                                try
+                                {
+                                    reportGuidVarGuid = Guid.Parse(reportGuidVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 15 (\"ИД Экземпляра отчёта\"). Не удалось получить ИД Экземпляра отчёта." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 15 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            if (reportGuidVarGuid == Guid.Empty)
+                            {
+                                changedMesMovementsDTO.ReportGuid = null;
+                                changedMesMovementsDTO.ReportEntityDTOFK = null;
+                            }
+                            else
+                            {
+                                ReportEntityDTO? objectForCheckReportEntityDTO = await _reportEntityRepository.GetById(reportGuidVarGuid);
+                                if (objectForCheckReportEntityDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 15 (\"ИД Экземпляра отчёта\"). Не удалось найти экземпляр отчёта." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 15 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.ReportGuid = objectForCheckReportEntityDTO.Id;
+                                    changedMesMovementsDTO.ReportEntityDTOFK = objectForCheckReportEntityDTO;
+                                }
+                            }
+
+                            if (String.IsNullOrEmpty(mesGoneVarString))
+                                changedMesMovementsDTO.MesGone = false;
+                            else
+                                changedMesMovementsDTO.MesGone = mesGoneVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            DateTime mesGoneTimeVarDateTime;
+
+                            if (!String.IsNullOrEmpty(mesGoneTimeVarString))
+                            {
+                                try
+                                {
+                                    mesGoneTimeVarDateTime = DateTime.Parse(mesGoneTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 16 (\"Время MES забрал\"). Не удалось получить Время MES забрал." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 16 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.MesGoneTime = mesGoneTimeVarDateTime;
+                                changedMesMovementsDTO.MesGoneTime = changedMesMovementsDTO.MesGoneTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedMesMovementsDTO.MesGoneTime;
+                                changedMesMovementsDTO.MesGoneTime = changedMesMovementsDTO.MesGoneTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedMesMovementsDTO.MesGoneTime;
+                            }
+                            else
+                                changedMesMovementsDTO.MesGoneTime = null;
+
+                            if (!((changedMesMovementsDTO.MesGone == true && changedMesMovementsDTO.MesGoneTime != null)
+                                || (changedMesMovementsDTO.MesGone != true && changedMesMovementsDTO.MesGoneTime == null)))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16 (\"Mes забрал\", \"Время MES забрал\"). Если \"Mes забрал\" равно \"Да\", то \"Время MES забрал\" должно быть заполнено."
+                                    + " Если \"Mes забрал\" равно \"Нет\" или пусто, то \"Время MES забрал\" должно быть пустым."
+                                    + " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 15, 16 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (String.IsNullOrEmpty(needWriteToSapVarString))
+                                changedMesMovementsDTO.NeedWriteToSap = false;
+                            else
+                                changedMesMovementsDTO.NeedWriteToSap = needWriteToSapVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            Guid previousRecordIdVarGuid = Guid.Empty;
+                            if (!String.IsNullOrEmpty(previousRecordIdVarString))
+                            {
+                                try
+                                {
+                                    previousRecordIdVarGuid = Guid.Parse(previousRecordIdVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 18 (\"ИД предыдущей записи\"). Не удалось получить ИД предыдущей записи." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 18 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            if (previousRecordIdVarGuid == Guid.Empty)
+                            {
+                                changedMesMovementsDTO.PreviousRecordId = null;
+                            }
+                            else
+                            {
+                                MesMovementsDTO? objectForCheckMesMovementsPreviousRecordDTO = await _mesMovementsRepository.GetById(previousRecordIdVarGuid);
+                                if (objectForCheckMesMovementsPreviousRecordDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 18 (\"ИД предыдущей записи\"). Не удалось найти запись в Архиве данных MesMovements." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 18 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.PreviousRecordId = objectForCheckMesMovementsPreviousRecordDTO.Id;
+                                }
+                            }
+
+                            await _mesMovementsRepository.Update(changedMesMovementsDTO);
+                            await _logEventRepository.ToLog<MesMovementsDTO>(oldObject: foundMesMovementsDTO, newObject: changedMesMovementsDTO
+                                , "Изменение записи в Архиве данных MesMovements", "Запись: ", _authorizationRepository);
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+
+                            worksheet.Cell(rowNumber, 1).Value = "ОК";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString);
+
+                            await loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    case "ДОБАВИТЬ":
+                        {
+                            if (!String.IsNullOrEmpty(idVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Для действия \"Добавить\" ИД записи должен быть пустым. Сформируется автоматически." +
+                                        " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            DateTime addTimeVarDateTime;
+
+                            if (!String.IsNullOrEmpty(addTimeVarString))
+                            {
+                                try
+                                {
+                                    addTimeVarDateTime = DateTime.Parse(addTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Время добавления записи\"). Не удалось получить Время добавления записи." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.AddTime = addTimeVarDateTime;
+                                changedMesMovementsDTO.AddTime = changedMesMovementsDTO.AddTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedMesMovementsDTO.AddTime;
+                                changedMesMovementsDTO.AddTime = changedMesMovementsDTO.AddTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedMesMovementsDTO.AddTime;
+                            }
+
+                            Guid addUserIdVarGuid = Guid.Empty;
+
+                            changedMesMovementsDTO.AddUserId = Guid.Empty;
+                            changedMesMovementsDTO.AddUserDTOFK = new UserDTO();
+
+                            if (!String.IsNullOrEmpty(addUserIdVarString))
+                            {
+                                try
+                                {
+                                    addUserIdVarGuid = Guid.Parse(addUserIdVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ИД добавившего запись пользователя\"). Не удалось получить ИД добавившего запись пользователя." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+
+                                if (addUserIdVarGuid != Guid.Empty)
+                                    if (!String.IsNullOrEmpty(addUserNameVarString))
+                                    {
+                                        var userObjectByGuid = await _userRepository.Get(addUserIdVarGuid);
+
+                                        if (userObjectByGuid != null)
+                                        {
+                                            changedMesMovementsDTO.AddUserId = userObjectByGuid.Id;
+                                            changedMesMovementsDTO.AddUserDTOFK = userObjectByGuid;
+                                        }
+                                    }
+                            }
+
+
+                            if (changedMesMovementsDTO.AddUserId == Guid.Empty)
+                                if (!String.IsNullOrEmpty(addUserNameVarString))
+                                {
+                                    var userObjectList = await _userRepository.GetListByUserName(addUserNameVarString);
+                                    if (userObjectList != null)
+                                    {
+                                        if (userObjectList.Count() > 1)
+                                        {
+                                            haveErrors = true;
+                                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"ФИО добавившего пользователя\"). Найдено больше одного пользователя с ФИО " + addUserNameVarString + "." +
+                                                " Изменения не применялись.";
+                                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
+                                            rowNumber++;
+                                            continue;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        haveErrors = true;
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"ФИО добавившего пользователя\"). В Справочнике пользователей не найден пользователь с ФИО " + addUserNameVarString + "." +
+                                            " Изменения не применялись.";
+                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
+                                        rowNumber++;
+                                        continue;
+                                    }
+                                    if (userObjectList.Count() > 0)
+                                    {
+                                        changedMesMovementsDTO.AddUserId = userObjectList.FirstOrDefault().Id;
+                                        changedMesMovementsDTO.AddUserDTOFK = userObjectList.FirstOrDefault();
+                                    }
+                                }
+
+                            if (changedMesMovementsDTO.AddUserId == Guid.Empty)
+                            {
+                                changedMesMovementsDTO.AddUserId = currentUserDTO.Id;
+                                changedMesMovementsDTO.AddUserDTOFK = currentUserDTO;
+                            }
+
+                            if (!String.IsNullOrEmpty(mesParamCodeVarString))
+                            {
+                                MesParamDTO? objectForCheckMesParamCode = await _mesParamRepository.GetByCode(mesParamCodeVarString);
+                                if (objectForCheckMesParamCode == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден не найден тэг с кодом " + mesParamCodeVarString + "." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.MesParamId = objectForCheckMesParamCode.Id;
+                                changedMesMovementsDTO.MesParamDTOFK = objectForCheckMesParamCode;
+                            }
+                            else
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В режиме \"Добавить\" Код тэга не может быть пустым." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            DateTime valueTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(valueTimeVarString))
+                            {
+                                try
+                                {
+                                    valueTimeVarDateTime = DateTime.Parse(valueTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 8 (\"Время значения\"). Не удалось получить Время значения." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 8 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.ValueTime = valueTimeVarDateTime;
+                                changedMesMovementsDTO.ValueTime = changedMesMovementsDTO.ValueTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedMesMovementsDTO.ValueTime;
+                                changedMesMovementsDTO.ValueTime = changedMesMovementsDTO.ValueTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedMesMovementsDTO.ValueTime;
+                            }
+                            else
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8 (\"Время значения\"). В режиме \"Добавить\" Время значения не может быть пустым." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 8 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+
+                            decimal valueDecimal;
+                            if (!String.IsNullOrEmpty(valueVarString))
+                            {
+                                try
+                                {
+                                    valueDecimal = decimal.Parse(valueVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Значение\"). Не удалось получить Значение." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.Value = valueDecimal;
+                            }
+                            else
+                            {
+                                changedMesMovementsDTO.Value = 0;
+                            }
+
+                            if (changedMesMovementsDTO.Value < 0)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Значение\"). Значение не может быть отрицательным. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (!String.IsNullOrEmpty(sapMovementInIdVarString))
+                            {
+                                SapMovementsINDTO? objectForCheckSapMovementsINDTO = await _sapMovementsINRepository.GetById(sapMovementInIdVarString);
+                                if (objectForCheckSapMovementsINDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 10 (\"ИД записи во входной витрине SapMovementsIN\"). Не удалось найти запись с ИД "
+                                        + sapMovementInIdVarString + " в Витрине SAP \"НДО-вход\". Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 10 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.SapMovementInId = objectForCheckSapMovementsINDTO.ErpId;
+                                    changedMesMovementsDTO.SapMovementsINDTOFK = objectForCheckSapMovementsINDTO;
+                                }
+                            }
+                            else
+                            {
+                                changedMesMovementsDTO.SapMovementInId = null;
+                                changedMesMovementsDTO.SapMovementsINDTOFK = null;
+                            }
+
+                            Guid sapMovementOutIdVarGuid = Guid.Empty;
+                            if (!String.IsNullOrEmpty(sapMovementOutIdVarString))
+                            {
+                                try
+                                {
+                                    sapMovementOutIdVarGuid = Guid.Parse(sapMovementOutIdVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 11 (\"ИД записи в выходной витрине SapMovementsOUT\"). Не удалось получить ИД записи в выходной витрине SapMovementsOUT." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 11 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+
+                                SapMovementsOUTDTO? objectForCheckSapMovementsOUTDTO = await _sapMovementsOUTRepository.GetById(sapMovementOutIdVarGuid);
+                                if (objectForCheckSapMovementsOUTDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 11 (\"ИД записи в выходной витрине SapMovementsOUT\"). Не удалось найти запись с ИД "
+                                        + sapMovementOutIdVarGuid.ToString() + " в Витрине SAP \"Движения-выход\". Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 12 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.SapMovementOutId = objectForCheckSapMovementsOUTDTO.Id;
+                                    changedMesMovementsDTO.SapMovementsOUTDTOFK = objectForCheckSapMovementsOUTDTO;
+                                }
+                            }
+                            else
+                            {
+                                changedMesMovementsDTO.SapMovementOutId = null;
+                                changedMesMovementsDTO.SapMovementsOUTDTOFK = null;
+                            }
+
+                            if (String.IsNullOrEmpty(dataSourceNameVarString))
+                            {
+                                changedMesMovementsDTO.DataSourceId = null;
+                                changedMesMovementsDTO.DataSourceDTOFK = null;
+                            }
+                            else
+                            {
+                                DataSourceDTO? objectForCheckDataSourceDTO = await _dataSourceRepository.GetByName(dataSourceNameVarString);
+                                if (objectForCheckDataSourceDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 12 (\"Источник данных\"). Не удалось источник данных с наименованием "
+                                        + dataSourceNameVarString + "." + " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 12 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.DataSourceId = objectForCheckDataSourceDTO.Id;
+                                    changedMesMovementsDTO.DataSourceDTOFK = objectForCheckDataSourceDTO;
+                                }
+                            }
+
+                            if (String.IsNullOrEmpty(dataTypeNameVarString))
+                            {
+                                changedMesMovementsDTO.DataTypeId = null;
+                                changedMesMovementsDTO.DataTypeDTOFK = null;
+                            }
+                            else
+                            {
+                                DataTypeDTO? objectForCheckDataTypeDTO = await _dataTypeRepository.GetByName(dataTypeNameVarString);
+                                if (objectForCheckDataTypeDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 13 (\"Тип данных\"). Не удалось Тип данных с наименованием "
+                                        + dataTypeNameVarString + "." + " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 13 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.DataTypeId = objectForCheckDataTypeDTO.Id;
+                                    changedMesMovementsDTO.DataTypeDTOFK = objectForCheckDataTypeDTO;
+                                }
+                            }
+
+
+                            if (String.IsNullOrEmpty(reportGuidVarString))
+                            {
+                                changedMesMovementsDTO.ReportGuid = null;
+                                changedMesMovementsDTO.ReportEntityDTOFK = null;
+                            }
+                            else
+                            {
+                                Guid reportGuidVarGuid = Guid.Empty;
+                                try
+                                {
+                                    reportGuidVarGuid = Guid.Parse(reportGuidVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 14 (\"ИД Экземпляра отчёта\"). Не удалось получить ИД Экземпляра отчёта." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 14 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+
+                                ReportEntityDTO? objectForCheckReportEntityDTO = await _reportEntityRepository.GetById(reportGuidVarGuid);
+                                if (objectForCheckReportEntityDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 14 (\"ИД Экземпляра отчёта\"). Не удалось найти экземпляр отчёта." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 14 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                else
+                                {
+                                    changedMesMovementsDTO.ReportGuid = objectForCheckReportEntityDTO.Id;
+                                    changedMesMovementsDTO.ReportEntityDTOFK = objectForCheckReportEntityDTO;
+                                }
+                            }
+
+                            if (String.IsNullOrEmpty(mesGoneVarString))
+                                changedMesMovementsDTO.MesGone = false;
+                            else
+                                changedMesMovementsDTO.MesGone = mesGoneVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            DateTime mesGoneTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(mesGoneTimeVarString))
+                            {
+                                try
+                                {
+                                    mesGoneTimeVarDateTime = DateTime.Parse(mesGoneTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 16 (\"Время MES забрал\"). Не удалось получить Время MES забрал." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 16 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.MesGoneTime = mesGoneTimeVarDateTime;
+                                changedMesMovementsDTO.MesGoneTime = changedMesMovementsDTO.MesGoneTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedMesMovementsDTO.MesGoneTime;
+                                changedMesMovementsDTO.MesGoneTime = changedMesMovementsDTO.MesGoneTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedMesMovementsDTO.MesGoneTime;
+                            }
+                            else
+                                changedMesMovementsDTO.MesGoneTime = null;
+
+                            if (!((changedMesMovementsDTO.MesGone == true && changedMesMovementsDTO.MesGoneTime != null)
+                                || (changedMesMovementsDTO.MesGone != true && changedMesMovementsDTO.MesGoneTime == null)))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16 (\"Mes забрал\", \"Время MES забрал\"). Если \"Mes забрал\" равно \"Да\", то \"Время MES забрал\" должно быть заполнено."
+                                    + " Если \"Mes забрал\" равно \"Нет\" или пусто, то \"Время MES забрал\" должно быть пустым."
+                                    + " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 15, 16 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (String.IsNullOrEmpty(needWriteToSapVarString))
+                                changedMesMovementsDTO.NeedWriteToSap = false;
+                            else
+                                changedMesMovementsDTO.NeedWriteToSap = needWriteToSapVarString.ToUpper().Equals("ДА") ? true : false;
+
+                            if (String.IsNullOrEmpty(previousRecordIdVarString))
+                            {
+                                changedMesMovementsDTO.PreviousRecordId = null;
+                            }
+                            else
+                            {
+                                Guid previousRecordIdVarGuid = Guid.Empty;
+                                try
+                                {
+                                    previousRecordIdVarGuid = Guid.Parse(previousRecordIdVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 18 (\"ИД предыдущей записи\"). Не удалось получить ИД предыдущей записи." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 18 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+
+                                MesMovementsDTO? objectForCheckMesMovementsPreviousRecordDTO = await _mesMovementsRepository.GetById(previousRecordIdVarGuid);
+                                if (objectForCheckMesMovementsPreviousRecordDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 18 (\"ИД предыдущей записи\"). Не удалось найти запись в Архиве данных MesMovements." +
+                                        " Изменения не применялись";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 18 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedMesMovementsDTO.PreviousRecordId = objectForCheckMesMovementsPreviousRecordDTO.Id;
+                            }
+
+                            MesMovementsDTO? newMesMovementsDTO = await _mesMovementsRepository.Create(changedMesMovementsDTO);
+                            await _logEventRepository.ToLog<MesMovementsDTO>(oldObject: null, newObject: newMesMovementsDTO, "Добавление записи в Архив данных MesMovements", "Запись: ", _authorizationRepository);
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Добавлена запись с ИД " + newMesMovementsDTO.Id.ToString();
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, 1).Value = "OK";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 3).Value = newMesMovementsDTO.Id.ToString();
+                            worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString);
+                            await loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    case "УДАЛИТЬ":
+                        {
+                            if (String.IsNullOrEmpty(idVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Для действия \"Удалить\" ИД записи единственное необходимое поле. Не может быть пустым." +
+                                        " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            foundMesMovementsDTO = await _mesMovementsRepository.GetById(idVarGuid);
+                            if (foundMesMovementsDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Запись с ИД " + idVarGuid.ToString() + " не найдена в Архиве данных." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            var SapMovementsINListToClean = await _sapMovementsINRepository.GetListByMesMovementId(foundMesMovementsDTO.Id);
+                            if (SapMovementsINListToClean != null)
+                                if (SapMovementsINListToClean.Count() > 0)
+                                {
+                                    foreach (var SapMovementsINItemToClean in SapMovementsINListToClean)
+                                    {
+                                        await _logEventRepository.AddRecord("Изменение записи в витрине SAP Движения вход SapMovementsIN", currentUserDTO.Id,
+                                            SapMovementsINItemToClean.MesMovementId.ToString(), "<Пусто>", false, "Запись:  " + SapMovementsINItemToClean.ErpId + ": Поле: Запись в архиве данных СИР");
+                                        await _sapMovementsINRepository.CleanMesMovementId(SapMovementsINItemToClean);
+                                    }
+                                }
+
+                            var SapMovementsOUTListToClean = await _sapMovementsOUTRepository.GetListByMesMovementId(foundMesMovementsDTO.Id);
+                            if (SapMovementsOUTListToClean != null)
+                                if (SapMovementsOUTListToClean.Count() > 0)
+                                {
+                                    foreach (var SapMovementsOUTItemToClean in SapMovementsOUTListToClean)
+                                    {
+                                        await _logEventRepository.AddRecord("Изменение записи в витрине SAP Движения выход SapMovementsOUT", currentUserDTO.Id,
+                                            SapMovementsOUTItemToClean.MesMovementId.ToString(), "<Пусто>", false, "Запись:  " + SapMovementsOUTItemToClean.Id.ToString() + ": Поле: Запись в архиве данных СИР");
+                                        await _sapMovementsOUTRepository.CleanMesMovementId(SapMovementsOUTItemToClean);
+                                    }
+                                }
+
+                            var MesMovementsPreviousRecordsListToClean = await _mesMovementsRepository.GetListByPreviousRecordId(foundMesMovementsDTO.Id);
+                            if (MesMovementsPreviousRecordsListToClean != null)
+                                if (MesMovementsPreviousRecordsListToClean.Count() > 0)
+                                {
+                                    foreach (var MesMovementsPreviousRecordItemToClean in MesMovementsPreviousRecordsListToClean)
+                                    {
+                                        await _logEventRepository.AddRecord("Изменение записи в Архиве данных MesMovements", currentUserDTO.Id,
+                                            MesMovementsPreviousRecordItemToClean.PreviousRecordId.ToString(), "<Пусто>", false, "Запись:  " + MesMovementsPreviousRecordItemToClean.Id.ToString() + ": Поле: ИД предыдущей записи");
+                                        await _mesMovementsRepository.CleanPreviousRecordId(MesMovementsPreviousRecordItemToClean);
+                                    }
+                                }
+
+                            await _logEventRepository.AddRecord("Удаление записи из Архива данных MesMovements", currentUserDTO.Id, "", "", false, "Удаление записи с ИД : " + foundMesMovementsDTO.Id.ToString());
+                            await _mesMovementsRepository.Delete(foundMesMovementsDTO.Id);
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Удалена запись с ИД " + foundMesMovementsDTO.Id.ToString() + ".";
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, 1).Value = "OK";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString);
+
+                            rowNumber++;
+                            continue;
+                        }
+                    default:
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2 (\"Действие\"). Не предусмотренное значение действия = " + actionVarString + ". Для витрины НДО-выход допустимы действия: \"Добавить\", \"Изменить\", \"Удалить\". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                            rowNumber++;
+                            continue;
+                        }
+                }
+            }
+
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            await loadFromExcelPage.RefreshSate();
+
+            return haveErrors;
+        }
+
 
     }
 }

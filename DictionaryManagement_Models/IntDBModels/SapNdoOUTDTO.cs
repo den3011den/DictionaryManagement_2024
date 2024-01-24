@@ -69,7 +69,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         public override string ToString()
         {
-            return $"{TagName} {ValueTime.ToString()}";
+            return $"{Id.ToString()}";
         }
     }
 }

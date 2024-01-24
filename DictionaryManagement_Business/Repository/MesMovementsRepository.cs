@@ -324,7 +324,6 @@ namespace DictionaryManagement_Business.Repository
             return 0;
         }
 
-
         public async Task<IEnumerable<MesMovementsDTO>> GetAllByReportEntityId(Guid? reportEntityId)
         {
             if (reportEntityId != null && reportEntityId != Guid.Empty)
@@ -346,5 +345,32 @@ namespace DictionaryManagement_Business.Repository
                 return new List<MesMovementsDTO>();
         }
 
+        public async Task<IEnumerable<MesMovementsDTO>?> GetListByPreviousRecordId(Guid? idPar)
+        {
+            if ((idPar != null) && (idPar != Guid.Empty))
+            {
+                var objectListToGet = _db.MesMovements.Where(u => u.PreviousRecordId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<MesMovements>, IEnumerable<MesMovementsDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<MesMovementsDTO?> CleanMesMovementId(MesMovementsDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesMovements
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.PreviousRecordId = null;
+                _db.MesMovements.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesMovements, MesMovementsDTO>(objectToUpdate);
+            }
+            return null;
+        }
     }
 }

@@ -200,7 +200,10 @@ namespace DictionaryManagement_Models.IntDBModels
             }
         }
 
-
+        public override string ToString()
+        {
+            return $"{Id.ToString()}";
+        }
     }
 }
 

@@ -6,10 +6,12 @@ namespace DictionaryManagement_Models.IntDBModels
     public class MesMovementsDTO
     {
 
+        [ForLogAttribute(NameProperty = "поле \"ИД записи\"")]
         [Display(Name = "Ид записи")]
         [Required(ErrorMessage = "ИД обязателен")]
         public Guid Id { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Время добавления\"")]
         [Display(Name = "Время добавления")]
         [Required(ErrorMessage = "Время добавления обязательно")]
         public DateTime AddTime { get; set; } = DateTime.Now;
@@ -18,6 +20,7 @@ namespace DictionaryManagement_Models.IntDBModels
         [Required(ErrorMessage = "ИД кто добавил обязателен")]
         public Guid AddUserId { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Кто добавил\"")]
         [Display(Name = "Кто добавил")]
         [Required(ErrorMessage = "Кто добавил выбрать обязательно")]
         public UserDTO AddUserDTOFK { get; set; }
@@ -26,24 +29,29 @@ namespace DictionaryManagement_Models.IntDBModels
         [Required(ErrorMessage = "ИД тэга СИР обязателен")]
         public int MesParamId { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Тэг СИР\"")]
         [Display(Name = "Тэг СИР")]
         [Required(ErrorMessage = "Тэг СИРа обязателен")]
         public MesParamDTO MesParamDTOFK { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Время значения\"")]
         [Display(Name = "Время значения")]
         [Required(ErrorMessage = "Время значения обязательно")]
         public DateTime ValueTime { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Значение\"")]
         [Display(Name = "Значение")]
         [Required(ErrorMessage = "Значение обязательно")]
         public decimal Value { get; set; } = decimal.Zero;
 
+        [ForLogAttribute(NameProperty = "поле \"ИД записи в витрине SAP (выход)\"")]
         [Display(Name = "ИД записи в витрине SAP (выход)")]
         public Guid? SapMovementOutId { get; set; }
 
         [Display(Name = "Запись в витрине SAP (выход)")]
         public SapMovementsOUTDTO? SapMovementsOUTDTOFK { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"ИД записи в витрине SAP (вход)\"")]
         [Display(Name = "ИД записи в витрине SAP (вход)")]
         public string? SapMovementInId { get; set; }
 
@@ -53,30 +61,36 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "ИД источника данных")]
         public int? DataSourceId { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Источник данных\"")]
         [Display(Name = "Источник данных")]
         public DataSourceDTO? DataSourceDTOFK { get; set; }
 
         [Display(Name = "ИД типа данных")]
         public int? DataTypeId { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Тип данных\"")]
         [Display(Name = "Тип данных")]
         public DataTypeDTO? DataTypeDTOFK { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"ИД экземпляра отчёта\"")]
         [Display(Name = "ИД экземпляра отчёта")]
         public Guid? ReportGuid { get; set; }
 
         [Display(Name = "Экземпляр отчёта")]
         public ReportEntityDTO? ReportEntityDTOFK { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"ИД предыдущей записи\"")]
         [Display(Name = "ИД предыдущей записи")]
         public Guid? PreviousRecordId { get; set; }
 
         [Display(Name = "Предыдущая запись")]
         public MesMovementsDTO? MesMovementsDTOFK { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Ушло из СИРа в MES\"")]
         [Display(Name = "Ушло из СИРа в MES")]
         public bool? MesGone { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Время ушло из СИРа в MES\"")]
         [Display(Name = "Время ушло из СИРа в MES")]
         public DateTime? MesGoneTime { get; set; }
 
@@ -239,6 +253,11 @@ namespace DictionaryManagement_Models.IntDBModels
             {
                 NeedWriteToSapBool = value;
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{Id.ToString()}";
         }
     }
 }
