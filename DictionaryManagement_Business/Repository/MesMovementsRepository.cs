@@ -406,6 +406,36 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
+        public async Task<IEnumerable<MesMovementsDTO>?> GetListBySapMovementInId(string? idPar)
+        {
+            if (!String.IsNullOrEmpty(idPar))
+            {
+                var objectListToGet = _db.MesMovements.Where(u => u.SapMovementInId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<MesMovements>, IEnumerable<MesMovementsDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<MesMovementsDTO?> CleanSapMovementInId(MesMovementsDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesMovements
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.SapMovementInId = null;
+                objectToUpdate.SapMovementsINFK = null;
+                _db.MesMovements.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesMovements, MesMovementsDTO>(objectToUpdate);
+            }
+            return null;
+        }
+
+
         public async Task<MesMovementsDTO?> CleanSapMovementOutId(MesMovementsDTO objectToUpdateDTO)
         {
             var objectToUpdate = _db.MesMovements

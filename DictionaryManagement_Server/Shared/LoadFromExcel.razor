@@ -828,6 +828,11 @@
                             haveErrors = await _loadFromExcelRepository.SapMovementsOUTExcelFileLoad(this, worksheet, _authorizationRepository);
                             break;
                         }
+                    case "SapMovementsIN":
+                        {
+                            haveErrors = await _loadFromExcelRepository.SapMovementsINExcelFileLoad(this, worksheet, _authorizationRepository);
+                            break;
+                        }
                     case "Users":
                         {
                             haveErrors = await _loadFromExcelRepository.UsersExcelFileLoad(this, worksheet, _authorizationRepository);

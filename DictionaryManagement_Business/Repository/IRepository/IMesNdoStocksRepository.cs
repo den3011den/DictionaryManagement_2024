@@ -11,5 +11,6 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<MesNdoStocksDTO> Create(MesNdoStocksDTO objectToAddDTO);
         public Task<Int64> Delete(Int64 id);
         public Task<IEnumerable<MesNdoStocksDTO>?> GetBySapNdoOutIdList(Int64 id);
+        public Task<MesNdoStocksDTO?> CleanSapNdoOutId(MesNdoStocksDTO objectToUpdateDTO);
     }
 }

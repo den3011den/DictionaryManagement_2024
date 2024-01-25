@@ -89,7 +89,6 @@ namespace DictionaryManagement_Common
                 if ((file_name.Length - (int)maxFileNameLength) > 0)
                     file_name = file_name.Substring(file_name.Length - (int)maxFileNameLength);
             }
-
             return file_name;
         }
 

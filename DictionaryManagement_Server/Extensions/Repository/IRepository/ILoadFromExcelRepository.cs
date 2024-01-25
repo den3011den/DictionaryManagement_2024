@@ -38,6 +38,9 @@ namespace DictionaryManagement_Server.Extensions.Repository.IRepository
         public Task<bool> SapMovementsOUTExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
                 IAuthorizationRepository _authorizationRepository);
 
+        public Task<bool> SapMovementsINExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository);
+
         public Task<bool> UsersExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
                 IAuthorizationRepository _authorizationRepository);
 

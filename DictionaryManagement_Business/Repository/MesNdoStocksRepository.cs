@@ -237,5 +237,21 @@ namespace DictionaryManagement_Business.Repository
                 return new List<MesNdoStocksDTO>();
             }
         }
+
+        public async Task<MesNdoStocksDTO?> CleanSapNdoOutId(MesNdoStocksDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesNdoStocks
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.SapNdoOutId = null;
+                objectToUpdate.SapNdoOUTFK = null;
+                _db.MesNdoStocks.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesNdoStocks, MesNdoStocksDTO>(objectToUpdate);
+            }
+            return null;
+        }
     }
 }

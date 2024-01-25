@@ -2953,9 +2953,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 {
                                     foreach (var mesNdoStocksItem in mesNdoStocksList)
                                     {
-                                        await _logEventRepository.AddRecord("Удаление записи из Архива данных НДО MesNdoStocks", deletedUserId, "", "", false, "Удаление записи с ИД " + mesNdoStocksItem.Id.ToString() + ": " + mesNdoStocksItem.ToString());
-                                        await _mesNdoStocksRepository.Delete(mesNdoStocksItem.Id);
-                                        mesNdoListString = mesNdoListString + " " + mesNdoStocksItem.Id.ToString() + ", ";
+                                        await _logEventRepository.AddRecord("Изменение записи в Архиве данных НДО MesNdoStocks", deletedUserId, mesNdoStocksItem.Id.ToString(), "<Пусто>", false, "Запись: " + mesNdoStocksItem.Id.ToString() + " Поле: ИД записи в витрине SAP НДО-выход");
+                                        //await _mesNdoStocksRepository.Delete(mesNdoStocksItem.Id);
+                                        //mesNdoListString = mesNdoListString + " " + mesNdoStocksItem.Id.ToString() + ", ";
+                                        await _mesNdoStocksRepository.CleanSapNdoOutId(mesNdoStocksItem);
                                     }
                                 }
 
@@ -2965,8 +2966,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             await _sapNdoOUTRepository.Delete(foundSapNdoOUTDTO.Id);
 
                             resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Удалена запись с ИД " + foundSapNdoOUTDTO.Id.ToString() + ".";
-                            if (!String.IsNullOrEmpty(mesNdoListString))
-                                resultString = resultString + ". Также удалены связанные записи в Архиве данных НДО (MesNdoStocks) с ИД: " + mesNdoListString;
+                            //if (!String.IsNullOrEmpty(mesNdoListString))
+                            //    resultString = resultString + ". Также удалены связанные записи в Архиве данных НДО (MesNdoStocks) с ИД: " + mesNdoListString;
                             worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
                             worksheet.Cell(rowNumber, 1).Value = "OK";
                             worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
@@ -2991,7 +2992,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 }
             }
 
-            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в витрину SAP НДО-выход");
             await loadFromExcelPage.RefreshSate();
 
             return haveErrors;
@@ -3800,7 +3801,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 }
             }
 
-            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Архив данных НДО");
             await loadFromExcelPage.RefreshSate();
 
             return haveErrors;
@@ -5511,7 +5512,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 }
             }
 
-            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Архив данных");
             await loadFromExcelPage.RefreshSate();
 
             return haveErrors;
@@ -6190,7 +6191,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (sapMaterialDTO == null)
                                 {
                                     sapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.GetByShortName(sapUnitOfMeasureVarString);
-                                    if (sapMaterialDTO == null)
+                                    if (sapUnitOfMeasureDTO == null)
                                     {
                                         haveErrors = true;
                                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 26 (\"Единица измерения SAP\"). Не найдена Единица измерения SAP с наименованием или сокр.наименованием "
@@ -6465,7 +6466,609 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 }
             }
 
-            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в Справочник пользователей");
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в витрину SAP Движения-выход");
+            await loadFromExcelPage.RefreshSate();
+
+            return haveErrors;
+        }
+
+
+
+        public async Task<bool> SapMovementsINExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+                IAuthorizationRepository _authorizationRepository)
+        {
+            bool haveErrors = false;
+
+            loadFromExcelPage.console.Log($"Лист " + worksheet.Name + " загружен в память");
+            loadFromExcelPage.console.Log($"Начало загрузки данных листа " + worksheet.Name + " в витрину SAP Движения-вход");
+            await loadFromExcelPage.RefreshSate();
+
+            int rowNumber = 9;
+            int resultColumnNumber = 25;
+
+            bool isEmptyString = false;
+
+            UserDTO currentUserDTO = await _authorizationRepository.GetCurrentUserDTO();
+
+            while (isEmptyString == false)
+            {
+
+                worksheet.Cell(rowNumber, 1).Value = "";
+                worksheet.Cell(rowNumber, 2).Value = "";
+                worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
+                worksheet.Row(rowNumber).Style.Font.SetBold(false);
+                worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
+
+                var rowVar = worksheet.Row(rowNumber);
+
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string addTimeVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string sapDocumentEnterTimeVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string batchNoVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string sapMaterialCodeVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string sapEquipmentErpPlantIdSourceVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
+                string sapEquipmentErpIdSourceVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
+                string sapEquipmentIsWarehouseSourceVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
+                string sapEquipmentErpPlantIdDestVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
+                string sapEquipmentErpIdDestVarString = rowVar.Cell(12).CachedValue.ToString().Trim();
+                string sapEquipmentIsWarehouseDestVarString = rowVar.Cell(13).CachedValue.ToString().Trim();
+                string valueTimeVarString = rowVar.Cell(14).CachedValue.ToString().Trim();
+                string valueVarString = rowVar.Cell(15).CachedValue.ToString().Trim();
+                string sapUnitOfMeasureVarString = rowVar.Cell(16).CachedValue.ToString().Trim();
+                string isStornoVarString = rowVar.Cell(17).CachedValue.ToString().Trim();
+                string mesGoneVarString = rowVar.Cell(18).CachedValue.ToString().Trim();
+                string mesGoneTimeVarString = rowVar.Cell(19).CachedValue.ToString().Trim();
+                string mesErrorVarString = rowVar.Cell(20).CachedValue.ToString().Trim();
+                string mesErrorMessageVarString = rowVar.Cell(21).CachedValue.ToString().Trim();
+                string mesMovementsIdVarString = rowVar.Cell(22).CachedValue.ToString().Trim();
+                string previousRecordIdVarString = rowVar.Cell(23).CachedValue.ToString().Trim();
+                string moveTypeVarString = rowVar.Cell(24).CachedValue.ToString().Trim();
+
+                string resultString = "";
+
+                if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(addTimeVarString) && String.IsNullOrEmpty(sapDocumentEnterTimeVarString) && String.IsNullOrEmpty(batchNoVarString)
+                        && String.IsNullOrEmpty(sapMaterialCodeVarString) && String.IsNullOrEmpty(sapEquipmentErpPlantIdSourceVarString) && String.IsNullOrEmpty(sapEquipmentErpIdSourceVarString) && String.IsNullOrEmpty(sapEquipmentIsWarehouseSourceVarString)
+                        && String.IsNullOrEmpty(sapEquipmentErpPlantIdDestVarString) && String.IsNullOrEmpty(sapEquipmentErpIdDestVarString) && String.IsNullOrEmpty(sapEquipmentIsWarehouseDestVarString) && String.IsNullOrEmpty(valueTimeVarString)
+                        && String.IsNullOrEmpty(sapUnitOfMeasureVarString) && String.IsNullOrEmpty(isStornoVarString) && String.IsNullOrEmpty(mesGoneVarString) && String.IsNullOrEmpty(mesGoneTimeVarString)
+                        && String.IsNullOrEmpty(mesErrorVarString) && String.IsNullOrEmpty(mesErrorMessageVarString) && String.IsNullOrEmpty(mesMovementsIdVarString) && String.IsNullOrEmpty(previousRecordIdVarString)
+                        && String.IsNullOrEmpty(moveTypeVarString))
+                {
+                    isEmptyString = true;
+                    continue;
+                }
+
+                loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
+                await loadFromExcelPage.RefreshSate();
+
+                SapMovementsINDTO? foundSapMovementsINDTO = null;
+                SapMovementsINDTO changedSapMovementsINDTO = new SapMovementsINDTO();
+
+                string warningString = "";
+
+                actionVarString = actionVarString.Trim().ToUpper();
+
+                switch (actionVarString)
+                {
+                    case "ИЗМЕНИТЬ":
+                    case "ДОБАВИТЬ":
+                        {
+                            if (actionVarString == "ИЗМЕНИТЬ")
+                            {
+                                if (String.IsNullOrEmpty(idVarString))
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). В режиме добавления ИД записи обязательное поле. Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                foundSapMovementsINDTO = await _sapMovementsINRepository.GetById(idVarString);
+                                if (foundSapMovementsINDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Не найдена запись с ИД: " + idVarString + ". Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapMovementsINDTO.ErpId = idVarString;
+                            }
+                            else
+                            {
+                                if (!String.IsNullOrEmpty(idVarString))
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). В режиме изменения ИД записи должен быть пустым. Заполнится автоматически. Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            DateTime addTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(addTimeVarString))
+                            {
+                                try
+                                {
+                                    addTimeVarDateTime = DateTime.Parse(addTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Время добавления записи\"). Не удалось получить Время добавления записи." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapMovementsINDTO.AddTime = addTimeVarDateTime;
+                            }
+                            else
+                            {
+                                if (actionVarString == "ИЗМЕНИТЬ")
+                                {
+                                    changedSapMovementsINDTO.AddTime = foundSapMovementsINDTO.AddTime;
+                                }
+                                else
+                                {
+                                    changedSapMovementsINDTO.AddTime = DateTime.Now;
+                                }
+                            }
+                            changedSapMovementsINDTO.AddTime = changedSapMovementsINDTO.AddTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapMovementsINDTO.AddTime;
+                            changedSapMovementsINDTO.AddTime = changedSapMovementsINDTO.AddTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapMovementsINDTO.AddTime;
+
+                            DateTime sapDocumentEnterTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(sapDocumentEnterTimeVarString))
+                            {
+                                try
+                                {
+                                    sapDocumentEnterTimeVarDateTime = DateTime.Parse(sapDocumentEnterTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"Время ввода документа в SAP\"). Не удалось получить Время ввода документа в SAP." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapMovementsINDTO.SapDocumentEnterTime = sapDocumentEnterTimeVarDateTime;
+                            }
+                            else
+                            {
+                                if (actionVarString == "ИЗМЕНИТЬ")
+                                {
+                                    changedSapMovementsINDTO.SapDocumentEnterTime = foundSapMovementsINDTO.SapDocumentEnterTime;
+                                }
+                                else
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"Время ввода документа в SAP\"). В режиме добавления не может быть пустым." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+                            changedSapMovementsINDTO.SapDocumentEnterTime = changedSapMovementsINDTO.SapDocumentEnterTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapMovementsINDTO.SapDocumentEnterTime;
+                            changedSapMovementsINDTO.SapDocumentEnterTime = changedSapMovementsINDTO.SapDocumentEnterTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapMovementsINDTO.SapDocumentEnterTime;
+
+                            changedSapMovementsINDTO.BatchNo = batchNoVarString;
+
+                            if (!String.IsNullOrEmpty(sapMaterialCodeVarString))
+                            {
+                                SapMaterialDTO? sapMaterialDTO = await _sapMaterialRepository.GetByCode(sapMaterialCodeVarString);
+                                if (sapMaterialDTO == null)
+                                {
+                                    warningString = warningString + " Внимание! Материал SAP с кодом " + sapMaterialCodeVarString + " не найден в Справочнике Материалов SAP!";
+                                }
+                                changedSapMovementsINDTO.SapMaterialCode = sapMaterialCodeVarString;
+                            }
+                            else
+                            {
+                                if (actionVarString == "ИЗМЕНИТЬ")
+                                {
+                                    changedSapMovementsINDTO.SapMaterialCode = foundSapMovementsINDTO.SapMaterialCode;
+                                }
+                                else
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код Материала SAP\"). В режиме добавления не может быть пустым." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            if (!String.IsNullOrEmpty(sapEquipmentErpPlantIdSourceVarString + sapEquipmentErpIdSourceVarString))
+                            {
+                                SapEquipmentDTO? sapEquipmentSourceDTO = await _sapEquipmentRepository.GetByResource(sapEquipmentErpPlantIdSourceVarString, sapEquipmentErpIdSourceVarString);
+                                if (sapEquipmentSourceDTO == null)
+                                {
+                                    warningString = warningString + " Внимание! Ресурс SAP \"" + sapEquipmentErpPlantIdSourceVarString + " | "
+                                        + sapEquipmentErpIdSourceVarString + " не найден в Справочнике ресурсов SAP!";
+                                }
+                                changedSapMovementsINDTO.ErpPlantIdSource = sapEquipmentErpPlantIdSourceVarString;
+                                changedSapMovementsINDTO.ErpIdSource = sapEquipmentErpIdSourceVarString;
+                            }
+                            else
+                            {
+                                if (actionVarString == "ИЗМЕНИТЬ")
+                                {
+                                    changedSapMovementsINDTO.ErpPlantIdSource = foundSapMovementsINDTO.ErpPlantIdSource;
+                                    changedSapMovementsINDTO.ErpIdSource = foundSapMovementsINDTO.ErpIdSource;
+                                }
+                                else
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Код завода ресурса-источника SAP\",\"Код ресурса/склада ресурса-источника SAP\"). В режиме добавления не может быть пустым." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 8, 9 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+                            if (!String.IsNullOrEmpty(sapEquipmentIsWarehouseSourceVarString))
+                                changedSapMovementsINDTO.IsWarehouseSource = sapEquipmentIsWarehouseSourceVarString.ToUpper() == "ДА" ? true : false;
+                            else
+                                changedSapMovementsINDTO.IsWarehouseSource = false;
+
+                            if (!String.IsNullOrEmpty(sapEquipmentErpPlantIdDestVarString + sapEquipmentErpIdDestVarString))
+                            {
+                                SapEquipmentDTO? sapEquipmentDestDTO = await _sapEquipmentRepository.GetByResource(sapEquipmentErpPlantIdDestVarString, sapEquipmentErpIdDestVarString);
+                                if (sapEquipmentDestDTO == null)
+                                {
+                                    warningString = warningString + " Внимание! Ресурс SAP \"" + sapEquipmentErpPlantIdDestVarString + " | "
+                                        + sapEquipmentErpIdDestVarString + " не найден в Справочнике ресурсов SAP!";
+                                }
+                                changedSapMovementsINDTO.ErpPlantIdDest = sapEquipmentErpPlantIdDestVarString;
+                                changedSapMovementsINDTO.ErpIdDest = sapEquipmentErpIdDestVarString;
+                            }
+                            else
+                            {
+                                if (actionVarString == "ИЗМЕНИТЬ")
+                                {
+                                    changedSapMovementsINDTO.ErpPlantIdDest = foundSapMovementsINDTO.ErpPlantIdDest;
+                                    changedSapMovementsINDTO.ErpIdDest = foundSapMovementsINDTO.ErpIdDest;
+                                }
+                                else
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12 (\"Код завода ресурса-приёмника SAP\",\"Код ресурса/склада ресурса-приёмника SAP\"). В режиме добавления не может быть пустым." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 11, 12 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+                            if (!String.IsNullOrEmpty(sapEquipmentIsWarehouseDestVarString))
+                                changedSapMovementsINDTO.IsWarehouseDest = sapEquipmentIsWarehouseDestVarString.ToUpper() == "ДА" ? true : false;
+                            else
+                                changedSapMovementsINDTO.IsWarehouseDest = false;
+
+                            DateTime valueTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(valueTimeVarString))
+                            {
+                                try
+                                {
+                                    valueTimeVarDateTime = DateTime.Parse(valueTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 14 (\"Время значения\"). Не удалось получить Время значения." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 14 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapMovementsINDTO.SapDocumentPostTime = valueTimeVarDateTime;
+                            }
+                            else
+                            {
+                                if (actionVarString == "ИЗМЕНИТЬ")
+                                    changedSapMovementsINDTO.SapDocumentPostTime = foundSapMovementsINDTO.SapDocumentPostTime;
+                                else
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 14 (\"Время значения\"). В режиме добавления записи не может быть пустым." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 14 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+                            changedSapMovementsINDTO.SapDocumentPostTime = changedSapMovementsINDTO.SapDocumentPostTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapMovementsINDTO.SapDocumentPostTime;
+                            changedSapMovementsINDTO.SapDocumentPostTime = changedSapMovementsINDTO.SapDocumentPostTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapMovementsINDTO.SapDocumentPostTime;
+
+                            decimal valueDecimal;
+                            if (!String.IsNullOrEmpty(valueVarString))
+                            {
+                                try
+                                {
+                                    valueDecimal = decimal.Parse(valueVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 15 (\"Значение\"). Не удалось получить Значение." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 15 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapMovementsINDTO.Value = valueDecimal;
+                            }
+                            else
+                                changedSapMovementsINDTO.Value = 0;
+
+
+                            SapUnitOfMeasureDTO? sapUnitOfMeasureDTO = null;
+                            if (!String.IsNullOrEmpty(sapUnitOfMeasureVarString))
+                            {
+                                sapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.GetByName(sapUnitOfMeasureVarString);
+                                if (sapUnitOfMeasureDTO == null)
+                                {
+                                    sapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.GetByShortName(sapUnitOfMeasureVarString);
+                                    if (sapUnitOfMeasureDTO == null)
+                                    {
+                                        warningString = warningString + " Ед.изм. SAP с наименованием \"" + sapUnitOfMeasureVarString + "\" не найдена в Справочнике единиц измерения SAP.";
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (actionVarString == "ИЗМЕНИТЬ")
+                                {
+                                    changedSapMovementsINDTO.SapUnitOfMeasure = foundSapMovementsINDTO.SapUnitOfMeasure;
+                                }
+                                else
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 16 (\"Единица измерения SAP\"). В режиме добавления необходимо обязательно указать Единицу измерения SAP." +
+                                        " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 16 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            if (!String.IsNullOrEmpty(isStornoVarString))
+                                changedSapMovementsINDTO.IsStorno = isStornoVarString.ToUpper() == "ДА" ? true : false;
+                            else
+                                changedSapMovementsINDTO.IsStorno = false;
+
+                            if (!String.IsNullOrEmpty(mesGoneVarString))
+                                changedSapMovementsINDTO.MesGone = mesGoneVarString.ToUpper() == "ДА" ? true : false;
+                            else
+                                changedSapMovementsINDTO.MesGone = false;
+
+                            DateTime mesGoneTimeVarDateTime;
+                            if (!String.IsNullOrEmpty(mesGoneTimeVarString))
+                            {
+                                try
+                                {
+                                    mesGoneTimeVarDateTime = DateTime.Parse(mesGoneTimeVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 19 (\"Время MES забрал\"). Не удалось получить Время MES забрал." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 19 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapMovementsINDTO.MesGoneTime = mesGoneTimeVarDateTime;
+                                changedSapMovementsINDTO.MesGoneTime = changedSapMovementsINDTO.MesGoneTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue : changedSapMovementsINDTO.MesGoneTime;
+                                changedSapMovementsINDTO.MesGoneTime = changedSapMovementsINDTO.MesGoneTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue ? (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue : changedSapMovementsINDTO.MesGoneTime;
+                            }
+                            else
+                            {
+                                changedSapMovementsINDTO.MesGoneTime = null;
+                            }
+
+                            if (!((changedSapMovementsINDTO.MesGone == true && changedSapMovementsINDTO.MesGoneTime != null)
+                                    || (changedSapMovementsINDTO.MesGone != true && changedSapMovementsINDTO.MesGoneTime == null)))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 18, 19 (\"MES забрал\", \"Время MES забрал\"). Если \"MES забрал\" равно \"Да\", то \"Время MES забрал\" должно быть заполнено."
+                                    + " Если \"MES забрал\" равно \"Нет\" или пусто, то \"Время MES забрал\" должно быть пустым."
+                                    + " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 18, 19 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            if (!String.IsNullOrEmpty(mesErrorVarString))
+                                changedSapMovementsINDTO.MesError = mesErrorVarString.ToUpper() == "ДА" ? true : false;
+                            else
+                                changedSapMovementsINDTO.MesError = false;
+
+                            changedSapMovementsINDTO.MesErrorMessage = mesErrorMessageVarString;
+
+                            MesMovementsDTO? mesMovementsDTO = null;
+                            if (!String.IsNullOrEmpty(mesMovementsIdVarString))
+                            {
+                                Guid mesMovementsIdVarGuid = Guid.Empty;
+                                try
+                                {
+                                    mesMovementsIdVarGuid = Guid.Parse(mesMovementsIdVarString);
+                                }
+                                catch (Exception ex)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 22 (\"ИД записи в Архиве данных (MesMovements)\"). Не удалось получить ИД записи в Архиве данных (MesMovements)." +
+                                        " Изменения не применялись. Сообщение ошибки: " + ex.Message;
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 22 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+
+                                mesMovementsDTO = await _mesMovementsRepository.GetById(mesMovementsIdVarGuid);
+                                if (mesMovementsDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 22 (\"ИД записи в Архиве данных (MesMovements)\"). Не найдена запись в Архиве данных (MesMovements) с ИД "
+                                        + mesMovementsIdVarGuid.ToString() + "." + " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 22 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            if (mesMovementsDTO == null)
+                            {
+                                changedSapMovementsINDTO.MesMovementId = null;
+                                changedSapMovementsINDTO.MesMovementDTOFK = null;
+                            }
+                            else
+                            {
+                                changedSapMovementsINDTO.MesMovementId = mesMovementsDTO.Id;
+                                changedSapMovementsINDTO.MesMovementDTOFK = mesMovementsDTO;
+                            }
+
+                            SapMovementsINDTO? sapMovementsINPreviousRecordDTO = null;
+                            if (!String.IsNullOrEmpty(previousRecordIdVarString))
+                            {
+                                sapMovementsINPreviousRecordDTO = await _sapMovementsINRepository.GetById(previousRecordIdVarString);
+                                if (sapMovementsINPreviousRecordDTO == null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 23 (\"ИД записи предыдущей записи\"). Не найдена запись в витрине SAP Движения-вход (SapMovementsIN) с ИД "
+                                        + previousRecordIdVarString + "." + " Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 23 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                            }
+
+                            if (sapMovementsINPreviousRecordDTO == null)
+                            {
+                                changedSapMovementsINDTO.PreviousErpId = null;
+                                changedSapMovementsINDTO.PreviousRecordDTOFK = null;
+                            }
+                            else
+                            {
+                                changedSapMovementsINDTO.PreviousErpId = sapMovementsINPreviousRecordDTO.ErpId;
+                                changedSapMovementsINDTO.PreviousRecordDTOFK = sapMovementsINPreviousRecordDTO;
+                            }
+
+                            if (actionVarString == "ИЗМЕНИТЬ")
+                            {
+                                await _sapMovementsINRepository.Update(changedSapMovementsINDTO);
+                                await _logEventRepository.ToLog<SapMovementsINDTO>(oldObject: foundSapMovementsINDTO, newObject: changedSapMovementsINDTO
+                                , "Изменение записи в витрине SAP Движения вход SapMovementsIN", "Запись: ", _authorizationRepository);
+                                resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, 1).Value = "ОК";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                                loadFromExcelPage.console.Log(resultString);
+                            }
+                            else // ДОБАВИТЬ
+                            {
+                                SapMovementsINDTO? newSapMovementsINDTO = await _sapMovementsINRepository.Create(changedSapMovementsINDTO);
+                                await _logEventRepository.ToLog<SapMovementsINDTO>(oldObject: null, newObject: newSapMovementsINDTO,
+                                    "Добавление записи в витрину SAP Движения вход SapMovementsIN", "Запись: ", _authorizationRepository);
+                                resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Добавлена запись с ИД " + newSapMovementsINDTO.ErpId;
+                                worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                                worksheet.Cell(rowNumber, 1).Value = "OK";
+                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 3).Value = newSapMovementsINDTO.ErpId;
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                                loadFromExcelPage.console.Log(resultString);
+                            }
+                            await loadFromExcelPage.RefreshSate();
+                            rowNumber++;
+                            continue;
+                        }
+                    case "УДАЛИТЬ":
+                        {
+                            if (String.IsNullOrEmpty(idVarString))
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Для действия \"Удалить\" ИД записи единственное необходимое поле. Не может быть пустым." +
+                                        " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            foundSapMovementsINDTO = await _sapMovementsINRepository.GetById(idVarString);
+                            if (foundSapMovementsINDTO == null)
+                            {
+                                haveErrors = true;
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Запись с ИД " + idVarString + " не найдена в витрине SAP Движения-вход." +
+                                    " Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                rowNumber++;
+                                continue;
+                            }
+
+                            var mesMovementsListToClean = await _mesMovementsRepository.GetListBySapMovementInId(foundSapMovementsINDTO.ErpId);
+                            if (mesMovementsListToClean != null)
+                                if (mesMovementsListToClean.Count() > 0)
+                                {
+                                    foreach (var mesMovementsItemToClean in mesMovementsListToClean)
+                                    {
+                                        await _logEventRepository.AddRecord("Изменение записи в Архиве данных MesMovements", currentUserDTO.Id,
+                                            mesMovementsItemToClean.SapMovementInId, "<Пусто>", false, "Запись:  " + mesMovementsItemToClean.Id.ToString() + ": Поле: ИД записи в витрине SAP (Движения-вход)");
+                                        await _mesMovementsRepository.CleanSapMovementInId(mesMovementsItemToClean);
+                                    }
+                                }
+
+                            var sapMovementsINPreviousRecordsListToClean = await _sapMovementsINRepository.GetListByPreviousRecordId(foundSapMovementsINDTO.ErpId);
+                            if (sapMovementsINPreviousRecordsListToClean != null)
+                                if (sapMovementsINPreviousRecordsListToClean.Count() > 0)
+                                {
+                                    foreach (var sapMovementsINPreviousRecordItemToClean in sapMovementsINPreviousRecordsListToClean)
+                                    {
+                                        await _logEventRepository.AddRecord("Изменение записи в витрине SAP Движения вход SapMovementsIN", currentUserDTO.Id,
+                                            sapMovementsINPreviousRecordItemToClean.PreviousErpId, "<Пусто>", false, "Запись:  " + sapMovementsINPreviousRecordItemToClean.ErpId + ": Поле: ИД предыдущей записи");
+                                        await _sapMovementsINRepository.CleanPreviousRecordId(sapMovementsINPreviousRecordItemToClean);
+                                    }
+                                }
+
+                            await _logEventRepository.AddRecord("Удаление записи из витрины SAP Движения вход SapMovementsIN", currentUserDTO.Id, "", "", false, "Удаление записи с ИД : " + foundSapMovementsINDTO.ErpId);
+                            await _sapMovementsINRepository.Delete(foundSapMovementsINDTO.ErpId);
+
+                            resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Удалена запись с ИД " + foundSapMovementsINDTO.ErpId + ".";
+                            worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
+                            worksheet.Cell(rowNumber, 1).Value = "OK";
+                            worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                            worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                            worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                            loadFromExcelPage.console.Log(resultString);
+
+                            rowNumber++;
+                            continue;
+                        }
+                    default:
+                        {
+                            haveErrors = true;
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 2 (\"Действие\"). Не предусмотренное значение действия = " + actionVarString + ". Для витрины НДО-выход допустимы действия: \"Добавить\", \"Изменить\", \"Удалить\". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                            rowNumber++;
+                            continue;
+                        }
+                }
+            }
+
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа " + worksheet.Name + " в витрину SAP Движения-вход");
             await loadFromExcelPage.RefreshSate();
 
             return haveErrors;
