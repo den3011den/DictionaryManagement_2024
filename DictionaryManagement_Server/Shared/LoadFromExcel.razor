@@ -7,6 +7,7 @@
 @using DictionaryManagement_Models.IntDBModels
 @using ClosedXML.Excel;
 @using DictionaryManagement_Server.Extensions.Repository.IRepository
+@using static DictionaryManagement_Common.SD
 
 @inject IJSRuntime _jsRuntime
 
@@ -21,7 +22,7 @@
 @inject DialogService _dialogService
 
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -112,7 +113,7 @@
                         </RadzenStack>
                     </RadzenRow>
                 </RadzenTabsItem>
-                <RadzenTabsItem Text="Загрузить данные из Excel">
+                <RadzenTabsItem Text="Загрузить данные из Excel" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                     <RadzenRow Gap="1rem">
                         <RadzenStack>
                             <RadzenCard Style="width: 100%;">
@@ -229,7 +230,7 @@
     public bool haveChanges = false;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     private string Title { get; set; } = "Загрузка данных из Excel";
 
@@ -238,7 +239,7 @@
     DelegateHandler? delegateHandler;
     public async Task RegisterHandler(DelegateHandler deleg)
     {
-        delegateHandler = deleg;        
+        delegateHandler = deleg;
     }
 
     public async Task RefreshSate()
@@ -260,8 +261,8 @@
         await Task.Delay(1);
         await _jsRuntime.ToastrWarning(warningStr);
     }
-     
-    
+
+
     public delegate Task ShowSwalDelegateHandler(string swalMode, string swalMessage);
     ShowSwalDelegateHandler? showSwalDelegateHandler;
     public async Task RegisterHandler(ShowSwalDelegateHandler deleg)
@@ -272,7 +273,7 @@
     public async Task ShowSwal(string swalMode, string swalMessage)
     {
         await Task.Delay(1);
-        await _jsRuntime.InvokeVoidAsync("ShowSwal", swalMode, swalMessage);        
+        await _jsRuntime.InvokeVoidAsync("ShowSwal", swalMode, swalMessage);
     }
 
 
@@ -280,165 +281,160 @@
     {
         await base.OnInitializedAsync();
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        IsLoading = true;
+        StateHasChanged();
+
+        Title = "Загрузка данных из Excel";
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName))
         {
-            IsLoading = true;
-            StateHasChanged();
-
-            Title = "Загрузка данных из Excel";
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в справочник Материалы SAP";
-                objectName = "SapMaterial";            }
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в справочник Материалы MES";
-                objectName = "MesMaterial";
-            }
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в справочник Ресурсов SAP";
-                objectName = "SapEquipment";
-            }
-
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesParamLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в справочник Тэгов СИР";
-                objectName = "MesParam";
-            }
-
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в Архив данных НДО (MesNdoStocks)";
-                objectName = "MesNdoStocks";
-                MesNdoStocksListDTO = (IEnumerable<MesNdoStocksDTO>?) DataList;
-            }
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в витрину SAP НДО-выход (SapNdoOUT)";
-                objectName = "SapNdoOUT";
-                SapNdoOUTListDTO = (IEnumerable<SapNdoOUTDTO>?)DataList;
-            }
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в Архив данных (MesMovements)";
-                objectName = "MesMovements";
-                MesMovementsListDTO = (IEnumerable<MesMovementsDTO>?)DataList;
-            }
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в витрину SAP Движения-выход (SapMovementsOUT)";
-                objectName = "SapMovementsOUT";
-                SapMovementsOUTListDTO = (IEnumerable<SapMovementsOUTDTO>?)DataList;
-            }
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в витрину SAP Движения-вход (SapMovementsIN)";
-                objectName = "SapMovementsIN";
-                SapMovementsINListDTO = (IEnumerable<SapMovementsINDTO>?)DataList;
-            }
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.UsersLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в Справочник пользователей (User)";
-                objectName = "Users";
-                UserListDTO = (IEnumerable<UserDTO>?)DataList;
-            }
-
-            if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.ADGroupsLoadFromExcelReportTemplateTypeNameSettingName))
-            {
-                Title = "Загрузка данных из Excel в Справочник групп AD (ADGroup)";
-                objectName = "ADGroups";
-                ADGroupListDTO = (IEnumerable<ADGroupDTO>?)DataList;
-            }
-
-            foundActiveReportTemplateFile = false;
-
-            ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportUploadPathSettingName);
-            if (ActiveSettingDTO != null)
-                reportUploadPath = ActiveSettingDTO.Value.Trim();
-            else
-                reportUploadPath = "";
-
-            ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportDownloadPathSettingName);
-            if (ActiveSettingDTO != null)
-                reportDownloadPath = ActiveSettingDTO.Value.Trim();
-            else
-                reportDownloadPath = "";
-
-            ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName);
-            if (ActiveSettingDTO != null)
-                reportTemplatePath = ActiveSettingDTO.Value.Trim();
-            else
-                reportTemplatePath = "";
-
-            ActiveSettingDTO = await _settingsRepository.GetByName(SD.TempFilePathSettingName);
-            if (ActiveSettingDTO != null)
-                reportTempPath = ActiveSettingDTO.Value.Trim();
-            else
-                reportTempPath = "";
-
-            fileDownloadFullPath = "";
-            fileUploadFullPath = "";
-            fileTemplateFullPath = "";
-
-            ActiveSettingDTO = await _settingsRepository.GetByName(LoadFromExcelReportTemplateTypeNameSettingName);
-
-            if (ActiveSettingDTO != null)
-                reportTemplateTypeName = ActiveSettingDTO.Value.Trim();
-            else
-                reportTemplateTypeName = "";
-
-            ActiveReportTemplateTypeDTO = await _reportTemplateTypeRepository.GetByName(reportTemplateTypeName);
-
-            if (ActiveReportTemplateTypeDTO != null)
-            {
-                ActiveReportTemplateDTO = await _reportTemplateRepository.GetByReportTemplateTypeId(ActiveReportTemplateTypeDTO.Id);
-            }
-            else
-            {
-                ActiveReportTemplateDTO = null;
-            }
-
-            if (ActiveReportTemplateDTO != null)
-            {
-                fileTemplateFullPath = reportTemplatePath + ActiveReportTemplateDTO.TemplateFileName;
-            }
-
-            if (System.IO.File.Exists(fileTemplateFullPath))
-                foundActiveReportTemplateFile = true;
-
-            IsLoading = false;
-            IsAdmin = true;
-            StateHasChanged();                        
+            Title = "Загрузка данных из Excel в справочник Материалы SAP";
+            objectName = "SapMaterial";
         }
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в справочник Материалы MES";
+            objectName = "MesMaterial";
+        }
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в справочник Ресурсов SAP";
+            objectName = "SapEquipment";
+        }
+
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesParamLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в справочник Тэгов СИР";
+            objectName = "MesParam";
+        }
+
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в Архив данных НДО (MesNdoStocks)";
+            objectName = "MesNdoStocks";
+            MesNdoStocksListDTO = (IEnumerable<MesNdoStocksDTO>?)DataList;
+        }
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в витрину SAP НДО-выход (SapNdoOUT)";
+            objectName = "SapNdoOUT";
+            SapNdoOUTListDTO = (IEnumerable<SapNdoOUTDTO>?)DataList;
+        }
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в Архив данных (MesMovements)";
+            objectName = "MesMovements";
+            MesMovementsListDTO = (IEnumerable<MesMovementsDTO>?)DataList;
+        }
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в витрину SAP Движения-выход (SapMovementsOUT)";
+            objectName = "SapMovementsOUT";
+            SapMovementsOUTListDTO = (IEnumerable<SapMovementsOUTDTO>?)DataList;
+        }
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в витрину SAP Движения-вход (SapMovementsIN)";
+            objectName = "SapMovementsIN";
+            SapMovementsINListDTO = (IEnumerable<SapMovementsINDTO>?)DataList;
+        }
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.UsersLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в Справочник пользователей (User)";
+            objectName = "Users";
+            UserListDTO = (IEnumerable<UserDTO>?)DataList;
+        }
+
+        if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.ADGroupsLoadFromExcelReportTemplateTypeNameSettingName))
+        {
+            Title = "Загрузка данных из Excel в Справочник групп AD (ADGroup)";
+            objectName = "ADGroups";
+            ADGroupListDTO = (IEnumerable<ADGroupDTO>?)DataList;
+        }
+
+        foundActiveReportTemplateFile = false;
+
+        ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportUploadPathSettingName);
+        if (ActiveSettingDTO != null)
+            reportUploadPath = ActiveSettingDTO.Value.Trim();
+        else
+            reportUploadPath = "";
+
+        ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportDownloadPathSettingName);
+        if (ActiveSettingDTO != null)
+            reportDownloadPath = ActiveSettingDTO.Value.Trim();
+        else
+            reportDownloadPath = "";
+
+        ActiveSettingDTO = await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName);
+        if (ActiveSettingDTO != null)
+            reportTemplatePath = ActiveSettingDTO.Value.Trim();
+        else
+            reportTemplatePath = "";
+
+        ActiveSettingDTO = await _settingsRepository.GetByName(SD.TempFilePathSettingName);
+        if (ActiveSettingDTO != null)
+            reportTempPath = ActiveSettingDTO.Value.Trim();
+        else
+            reportTempPath = "";
+
+        fileDownloadFullPath = "";
+        fileUploadFullPath = "";
+        fileTemplateFullPath = "";
+
+        ActiveSettingDTO = await _settingsRepository.GetByName(LoadFromExcelReportTemplateTypeNameSettingName);
+
+        if (ActiveSettingDTO != null)
+            reportTemplateTypeName = ActiveSettingDTO.Value.Trim();
+        else
+            reportTemplateTypeName = "";
+
+        ActiveReportTemplateTypeDTO = await _reportTemplateTypeRepository.GetByName(reportTemplateTypeName);
+
+        if (ActiveReportTemplateTypeDTO != null)
+        {
+            ActiveReportTemplateDTO = await _reportTemplateRepository.GetByReportTemplateTypeId(ActiveReportTemplateTypeDTO.Id);
+        }
+        else
+        {
+            ActiveReportTemplateDTO = null;
+        }
+
+        if (ActiveReportTemplateDTO != null)
+        {
+            fileTemplateFullPath = reportTemplatePath + ActiveReportTemplateDTO.TemplateFileName;
+        }
+
+        if (System.IO.File.Exists(fileTemplateFullPath))
+            foundActiveReportTemplateFile = true;
+
+        IsLoading = false;        
+        StateHasChanged();
     }
 
     async Task ReportTemplateDownloadFile(Guid id)
     {
-        reportTemplateDownloadFileBusyFlag = true;        
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-        {
-            IsAdmin = true;
+        reportTemplateDownloadFileBusyFlag = true;
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {            
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportTemplateFile/" + id.ToString(), "_blank");
         }
-        reportTemplateDownloadFileBusyFlag = false;       
+        reportTemplateDownloadFileBusyFlag = false;
     }
 
     async Task ReportTemplateDownloadFileWithData(Guid id)
     {
         reportTemplateDownloadFileWithDataBusyFlag = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-
-            IsAdmin = true;
             reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение шаблона файла)";
 
             await Task.Delay(200);
@@ -449,17 +445,17 @@
             try
             {
                 using var workbook = new XLWorkbook(fileTemplateFullPath);
-                {                    
+                {
                     var worksheet = workbook.Worksheet(objectName);
 
                     string filename = "";
 
-                    switch(objectName)
+                    switch (objectName)
                     {
-                        case "SapMaterial" :
+                        case "SapMaterial":
                             {
                                 filename = await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet);
-                                break; 
+                                break;
                             }
                         case "MesMaterial":
                             {
@@ -522,7 +518,7 @@
                             {
                                 if (workbook != null)
                                     workbook.Dispose();
-                                throw new Exception("Не предусмотренное имя листа " + objectName);                                
+                                throw new Exception("Не предусмотренное имя листа " + objectName);
                             }
                     }
 
@@ -575,10 +571,8 @@
             await Task.Delay(1);
             await InvokeAsync(StateHasChanged);
 
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-            {
-                IsAdmin = true;
-
+            if (IsAdmin == AdminMode.IsAdmin)
+            {                
                 Guid reportEntityId = Guid.NewGuid();
                 console.Log($"Загрузка файла на сервер");
                 try
@@ -673,8 +667,8 @@
 
                 if (!objectName.Equals("MesParam"))
                 {
-                    if(workbook.Worksheets.Count()>1)
-                    {                        
+                    if (workbook.Worksheets.Count() > 1)
+                    {
                         bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Загрузка из Excel", "В загружаемом Excel-файле есть другие листы помимо " + objectName + ". " +
                         "Возможно вы загружаете файл, выгруженный для другого справочника (например Тэги СИР). Всё равно продолжить загрузку ?", "Продолжить", "Отмена");
                         if (selectionResult == false)
@@ -692,8 +686,8 @@
                             { }
                             await Task.Delay(1);
                             await InvokeAsync(StateHasChanged);
-                            return;                            
-                        }                    
+                            return;
+                        }
                     }
                 }
 
@@ -750,7 +744,7 @@
                         worksheetSapMaterial = workbook.Worksheet("SapMaterial");
                     }
                     catch (Exception ex)
-                    {                        
+                    {
                         console.Log($"! Не удалось загрузить лист: SapMaterial. Сообщение ошибки: " + ex.Message, AlertStyle.Warning);
                         await Task.Delay(1);
                         await InvokeAsync(StateHasChanged);
@@ -773,7 +767,7 @@
                 bool haveErrors = false;
                 switch (objectName)
                 {
-                    case "SapMaterial" :
+                    case "SapMaterial":
                         {
                             haveErrors = await _loadFromExcelRepository.MaterialExcelFileLoad(this, worksheet, _authorizationRepository);
                             break;
@@ -967,8 +961,8 @@
     {
         if (ResultFileId != Guid.Empty)
         {
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-            {                
+            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+            {
                 await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + ResultFileId.ToString(), "_blank");
             }
         }

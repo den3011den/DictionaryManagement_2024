@@ -47,7 +47,7 @@ namespace DictionaryManagement_Server.Extensions
             base.Density = Density.Compact;
             base.EmptyTemplate = EmptyTemplateRender;
             base.HeaderTemplate = HeaderTemplateRender;
-            this.VirtualizationOverscanCount = 50;
+            this.VirtualizationOverscanCount = 70;
         }
 
 
@@ -104,7 +104,12 @@ namespace DictionaryManagement_Server.Extensions
 
                     builder.CloseComponent();
                 }
-                if (!this.Data.GetType().ToString().ToUpper().Contains("MESDEPARTMENTDTO"))
+
+                bool addRecordCountSign = true;
+                if (this.Data != null)
+                    if (this.Data.GetType().ToString().ToUpper().Contains("MESDEPARTMENTDTO"))
+                        addRecordCountSign = false;
+                if (addRecordCountSign)
                 {
                     builder.OpenComponent<RadzenButton>(22);
                     builder.AddAttribute(23, "Size", ButtonSize.Small);

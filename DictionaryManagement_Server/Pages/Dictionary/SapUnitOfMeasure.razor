@@ -28,8 +28,8 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую единицу измерения SAP" Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения SAP" Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
 
             <RadzenDataGridApp @ref="sapUnitOfMeasureDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
@@ -39,7 +39,7 @@
                             FilterMode="FilterMode.SimpleWithMenu"
                             AllowColumnResize="false"                            
                             GridLines="DataGridGridLines.Both"
-                            Style="height:calc(100vh - 190px)">
+                            Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Name" Title="Наименование">
@@ -173,7 +173,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -192,7 +192,7 @@
 
     async Task EditRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapUnitOfMeasureDTOToUpdate = sapUnitOfMeasureDTO;
             await sapUnitOfMeasureDTOGrid.EditRow(sapUnitOfMeasureDTO);
@@ -201,7 +201,7 @@
 
     async Task OnUpdateRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (sapUnitOfMeasureDTO == sapUnitOfMeasureDTOToInsert)
             {
@@ -247,7 +247,7 @@
 
     async Task SaveRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
         }
@@ -277,7 +277,7 @@
 
     async Task DeleteRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -344,7 +344,7 @@
     }
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapUnitOfMeasureDTOToInsert = new SapUnitOfMeasureDTO();
             await sapUnitOfMeasureDTOGrid.InsertRow(sapUnitOfMeasureDTOToInsert);
@@ -353,7 +353,7 @@
 
     async Task OnCreateRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapUnitOfMeasureDTOToInsert = null;
 
@@ -392,7 +392,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "SapUnitOfMeasure_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

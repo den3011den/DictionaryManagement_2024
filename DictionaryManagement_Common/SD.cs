@@ -38,6 +38,13 @@ namespace DictionaryManagement_Common
             LoginAndName
         }
 
+        public enum AdminMode
+        {
+            IsAdmin,
+            IsAdminReadOnly,
+            None
+        }
+
         public static string DictionaryManagementUserName = "DictionaryManagement";
         public static string AppVersion = "";
         public static string? AppFactoryMode = "КOC";

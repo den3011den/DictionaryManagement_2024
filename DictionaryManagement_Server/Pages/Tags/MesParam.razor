@@ -24,9 +24,6 @@
 @if (IsAdmin == true)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
-
-
-
     <div class="row">
 
         <div class="col-6">
@@ -39,9 +36,9 @@
 
             @*<div style="word-wrap: normal">*@
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый тэг СИР" Click="@(args => EditRow(null, SD.EditMode.Create))" />
-                <RadzenButton @ref="xlxButton" class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton class="mt-2 mb-4" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тэг СИР" Click="@(args => EditRow(null, SD.EditMode.Create))" />
+                <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@MesParamGridSettings" SettingsName="MesParamGridSettings" @ref="mesParamDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@mesParamDTOs" TItem="MesParamDTO"
@@ -51,13 +48,17 @@
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
                                AllowVirtualization="true"
+                               Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
                                ColumnWidth="200px"
                                AllowColumnPicking="true"
-                               GridLines="DataGridGridLines.Both"
-                               Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px")
+                               GridLines="DataGridGridLines.Both"                               
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false">
+
+                               @* Style="width: 100vw - document.querySelector('.navNenuDiv').getBoundingClientRect().width; height:79.5vh" *@
+                @* Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px") *@
+                @* Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:85vw;" : "height:calc(100vh - 190px);width:85vw;") *@
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -367,7 +368,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -448,7 +449,7 @@
     {
         //mesMaterialDTOToUpdate = mesMaterialDTO;
         //await mesMaterialDTOGrid.EditRow(mesMaterialDTO);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsLoading = true;
 
@@ -533,7 +534,7 @@
     async Task DeleteRow(MesParamDTO mesParamDTO)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -583,7 +584,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "Tags_MesParam_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -726,7 +727,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;

@@ -98,7 +98,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -127,7 +127,7 @@
 
     private async Task AddEditReportTemplateTypeProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (ReportTemplateTypeId == 0)
             { // создание

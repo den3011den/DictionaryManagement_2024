@@ -35,8 +35,8 @@
         {
 
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый шаблон отчёта" Click="@(args => EditRow(null))" />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый шаблон отчёта" Click="@(args => EditRow(null))" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
 
             <RadzenDataGridApp @bind-Settings="@ReportTemplateGridSettings" SettingsName="ReportTemplateGridSettings" @ref="reportTemplateDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
@@ -51,7 +51,7 @@
                                ColumnWidth="200px"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px")                               
+                               Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
                                ShowCleanGridSortsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSettingsHeaderButton="false">
@@ -271,7 +271,7 @@
 
         if (firstRender)
         {
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
             {
                 IsAdmin = true;
 
@@ -355,7 +355,7 @@
 
     async Task DownloadTemplate(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             //_navigationManager.NavigateTo("/DownloadFileController/DownloadReportTemplateFile/" + id.ToString());
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportTemplateFile/" + id.ToString(), "_blank");
@@ -364,7 +364,7 @@
 
     async Task EditRow(ReportTemplateDTO reportTemplateDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsLoading = true;
 
@@ -401,7 +401,7 @@
 
     async Task DeleteRow(ReportTemplateDTO reportTemplateDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -450,7 +450,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "ReportTemplate_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

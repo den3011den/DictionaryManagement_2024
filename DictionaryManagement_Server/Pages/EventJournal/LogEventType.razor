@@ -30,8 +30,8 @@
         {
 
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый тип событий" Click="@InsertRow" Disabled=@(logEventTypeDTOToInsert != null || logEventTypeDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тип событий" Click="@InsertRow" Disabled=@(logEventTypeDTOToInsert != null || logEventTypeDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
 
             <RadzenDataGridApp @ref="logEventTypeDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
@@ -42,7 +42,7 @@
                             AllowColumnResize="false"
                             AllowVirtualization="true"
                             GridLines="DataGridGridLines.Both"
-                            Style="height:calc(100vh - 190px)">
+                            Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="LogEventTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="LogEventTypeDTO" Property="Name" Title="Наименование">
@@ -173,7 +173,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -192,7 +192,7 @@
 
     async Task EditRow(LogEventTypeDTO logEventTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             logEventTypeDTOToUpdate = logEventTypeDTO;
             await logEventTypeDTOGrid.EditRow(logEventTypeDTO);
@@ -201,7 +201,7 @@
 
     async Task OnUpdateRow(LogEventTypeDTO logEventTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (logEventTypeDTO == logEventTypeDTOToInsert)
             {
@@ -232,7 +232,7 @@
 
     async Task SaveRow(LogEventTypeDTO logEventTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await logEventTypeDTOGrid.UpdateRow(logEventTypeDTO);
         }
@@ -261,7 +261,7 @@
 
     async Task DeleteRow(LogEventTypeDTO logEventTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -328,7 +328,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (firtsInsertRow)
             {
@@ -344,7 +344,7 @@
     async Task OnCreateRow(LogEventTypeDTO logEventTypeDTO)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             logEventTypeDTOToInsert = null;
 
@@ -372,7 +372,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "LogEventType_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

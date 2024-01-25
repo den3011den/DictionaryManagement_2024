@@ -16,16 +16,7 @@
 
 @inject DialogService _dialogService
 
-@*<head>
-    <style type="text/css">
-        .rz-celldata td {
-            padding: 0px;
-        }
-    </style>
-</head>*@
-
-
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -38,12 +29,13 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новое производство" Click="@(args => EditRow(null))" />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel ВСЕХ производств" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton class="mt-2 mb-4" title="@(IsExpandModeOn ? "Свернуть всю иерархию производств" : "Развернуть всю иерархию производств")" Text="@(IsExpandModeOn ? "Свернуть" : "Развернуть")"
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
+                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="@(IsExpandModeOn ? "Свернуть всю иерархию производств" : "Развернуть всю иерархию производств")" Text="@(IsExpandModeOn ? "Свернуть" : "Развернуть")"
                               Icon="@(IsExpandModeOn ? "unfold_less" : "unfold_more")" Click="@(args => ToggleRowsExpand(!IsExpandModeOn))"
                               IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..." />
-                <div class="mt-2 mb-4 col-6" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
+                <div class="mt-1 mb-1 col-6" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
                     <RadzenLabel Text="* фильтр работает только по записям, которые развёрнуты в отображаемом списке" />
                 </div>
             </RadzenRow>
@@ -56,7 +48,7 @@
                                Density="Density.Compact"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="Name" Title="Наименование" Frozen="true" Width="200px"
                                              FilterOperator="FilterOperator.Contains" SortProperty="Name" FilterProperty="Name">
@@ -87,12 +79,15 @@
                             </RadzenButton>
                             @if (!mesDepartmentDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true" Disabled=@(IsAdmin != AdminMode.IsAdmin)>
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" 
+                                    Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true"
+                                    Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
 
@@ -130,13 +125,10 @@
     RadzenDataGrid<MesDepartmentDTO> mesDepartmentDTOGrid;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
     public bool ExpandInProgressFlag { get; set; } = false;
     public bool excelExportFlag { get; set; } = false;
-
     public bool IsExpandModeOn { get; set; } = false;
-
-
 
     // считаем что больше уровней производств вряд ли будет
     public int MaxExpandLevel { get; set; } = 8;
@@ -147,13 +139,11 @@
 
     }
 
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-        {
-            IsAdmin = true;
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {            
             if (firstRender)
             {
                 IsLoading = true;
@@ -221,13 +211,11 @@
 
     async Task EditRow(MesDepartmentDTO mesDepartmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             MesDepartmentDTO dialogResult;
-
             if (mesDepartmentDTO == null)
             {
-
                 dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Создать производство", new Dictionary<string, object>() { { "MesDepartmentId", 0 } }
                     , new DialogOptions() { Width = $"{1100}px", Left = $"{300}px" });
             }
@@ -237,10 +225,8 @@
                 new DialogOptions() { Width = $"{1100}px", Left = $"{300}px" });
             }
 
-
             if (dialogResult != null)
             {
-
                 IsLoading = true;
                 await LoadStateAsync();
                 StateHasChanged();
@@ -254,7 +240,7 @@
 
     async Task DeleteRow(MesDepartmentDTO mesDepartmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {                
@@ -277,8 +263,6 @@
                     }
                 }
             }
-
-
 
             //if (mesDepartmentDTOs.Contains(mesDepartmentDTO))
             //{
@@ -337,7 +321,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "MesDepartment_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

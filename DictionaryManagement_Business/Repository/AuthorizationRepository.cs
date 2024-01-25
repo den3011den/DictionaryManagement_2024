@@ -37,9 +37,9 @@ namespace DictionaryManagement_Business.Repository
             _logEventRepository = logEventRepository;
         }
 
-        public async Task<bool> CurrentUserIsInAdminRole(MessageBoxMode messageBoxModePar = SD.MessageBoxMode.Off)
+        public async Task<AdminMode> CurrentUserIsInAdminRole(MessageBoxMode messageBoxModePar = SD.MessageBoxMode.Off)
         {
-            bool retVar = false;
+            AdminMode retVar = AdminMode.None;
             bool messShownFlag = false;
 
             if (_authenticationStateProvider is not null)
@@ -50,23 +50,23 @@ namespace DictionaryManagement_Business.Repository
                     if (authState.User.Identity is not null && authState.User.Identity.IsAuthenticated)
                     {
                         await SyncRolesByLoginWithADGroup(authState);
-                        retVar = await _userToRoleRepository.IsUserInRoleByUserLoginAndRoleName(authState.User.Identity.Name, SD.AdminRoleName);
+                        retVar = await _userToRoleRepository.IsUserInAdminRoleByUserLogin(authState.User.Identity.Name);
                     }
                 }
 
-                if (retVar == false)
+                if (retVar == AdminMode.None)
                 {
                     if (messageBoxModePar == MessageBoxMode.On)
                     {
                         messShownFlag = true;
                         await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Пользователь " + authState.User.Identity.Name +
-                            " не найден, находится в архиве или не имеет роли " + SD.AdminRoleName + ". Обратитесь в техподдержку.");
+                            " не найден, находится в архиве или не имеет роли с правами администрирования СИР. Обратитесь в техподдержку.");
                     }
                 }
             }
 
 
-            if (retVar == false && messShownFlag == false)
+            if (retVar == AdminMode.None && messShownFlag == false)
             {
                 if (messageBoxModePar == MessageBoxMode.On)
                 {
@@ -187,29 +187,27 @@ namespace DictionaryManagement_Business.Repository
             return returnString;
         }
 
-        public async Task<bool> CurrentUserIsInAdminRoleByLogin(string userLogin, MessageBoxMode messageBoxModePar = SD.MessageBoxMode.Off)
+        public async Task<AdminMode> CurrentUserIsInAdminRoleByLogin(string userLogin, MessageBoxMode messageBoxModePar = SD.MessageBoxMode.Off)
         {
-            bool retVar = false;
+            AdminMode retVar = AdminMode.None;
             bool messShownFlag = false;
 
             if (!userLogin.IsNullOrEmpty())
             {
-                retVar = await _userToRoleRepository.IsUserInRoleByUserLoginAndRoleName(userLogin, SD.AdminRoleName);
+                retVar = await _userToRoleRepository.IsUserInAdminRoleByUserLogin(userLogin);
             }
 
-            if (retVar == false)
+            if (retVar == AdminMode.None)
             {
                 if (messageBoxModePar == MessageBoxMode.On)
                 {
                     messShownFlag = true;
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Пользователь " + userLogin +
-                        " не найден, находится в архиве или не имеет роли " + SD.AdminRoleName + ". Обратитесь в техподдержку.");
+                        " не найден, находится в архиве или не имеет роли с правами на администрирование СИР. Обратитесь в техподдержку.");
                 }
             }
 
-
-
-            if (retVar == false && messShownFlag == false)
+            if (retVar == AdminMode.None && messShownFlag == false)
             {
                 if (messageBoxModePar == MessageBoxMode.On)
                 {
@@ -217,8 +215,6 @@ namespace DictionaryManagement_Business.Repository
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не удалось получить логин текущего пользователя.");
                 }
             }
-
-
             return retVar;
         }
 

@@ -17,7 +17,7 @@
 @inject DialogService _dialogService
 
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -32,9 +32,9 @@
         {
 
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить нового пользователя" Click="@(args => EditRow(null))" />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton class="mt-2 mb-4" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить нового пользователя" Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@UserGridSettings" SettingsName="UserGridSettings" @ref="userDTOGrid" AllowAlternatingRows="true"
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
@@ -45,7 +45,7 @@
                                Density=Density.Compact
                                ShowPagingSummary="true"                               
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="ToStringId" Title="Ид пользователя" Width="30px"
                                           FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
@@ -112,12 +112,14 @@
                             </RadzenButton>
                             @if (!userDTO.IsArchive)
                             {
-                                <RadzenButton title="Удалить пользователя в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Удалить пользователя в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить пользователя из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Восстановить пользователя из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
@@ -151,7 +153,7 @@
     RadzenDataGrid<UserDTO> userDTOGrid;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
@@ -161,10 +163,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
                 IsLoading = true;
@@ -221,7 +222,7 @@
 
     async Task EditRow(UserDTO userDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
 
@@ -270,7 +271,7 @@
 
     async Task DeleteRow(UserDTO userDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {                
@@ -319,7 +320,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "Users_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -334,7 +335,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;

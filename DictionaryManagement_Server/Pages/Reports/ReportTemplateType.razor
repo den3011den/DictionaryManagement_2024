@@ -26,8 +26,8 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый тип шаблонов отчётов" Click="@InsertRow" Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тип шаблонов отчётов" Click="@InsertRow" Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
             </RadzenRow>
 
 
@@ -39,7 +39,7 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Name" Title="Наименование" Width="250px">
@@ -49,7 +49,6 @@
                             <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-
 
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="CanAutoCalc" Title="Доступен для настройки авторасчёта" Width="150px" TextAlign="TextAlign.Center">
                         <Template Context="data">
@@ -178,7 +177,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -197,7 +196,7 @@
 
     async Task EditRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             reportTemplateTypeDTOToUpdate = reportTemplateTypeDTO;
             await reportTemplateTypeDTOGrid.EditRow(reportTemplateTypeDTO);
@@ -206,7 +205,7 @@
 
     async Task OnUpdateRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (reportTemplateTypeDTO == reportTemplateTypeDTOToInsert)
             {
@@ -299,7 +298,7 @@
 
     async Task SaveRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTO);
         }
@@ -328,7 +327,7 @@
 
     async Task DeleteRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -395,7 +394,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             reportTemplateTypeDTOToInsert = new ReportTemplateTypeDTO();
             reportTemplateTypeDTOToInsert.NeedAutoCalc = false;
@@ -406,7 +405,7 @@
 
     async Task OnCreateRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             reportTemplateTypeDTOToInsert = null;
 
@@ -433,7 +432,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "ReportTemplateType_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

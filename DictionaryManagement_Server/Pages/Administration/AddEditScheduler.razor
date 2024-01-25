@@ -11,10 +11,9 @@
 
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
-
 
     @if (IsLoading)
     {
@@ -26,7 +25,6 @@
     {
         <EditForm Model="ActiveSchedulerDTO" OnValidSubmit="AddEditSchedulerProcedure">
             <DataAnnotationsValidator />
-
             <RadzenRow Gap="1rem">
                 <RadzenColumn Size="12">
                     <RadzenStack>
@@ -37,12 +35,11 @@
                                 <RadzenNumeric @bind-Value="@ActiveSchedulerDTO.Id" ReadOnly="true" />
                             </RadzenFormField>
                         }
-
                         <RadzenFormField Text="Наименование модуля" Variant="@variant" Style="width: 100%; max-width: 700px;">
                             <RadzenTextBox @bind-Value="@ActiveSchedulerDTO.ModuleName" />
                         </RadzenFormField>
                         <ValidationMessage For="()=>ActiveSchedulerDTO.ModuleName"></ValidationMessage>
-                        
+
                         <RadzenFormField Text="Время старта задания" Variant="@variant" Style="width: 100%; max-width: 700px;">
                             <RadzenDatePicker TValue="DateTime" @bind-Value="@ActiveSchedulerDTO.StartTimeDateTime"
                                               ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Change=@(args => OnChangeStartTime()) />
@@ -55,17 +52,20 @@
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
-
-
-
             <div class="form-group py-2">
-                <button class="btn btn-primary">@Title</button>
+                @if (IsAdmin == AdminMode.IsAdmin)
+                {
+                    <button class="btn btn-primary">@Title</button>
+                }
+                else
+                {
+                    <button disabled class="btn btn-primary">@Title</button>
+                }
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
 }
-
 
 
 @code {
@@ -78,8 +78,8 @@
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
-    
+    public AdminMode IsAdmin { get; set; }
+
     public SchedulerDTO ActiveSchedulerDTO { get; set; }
 
     private string Title { get; set; } = "Добавить задание ";
@@ -110,15 +110,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;            
             if (firstRender)
             {
-
                 IsLoading = true;
                 StateHasChanged();
-
                 if (SchedulerId == null || SchedulerId == 0)
                 {
                     ActiveSchedulerDTO = new SchedulerDTO();
@@ -130,7 +128,7 @@
                     ActiveSchedulerDTO.StartTimeDateTime = DateTime.MinValue + ActiveSchedulerDTO.StartTime;
                     Title = "Изменить задание";
                 }
-                
+
                 IsLoading = false;
                 StateHasChanged();
             }
@@ -142,8 +140,7 @@
 
     private async Task AddEditSchedulerProcedure()
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (SchedulerId == null || SchedulerId == 0)
             { // создание

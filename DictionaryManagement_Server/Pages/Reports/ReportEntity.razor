@@ -26,10 +26,10 @@
         @if (IsLoading != true)
         {
 
-            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
-                        <RadzenStack Gap="1rem">
+                        <RadzenStack Gap="0.5rem">
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
                                     <Items>
@@ -39,8 +39,8 @@
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -56,7 +56,7 @@
                                ShowPagingSummary="true"
                                GridLines="DataGridGridLines.Both"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 190px)"
+                               Style="height:calc(100vh - 170px)"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false">
@@ -269,7 +269,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -363,7 +363,7 @@
 
     async Task DownloadReportEntityDownloadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             //_navigationManager.NavigateTo("/DownloadFileController/DownloadReportTemplateFile/" + id.ToString());
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
@@ -372,7 +372,7 @@
 
     async Task DownloadReportEntityUploadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             //_navigationManager.NavigateTo("/DownloadFileController/DownloadReportTemplateFile/" + id.ToString());
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + id.ToString(), "_blank");
@@ -423,7 +423,7 @@
 
     async Task ShowReportEntityDetails(ReportEntityDTO reportEntityDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsLoading = true;
 
@@ -453,7 +453,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "ReportEntity_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

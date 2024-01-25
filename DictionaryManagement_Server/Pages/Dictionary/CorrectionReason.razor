@@ -29,8 +29,8 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую причину корректировки" Click="@InsertRow" Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую причину корректировки" Click="@InsertRow" Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
             <RadzenDataGridApp @ref="correctionReasonDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@CorrectionReasonGridSettings" SettingsName="CorrectionReasonGridSettings"
@@ -39,7 +39,7 @@
                                FilterMode="FilterMode.SimpleWithMenu"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 170px)">
 @*                 <HeaderTemplate>
                     <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @correctionReasonDTOGrid.View.Count().ToString()+" из "+(correctionReasonDTOs == null ? "0" : correctionReasonDTOs.Count().ToString())+" в выборке")
                                   ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
@@ -175,14 +175,14 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (firstRender)
             {
                 IsAdmin = true;
                 await LoadStateAsync();
                 StateHasChanged();
-                correctionReasonDTOs = _correctionReasonRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                correctionReasonDTOs = await _correctionReasonRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
                 StateHasChanged();
             }
@@ -194,7 +194,7 @@
 
     async Task EditRow(CorrectionReasonDTO correctionReasonDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             correctionReasonDTOToUpdate = correctionReasonDTO;
             await correctionReasonDTOGrid.EditRow(correctionReasonDTO);
@@ -203,7 +203,7 @@
 
     async Task OnUpdateRow(CorrectionReasonDTO correctionReasonDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (correctionReasonDTO == correctionReasonDTOToInsert)
             {
@@ -233,7 +233,7 @@
 
     async Task SaveRow(CorrectionReasonDTO correctionReasonDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await correctionReasonDTOGrid.UpdateRow(correctionReasonDTO);
         }
@@ -263,7 +263,7 @@
     async Task DeleteRow(CorrectionReasonDTO correctionReasonDTO)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -331,7 +331,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             correctionReasonDTOToInsert = new CorrectionReasonDTO();
             await correctionReasonDTOGrid.InsertRow(correctionReasonDTOToInsert);
@@ -341,7 +341,7 @@
     async Task OnCreateRow(CorrectionReasonDTO correctionReasonDTO)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             correctionReasonDTOToInsert = null;
 
@@ -369,7 +369,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "CorrectionReason_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

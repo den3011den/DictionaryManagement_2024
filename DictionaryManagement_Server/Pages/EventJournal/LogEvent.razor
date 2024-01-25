@@ -25,16 +25,15 @@
 
         @if (IsLoading != true)
         {
-
-            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
-                        <RadzenStack Gap="1rem">
+                        <RadzenStack Gap="0.5rem">
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -50,7 +49,7 @@
                                EmptyText="Нет записей для отображения"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)"
+                               Style="height:calc(100vh - 170px)"
                                ShowCleanGridSortsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSettingsHeaderButton="false">
@@ -244,7 +243,7 @@
         if (firstRender)
         {
 
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
             {
                 IsAdmin = true;
                 applyRadioGroupValue = 1;
@@ -375,7 +374,7 @@
         }
         else
         {
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "LogEvent_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

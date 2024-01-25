@@ -1,4 +1,5 @@
 ﻿using DictionaryManagement_Models.IntDBModels;
+using static DictionaryManagement_Common.SD;
 
 namespace DictionaryManagement_Business.Repository.IRepository
 {
@@ -11,6 +12,6 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<UserToRoleDTO> Update(UserToRoleDTO objDTO);
         public Task<UserToRoleDTO> Create(UserToRoleDTO objectToAddDTO);
         public Task<int> Delete(int Id);
-        public Task<bool> IsUserInRoleByUserLoginAndRoleName(string userLogin, string roleName);
+        public Task<AdminMode> IsUserInAdminRoleByUserLogin(string userLogin);
     }
 }

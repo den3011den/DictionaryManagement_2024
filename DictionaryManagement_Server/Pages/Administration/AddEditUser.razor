@@ -11,7 +11,7 @@
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <div class="row my-2">        
 
@@ -78,7 +78,14 @@
                     </RadzenRow>
                     
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        @if (IsAdmin == AdminMode.IsAdmin)
+                        {
+                            <button class="btn btn-primary">@Title</button>
+                        }
+                        else
+                        {
+                            <button disabled class="btn btn-primary">@Title</button>
+                        }
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -99,10 +106,10 @@
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     public UserDTO ActiveUserDTO { get; set; }
-    
+
     public IEnumerable<object> CheckedValues { get; set; } = new List<object>();
 
     private string Title { get; set; } = "Создать пользователя";
@@ -135,15 +142,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-        {
-            IsAdmin = true;
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {            
             if (firstRender)
             {
-
                 IsLoading = true;
                 StateHasChanged();
-
                 if (UserId == Guid.Empty)
                 {
                     ActiveUserDTO = new UserDTO();
@@ -167,7 +172,7 @@
 
     private async Task AddEditUserProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (UserId == Guid.Empty)
             { // создание

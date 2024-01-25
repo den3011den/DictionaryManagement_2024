@@ -18,6 +18,9 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
 
         public bool IsArchive { get; set; } = false;
 
+        public bool? IsAdmin { get; set; } = false;
+
+        public bool? IsAdminReadOnly { get; set; } = false;
     }
 
 }

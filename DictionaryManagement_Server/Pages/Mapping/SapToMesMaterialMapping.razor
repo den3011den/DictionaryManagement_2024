@@ -141,7 +141,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -161,7 +161,7 @@
 
     async Task EditRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapToMesMaterialMappingDTOToUpdate = sapToMesMaterialMappingDTO;
             await sapToMesMaterialMappingDTOGrid.EditRow(sapToMesMaterialMappingDTO);
@@ -170,7 +170,7 @@
 
     async Task OnUpdateRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if ((sapToMesMaterialMappingDTO.SapMaterialId != sapToMesMaterialMappingDTO.SapMaterialDTO.Id) || (sapToMesMaterialMappingDTO.MesMaterialId != sapToMesMaterialMappingDTO.MesMaterialDTO.Id))
             {
@@ -204,7 +204,7 @@
 
     async Task SaveRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await sapToMesMaterialMappingDTOGrid.UpdateRow(sapToMesMaterialMappingDTO);
         }
@@ -225,7 +225,7 @@
 
     async Task DeleteRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -266,7 +266,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapToMesMaterialMappingDTOToInsert = new SapToMesMaterialMappingDTO();
             await sapToMesMaterialMappingDTOGrid.InsertRow(sapToMesMaterialMappingDTOToInsert);
@@ -275,7 +275,7 @@
 
     async Task OnCreateRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             var forCheck = _sapToMesMaterialMappingRepository.Get(sapToMesMaterialMappingDTO.SapMaterialDTO.Id, sapToMesMaterialMappingDTO.MesMaterialDTO.Id).Result;
 

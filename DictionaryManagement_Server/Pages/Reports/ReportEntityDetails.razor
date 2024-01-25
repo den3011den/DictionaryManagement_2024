@@ -798,7 +798,7 @@
     {
         await base.OnInitializedAsync();
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsLoading = true;
             StateHasChanged();
@@ -834,7 +834,7 @@
 
     async Task DownloadReportEntityDownloadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
@@ -843,7 +843,7 @@
 
     async Task DownloadReportEntityUploadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + id.ToString(), "_blank");

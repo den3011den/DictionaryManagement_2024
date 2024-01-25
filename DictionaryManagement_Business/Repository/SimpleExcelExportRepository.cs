@@ -634,6 +634,10 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 wsRole.Cell(excelRowNum, excelColNum).Value = "Описание (Description)";
                 excelColNum++;
+                wsRole.Cell(excelRowNum, excelColNum).Value = "Админка полный доступ (IsAdmin)";
+                excelColNum++;
+                wsRole.Cell(excelRowNum, excelColNum).Value = "Админка только чтение (IsAdminReadOnly)";
+                excelColNum++;
                 wsRole.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
 
                 wsRole.Row(excelRowNum).Style.Font.SetBold(true);
@@ -791,6 +795,10 @@ namespace DictionaryManagement_Business.Repository
                     wsRole.Cell(wsRoleRowNum, wsRoleColNum).Value = roleVMDTO.Name;
                     wsRoleColNum++;
                     wsRole.Cell(wsRoleRowNum, wsRoleColNum).Value = roleVMDTO.Description == null ? "" : roleVMDTO.Description;
+                    wsRoleColNum++;
+                    wsRole.Cell(wsRoleRowNum, wsRoleColNum).Value = roleVMDTO.IsAdmin == true ? "Да" : "";
+                    wsRoleColNum++;
+                    wsRole.Cell(wsRoleRowNum, wsRoleColNum).Value = roleVMDTO.IsAdminReadOnly == true ? "Да" : "";
                     wsRoleColNum++;
                     wsRole.Cell(wsRoleRowNum, wsRoleColNum).Value = roleVMDTO.IsArchive == true ? "Да" : "";
 

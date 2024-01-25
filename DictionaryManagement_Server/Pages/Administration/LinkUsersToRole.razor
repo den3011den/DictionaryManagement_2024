@@ -11,7 +11,7 @@
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository;
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -70,7 +70,14 @@
                     </RadzenText>
 
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        @if (IsAdmin == AdminMode.IsAdmin)
+                        {
+                            <button class="btn btn-primary">@Title</button>
+                        }
+                        else
+                        {
+                            <button disabled class="btn btn-primary">@Title</button>
+                        }
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -93,7 +100,7 @@
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     RoleVMDTO ActiveRoleVMDTO { get; set; }
     IEnumerable<UserDTO> UserDTOList { get; set; } = new List<UserDTO>();
@@ -116,20 +123,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
-
                 IsLoading = true;
                 StateHasChanged();
-
                 ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
                 Title = "Добавить пользователей к роли";
-
                 UserDTOList = await _roleVMRepository.GetAllNotArchiveAndNotAutomaticUsersExceptAlreadyInRole(ActiveRoleVMDTO.Id);
-
                 IsLoading = false;
                 StateHasChanged();
             }
@@ -140,9 +143,8 @@
 
     private async Task AddUsersToRoleProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             var checkedUserDTOList = UserDTOList.Where(u => u.Checked);
             if (checkedUserDTOList.Count() <= 0)
             {

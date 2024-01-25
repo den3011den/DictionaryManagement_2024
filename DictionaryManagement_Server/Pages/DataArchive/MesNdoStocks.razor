@@ -22,14 +22,12 @@
             <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/MesNdoStocks">Архив данных НДО</a></h6>
         </div>
 
-
         @if (IsLoading != true)
         {
-
-            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
-                        <RadzenStack Gap="1rem">
+                        <RadzenStack Gap="0.5rem">
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
                                     <Items>
@@ -39,16 +37,15 @@
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                                 @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
-                                <RadzenButton title="Загрузка данных из Excel Архив данных НДО СИР" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                                <RadzenButton Size="ButtonSize.Small" title="Загрузка данных из Excel Архив данных НДО СИР" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
-
 
             <RadzenDataGridApp @bind-Settings="@MesNdoStocksGridSettings" SettingsName="MesNdoStocksGridSettings" @ref="mesNdoStocksDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@mesNdoStocksDTOs" TItem="MesNdoStocksDTO"
@@ -60,7 +57,7 @@
                                AllowVirtualization="true"
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
-                               Style=@(iconMenuActive ? "height:calc(100vh - 170px); width:1760px" : "height:calc(100vh - 170px); width:1600px")
+                               Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
                                ColumnWidth="200px"
                                AllowColumnPicking="true"
                                GridLines="DataGridGridLines.Both"
@@ -305,7 +302,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -450,7 +447,7 @@
         {
 
 
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "MesNdoStocks_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -572,7 +569,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;

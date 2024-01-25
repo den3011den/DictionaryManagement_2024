@@ -12,7 +12,7 @@
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <div class="row my-2">        
 
@@ -27,11 +27,9 @@
             {
                 <EditForm Model="ActiveRoleDTO" OnValidSubmit="AddEditRoleProcedure">
                     <DataAnnotationsValidator />
-
                     <RadzenRow Gap="1rem">
                         <RadzenColumn Size="12">
                             <RadzenStack>
-
                                 @if (RoleId != Guid.Empty)
                                 {
                                     <RadzenFormField Text="ИД записи" Variant="@variant" Style="width: 100%; max-width: 600px;">
@@ -49,12 +47,34 @@
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveRoleDTO.Description"></ValidationMessage>
 
+                                <RadzenLabel Text="Использование Админки чтение/запись:" Component="CheckBox1" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdmin" TValue="bool" class="mb-4" Name="CheckBox1">
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
+
+                                <RadzenLabel Text="Использование Админки только чтение:" Component="CheckBox2" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdminReadOnly" TValue="bool" class="mb-4" Name="CheckBox2">
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
                     
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        @if (IsAdmin == AdminMode.IsAdmin)
+                        {
+                            <button class="btn btn-primary">@Title</button>
+                        }
+                        else
+                        {
+                            <button disabled class="btn btn-primary">@Title</button>
+                        }
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -75,7 +95,7 @@
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     public RoleDTO ActiveRoleDTO { get; set; }
 
@@ -88,10 +108,8 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
         IsLoading = true;
         StateHasChanged();
-
         if (RoleId == Guid.Empty)
         {
             ActiveRoleDTO = new RoleDTO();
@@ -101,23 +119,19 @@
             ActiveRoleDTO = await _roleRepository.GetById(RoleId);
             Title = "Изменить роль СИР";
         }
-
         IsLoading = false;
         StateHasChanged();
-
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-        {
-            IsAdmin = true;
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {            
             if (firstRender)
             {
-
                 IsLoading = true;
                 StateHasChanged();
-
                 if (RoleId == Guid.Empty)
                 {
                     ActiveRoleDTO = new RoleDTO();
@@ -139,7 +153,7 @@
 
     private async Task AddEditRoleProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (RoleId == Guid.Empty)
             { // создание

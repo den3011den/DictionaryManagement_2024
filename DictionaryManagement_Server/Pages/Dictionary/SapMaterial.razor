@@ -27,9 +27,9 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый материал SAP" Click="@InsertRow" Disabled=@(sapMaterialDTOToInsert != null || sapMaterialDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel -->" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton class="mt-2 mb-4" title="Загрузка данных из Excel в справочник материалов SAP" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый материал SAP" Click="@InsertRow" Disabled=@(sapMaterialDTOToInsert != null || sapMaterialDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel -->" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник материалов SAP" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
             <RadzenDataGridApp @ref="sapMaterialDTOGrid" @bind-Settings="@SapMaterialGridSettings" SettingsName="SapMaterialGridSettings" AllowFiltering="true" AllowPaging="false" AllowAlternatingRows="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@sapMaterialDTOs" TItem="SapMaterialDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
@@ -38,7 +38,7 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="Code" Title="Код материала" Width="120px">
@@ -188,7 +188,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -207,7 +207,7 @@
 
     async Task EditRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapMaterialDTOToUpdate = sapMaterialDTO;
             await sapMaterialDTOGrid.EditRow(sapMaterialDTO);
@@ -216,7 +216,7 @@
 
     async Task OnUpdateRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (sapMaterialDTO == sapMaterialDTOToInsert)
             {
@@ -310,7 +310,7 @@
     }
     async Task SaveRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await sapMaterialDTOGrid.UpdateRow(sapMaterialDTO);
         }
@@ -340,7 +340,7 @@
 
     async Task DeleteRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
                 if (sapMaterialDTO.IsArchive != true)
@@ -404,7 +404,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapMaterialDTOToInsert = new SapMaterialDTO();
             await sapMaterialDTOGrid.InsertRow(sapMaterialDTOToInsert);
@@ -413,7 +413,7 @@
 
     async Task OnCreateRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             sapMaterialDTOToInsert = null;
 
@@ -491,7 +491,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "SapMaterial_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -506,7 +506,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;

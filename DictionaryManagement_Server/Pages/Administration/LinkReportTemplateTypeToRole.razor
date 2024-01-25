@@ -4,14 +4,12 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
-
 @inject IJSRuntime _jsRuntime
-
 @inject IRoleVMRepository _roleVMRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository;
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -33,16 +31,16 @@
                             <RadzenStack>
                                 <RadzenStack Gap="1rem">
                                     <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="15" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                                                    Data="ReportTemplateTypeDTOList" TItem="ReportTemplateTypeDTO"
-                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                    FilterMode="FilterMode.Simple"
-                                                    Density=Density.Compact
-                                                    ShowPagingSummary="true"
-                                                    EmptyText="Нет записей для отображения"
-                                                    AllowVirtualization="true"
-                                                    ShowCleanGridSettingsHeaderButton="false"
-                                                    ShowCleanGridFiltersHeaderButton="false"
-                                                    ShowCleanGridSortsHeaderButton="false">
+                                                       Data="ReportTemplateTypeDTOList" TItem="ReportTemplateTypeDTO"
+                                                       FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                       FilterMode="FilterMode.Simple"
+                                                       Density=Density.Compact
+                                                       ShowPagingSummary="true"
+                                                       EmptyText="Нет записей для отображения"
+                                                       AllowVirtualization="true"
+                                                       ShowCleanGridSettingsHeaderButton="false"
+                                                       ShowCleanGridFiltersHeaderButton="false"
+                                                       ShowCleanGridSortsHeaderButton="false">
                                         <Columns>
 
                                             <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="ToStringId" Filterable="true" FilterProperty="ToStringId" Title="Ид" Width="20px">
@@ -74,7 +72,14 @@
                     </RadzenText>
 
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        @if (IsAdmin == AdminMode.IsAdmin)
+                        {
+                            <button class="btn btn-primary">@Title</button>
+                        }
+                        else
+                        {
+                            <button disabled class="btn btn-primary">@Title</button>
+                        }
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -83,9 +88,6 @@
     </div>
 }
 
-
-
-
 @code {
 
     _Dialogs? _dialogs { get; set; }
@@ -93,11 +95,10 @@
     [Parameter]
     public Guid RoleId { get; set; }
 
-
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     RoleVMDTO ActiveRoleVMDTO { get; set; }
     IEnumerable<ReportTemplateTypeDTO> ReportTemplateTypeDTOList { get; set; } = new List<ReportTemplateTypeDTO>();
@@ -117,12 +118,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
-
                 IsLoading = true;
                 StateHasChanged();
 
@@ -141,9 +141,8 @@
 
     private async Task AddReportTemplateTypesToRoleProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             var checkedReportTemplateTypeDTOList = ReportTemplateTypeDTOList.Where(u => (u.CanDownload == true || u.CanUpload == true));
             if (checkedReportTemplateTypeDTOList.Count() <= 0)
             {
@@ -175,7 +174,7 @@
                     await _logEventRepository.AddRecord("Добавление связки типа шаблона отчёта с ролью", userId, "<Пусто>",
                         ActiveRoleVMDTO.Name + " --> " + checkedReportTemplateTypeDTOItem.ToString(), false,
                         "Роль: " + ActiveRoleVMDTO.Name + " Тип шаблона отчёта: " + checkedReportTemplateTypeDTOItem.ToString() +
-                        " Чтение: " + (checkedReportTemplateTypeDTOItem.CanDownload == true ? "Да": "Нет") +
+                        " Чтение: " + (checkedReportTemplateTypeDTOItem.CanDownload == true ? "Да" : "Нет") +
                         " Запись: " + (checkedReportTemplateTypeDTOItem.CanUpload == true ? "Да" : "Нет"));
                 }
             }

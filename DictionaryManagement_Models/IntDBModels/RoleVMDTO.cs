@@ -22,6 +22,40 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "Описание")]
         public string? Description { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Использование Админки чтение/запись\"")]
+        [Display(Name = "Использование Админки чтение/запись")]
+        public bool? IsAdmin { get; set; } = false;
+
+        [ForLogAttribute(NameProperty = "поле \"Использование Админки только чтение\"")]
+        [Display(Name = "Использование Админки только чтение")]
+        public bool? IsAdminReadOnly { get; set; } = false;
+
+        [NotMapped]
+        public string AdminString
+        {
+            get
+            {
+                return IsAdmin == true ? "(Админка - чтение и запись)" : (IsAdminReadOnly == true ? "(Админка - только чтение)" : "");
+            }
+            set
+            {
+                AdminString = value;
+            }
+        }
+
+        [NotMapped]
+        public string NameWithAdminString
+        {
+            get
+            {
+                return (Name + (IsAdmin == true ? " (Админка - чтение и запись)" : (IsAdminReadOnly == true ? " (Админка - только чтение)" : "")));
+            }
+            set
+            {
+                NameWithAdminString = value;
+            }
+        }
+
         [NotMapped]
         public IEnumerable<UserToRoleDTO>? UserToRoleDTOs { get; set; }
         [NotMapped]

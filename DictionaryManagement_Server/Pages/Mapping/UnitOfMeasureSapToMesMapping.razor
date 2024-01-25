@@ -143,7 +143,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -163,7 +163,7 @@
 
     async Task EditRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             unitOfMeasureSapToMesMappingDTOToUpdate = unitOfMeasureSapToMesMappingDTO;
             //oldSapUnitIdBeforeUpdate = unitOfMeasureSapToMesMappingDTO.SapUnitId;
@@ -176,7 +176,7 @@
 
     async Task OnUpdateRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if ((unitOfMeasureSapToMesMappingDTO.SapUnitId != unitOfMeasureSapToMesMappingDTO.SapUnitOfMeasureDTO.Id) || (unitOfMeasureSapToMesMappingDTO.MesUnitId != unitOfMeasureSapToMesMappingDTO.MesUnitOfMeasureDTO.Id))
             {
@@ -211,7 +211,7 @@
 
     async Task SaveRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await unitOfMeasureSapToMesMappingDTOGrid.UpdateRow(unitOfMeasureSapToMesMappingDTO);
         }
@@ -232,7 +232,7 @@
 
     async Task DeleteRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -273,7 +273,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             unitOfMeasureSapToMesMappingDTOToInsert = new UnitOfMeasureSapToMesMappingDTO();
             await unitOfMeasureSapToMesMappingDTOGrid.InsertRow(unitOfMeasureSapToMesMappingDTOToInsert);
@@ -282,7 +282,7 @@
 
     async Task OnCreateRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             var forCheck = _unitOfMeasureSapToMesMappingRepository.Get(unitOfMeasureSapToMesMappingDTO.SapUnitOfMeasureDTO.Id, unitOfMeasureSapToMesMappingDTO.MesUnitOfMeasureDTO.Id).Result;
 

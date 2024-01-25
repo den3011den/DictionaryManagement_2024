@@ -26,8 +26,8 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый тип тэгов" Click="@InsertRow" Disabled=@(mesParamSourceTypeDTOToInsert != null || mesParamSourceTypeDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тип тэгов" Click="@InsertRow" Disabled=@(mesParamSourceTypeDTOToInsert != null || mesParamSourceTypeDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
 
             <RadzenDataGridApp @ref="mesParamSourceTypeDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
@@ -39,7 +39,7 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesParamSourceTypeDTO" Property="Id" Title="Ид записи" Width="100px" />
                     <RadzenDataGridColumnApp TItem="MesParamSourceTypeDTO" Property="Name" Title="Наименование" Width="300px">
@@ -166,7 +166,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             IsAdmin = true;
             if (firstRender)
@@ -185,7 +185,7 @@
 
     async Task EditRow(MesParamSourceTypeDTO mesParamSourceTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             mesParamSourceTypeDTOToUpdate = mesParamSourceTypeDTO;
             await mesParamSourceTypeDTOGrid.EditRow(mesParamSourceTypeDTO);
@@ -195,7 +195,7 @@
     async Task OnUpdateRow(MesParamSourceTypeDTO mesParamSourceTypeDTO)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (mesParamSourceTypeDTO == mesParamSourceTypeDTOToInsert)
             {
@@ -225,7 +225,7 @@
 
     async Task SaveRow(MesParamSourceTypeDTO mesParamSourceTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             await mesParamSourceTypeDTOGrid.UpdateRow(mesParamSourceTypeDTO);
         }
@@ -254,7 +254,7 @@
 
     async Task DeleteRow(MesParamSourceTypeDTO mesParamSourceTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -322,7 +322,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             mesParamSourceTypeDTOToInsert = new MesParamSourceTypeDTO();
             await mesParamSourceTypeDTOGrid.InsertRow(mesParamSourceTypeDTOToInsert);
@@ -332,7 +332,7 @@
     async Task OnCreateRow(MesParamSourceTypeDTO mesParamSourceTypeDTO)
     {
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             mesParamSourceTypeDTOToInsert = null;
 
@@ -359,7 +359,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "MesParamSourceType_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

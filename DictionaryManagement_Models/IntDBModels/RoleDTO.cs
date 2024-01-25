@@ -23,6 +23,14 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "В архиве")]
         public bool IsArchive { get; set; } = false;
 
+        [ForLogAttribute(NameProperty = "поле \"Использование Админки чтение/запись\"")]
+        [Display(Name = "Использование Админки чтение/запись")]
+        public bool IsAdmin { get; set; } = false;
+
+        [ForLogAttribute(NameProperty = "поле \"Использование Админки только чтение\"")]
+        [Display(Name = "Использование Админки только чтение")]
+        public bool IsAdminReadOnly { get; set; } = false;
+
         public override string ToString()
         {
             return $"{Name}";

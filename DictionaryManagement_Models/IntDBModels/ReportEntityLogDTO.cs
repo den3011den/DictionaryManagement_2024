@@ -63,7 +63,5 @@ namespace DictionaryManagement_Models.IntDBModels
                 IsErrorBool = value;
             }
         }
-
-
     }
 }

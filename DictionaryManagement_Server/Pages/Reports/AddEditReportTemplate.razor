@@ -228,7 +228,7 @@
     {
         if (firstRender)
         {
-            // if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            // if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
             // {
             IsAdmin = true;
 
@@ -268,7 +268,7 @@
     private async Task AddEditReportTemplateProcedure()
     {
         IsSubmited = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             ReportTemplatePath = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
 
@@ -412,7 +412,7 @@
     private async Task OnClickSave()
     {
         IsSubmited = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
         {
             UserDTO? currentUserDTO = await _authorizationRepository.GetCurrentUserDTO(SD.MessageBoxMode.Off);
             ActiveReportTemplateDTO.AddTime = DateTime.Now;
