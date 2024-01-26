@@ -562,7 +562,6 @@
 
         try
         {
-
             console.Log($"--> Начало процесса");
             console.Log($"Определение прав пользователя");
 
@@ -689,10 +688,8 @@
                             return;
                         }
                     }
-                }
-
-                ResultFileId = createdReportEntityDTO.Id;
-
+                }                
+               
                 IXLWorksheet worksheet = null;
                 IXLWorksheet worksheetSapEquipment = null;
                 IXLWorksheet worksheetSapMaterial = null;
@@ -763,6 +760,8 @@
                         worksheetSapEquipment = null;
                     }
                 }
+
+                ResultFileId = createdReportEntityDTO.Id;
 
                 bool haveErrors = false;
                 switch (objectName)

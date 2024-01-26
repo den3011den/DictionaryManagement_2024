@@ -5,14 +5,12 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels;
 
-
 @inject IJSRuntime _jsRuntime
 @inject IMesNdoStocksRepository _mesNdoStocksRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
-
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -293,7 +291,7 @@
     bool ApplyButtonDisabled = true;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -302,9 +300,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
-        {
-            IsAdmin = true;
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {            
             if (firstRender)
             {
                 applyRadioGroupValue = 1;
@@ -317,13 +314,10 @@
                     maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
                     minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
                 }
-
                 IsLoading = true;
                 await LoadStateAsync();
                 StateHasChanged();
-
                 await GetRows();
-
                 IsLoading = false;
                 StateHasChanged();
             }
@@ -447,7 +441,7 @@
         {
 
 
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "MesNdoStocks_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -569,7 +563,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;

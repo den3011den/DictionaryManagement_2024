@@ -9,15 +9,13 @@
 @inject IJSRuntime _jsRuntime
 @inject IMesMovementsRepository _mesMovementsRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
-
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/MesMovements">Архив данных</a></h6>
         </div>
@@ -370,7 +368,7 @@
     bool ApplyButtonDisabled = true;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -379,9 +377,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
                 applyRadioGroupValue = 1;
@@ -539,7 +537,7 @@
         else
         {
 
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "MesMovements_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -696,7 +694,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;

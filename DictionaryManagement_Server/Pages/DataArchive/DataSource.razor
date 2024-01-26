@@ -15,7 +15,7 @@
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -30,7 +30,8 @@
         {
 
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый источник данных" Click="@InsertRow" Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый источник данных" 
+                    Click="@InsertRow" Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
             <RadzenDataGridApp @ref="dataSourceDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
@@ -64,21 +65,25 @@
                             </RadzenButton>
                             @if (!dataSourceDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                        Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
                         <EditTemplate Context="dataSourceDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(dataSourceDTO))">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@((args) => SaveRow(dataSourceDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(dataSourceDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(dataSourceDTO))">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(dataSourceDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
@@ -114,7 +119,7 @@
     public bool excelExportFlag { get; set; } = false;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     DataGridSettings _dataSourceGridSettings;
     public DataGridSettings DataSourceGridSettings
@@ -165,9 +170,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
-        {
-            IsAdmin = true;
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {            
             if (firstRender)
             {
                 IsLoading = true;
@@ -184,7 +189,7 @@
 
     async Task EditRow(DataSourceDTO dataSourceDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             dataSourceDTOToUpdate = dataSourceDTO;
             await dataSourceDTOGrid.EditRow(dataSourceDTO);
@@ -223,7 +228,7 @@
 
     async Task SaveRow(DataSourceDTO dataSourceDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await dataSourceDTOGrid.UpdateRow(dataSourceDTO);
         }
@@ -250,7 +255,7 @@
 
     async Task DeleteRow(DataSourceDTO dataSourceDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -316,7 +321,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             dataSourceDTOToInsert = new DataSourceDTO();
             await dataSourceDTOGrid.InsertRow(dataSourceDTOToInsert);
@@ -325,7 +330,7 @@
 
     async Task OnCreateRow(DataSourceDTO dataSourceDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             dataSourceDTOToInsert = null;
 
@@ -349,7 +354,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "DataSource_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
