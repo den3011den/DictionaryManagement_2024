@@ -13,7 +13,7 @@
 
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -192,10 +192,8 @@
                 <div class="text-center">
                     <img src="/images/loading.gif">
                 </div>
-
             }
         }
-
     </div>
 }
 
@@ -231,7 +229,7 @@
     bool ApplyButtonDisabled = true;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -242,10 +240,9 @@
     {
         if (firstRender)
         {
-
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsAdmin = true;
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
@@ -259,9 +256,7 @@
                 IsLoading = true;
                 await LoadStateAsync();
                 StateHasChanged();
-
                 await GetRows();
-
                 IsLoading = false;
                 StateHasChanged();
             }
@@ -374,7 +369,7 @@
         }
         else
         {
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "LogEvent_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

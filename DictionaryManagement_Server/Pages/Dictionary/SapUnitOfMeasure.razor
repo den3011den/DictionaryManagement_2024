@@ -6,15 +6,13 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
 
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -28,18 +26,19 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения SAP" Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения SAP"
+                              Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
 
             <RadzenDataGridApp @ref="sapUnitOfMeasureDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                            @bind-Settings="@SapUnitOfMeasureGridSettings" SettingsName="SapUnitOfMeasureGridSettings"
-                            Data="@sapUnitOfMeasureDTOs" TItem="SapUnitOfMeasureDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                            
-                            FilterMode="FilterMode.SimpleWithMenu"
-                            AllowColumnResize="false"                            
-                            GridLines="DataGridGridLines.Both"
-                            Style="height:calc(100vh - 170px)">
+                               @bind-Settings="@SapUnitOfMeasureGridSettings" SettingsName="SapUnitOfMeasureGridSettings"
+                               Data="@sapUnitOfMeasureDTOs" TItem="SapUnitOfMeasureDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.SimpleWithMenu"
+                               AllowColumnResize="false"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 170px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Name" Title="Наименование">
@@ -64,26 +63,30 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="SapUnitOfMeasureDTO" Context="sapUnitOfMeasureDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="sapUnitOfMeasureDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@(args => EditRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!sapUnitOfMeasureDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
-
                         </Template>
                         <EditTemplate Context="sapUnitOfMeasureDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(sapUnitOfMeasureDTO))">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@((args) => SaveRow(sapUnitOfMeasureDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapUnitOfMeasureDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapUnitOfMeasureDTO))">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
@@ -119,7 +122,7 @@
     SapUnitOfMeasureDTO sapUnitOfMeasureDTOToUpdate;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     public bool excelExportFlag { get; set; } = false;
 
@@ -173,9 +176,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
                 IsLoading = true;
@@ -192,7 +195,7 @@
 
     async Task EditRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapUnitOfMeasureDTOToUpdate = sapUnitOfMeasureDTO;
             await sapUnitOfMeasureDTOGrid.EditRow(sapUnitOfMeasureDTO);
@@ -201,7 +204,7 @@
 
     async Task OnUpdateRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (sapUnitOfMeasureDTO == sapUnitOfMeasureDTOToInsert)
             {
@@ -247,7 +250,7 @@
 
     async Task SaveRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await sapUnitOfMeasureDTOGrid.UpdateRow(sapUnitOfMeasureDTO);
         }
@@ -277,7 +280,7 @@
 
     async Task DeleteRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -344,7 +347,7 @@
     }
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapUnitOfMeasureDTOToInsert = new SapUnitOfMeasureDTO();
             await sapUnitOfMeasureDTOGrid.InsertRow(sapUnitOfMeasureDTOToInsert);
@@ -353,10 +356,9 @@
 
     async Task OnCreateRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapUnitOfMeasureDTOToInsert = null;
-
             var objectForCheckName = await _sapUnitOfMeasureRepository.GetByName(sapUnitOfMeasureDTO.Name);
             if (objectForCheckName != null)
             {
@@ -392,7 +394,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "SapUnitOfMeasure_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

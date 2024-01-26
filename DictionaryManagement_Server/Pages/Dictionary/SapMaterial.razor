@@ -13,21 +13,20 @@
 @inject ILogEventRepository _logEventRepository
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="dictionary">Справочники</a> - <a href="/dictionary/SapMaterial">Материалы SAP</a></h6>
         </div>
 
-
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый материал SAP" Click="@InsertRow" Disabled=@(sapMaterialDTOToInsert != null || sapMaterialDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый материал SAP"
+                              Click="@InsertRow" Disabled=@(sapMaterialDTOToInsert != null || sapMaterialDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel -->" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник материалов SAP" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
@@ -82,26 +81,31 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="SapMaterialDTO" Context="sapMaterialDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="86px">
                         <Template Context="sapMaterialDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMaterialDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@(args => EditRow(sapMaterialDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!sapMaterialDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMaterialDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(sapMaterialDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMaterialDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(sapMaterialDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
 
                         </Template>
                         <EditTemplate Context="sapMaterialDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(sapMaterialDTO))">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@((args) => SaveRow(sapMaterialDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapMaterialDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMaterialDTO))">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(sapMaterialDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
@@ -116,10 +120,8 @@
                 <div class="text-center">
                     <img src="/images/loading.gif">
                 </div>
-
             }
         }
-
     </div>
 }
 @code {
@@ -134,7 +136,7 @@
     SapMaterialDTO sapMaterialDTOToUpdate;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
 
     void Reset()
@@ -187,10 +189,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
                 IsLoading = true;
@@ -207,7 +208,7 @@
 
     async Task EditRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapMaterialDTOToUpdate = sapMaterialDTO;
             await sapMaterialDTOGrid.EditRow(sapMaterialDTO);
@@ -216,7 +217,7 @@
 
     async Task OnUpdateRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (sapMaterialDTO == sapMaterialDTOToInsert)
             {
@@ -224,13 +225,9 @@
             }
 
             bool needAskUser = false;
-
             sapMaterialDTOToUpdate = null;
-
             string errorMessage = string.Empty;
-
             var objectForCheckName = _sapMaterialRepository.GetByName(sapMaterialDTO.Name).Result;
-
             if (objectForCheckName != null)
             {
                 if (objectForCheckName.Id != sapMaterialDTO.Id)
@@ -310,7 +307,7 @@
     }
     async Task SaveRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await sapMaterialDTOGrid.UpdateRow(sapMaterialDTO);
         }
@@ -340,7 +337,7 @@
 
     async Task DeleteRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
                 if (sapMaterialDTO.IsArchive != true)
@@ -404,7 +401,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapMaterialDTOToInsert = new SapMaterialDTO();
             await sapMaterialDTOGrid.InsertRow(sapMaterialDTOToInsert);
@@ -413,15 +410,12 @@
 
     async Task OnCreateRow(SapMaterialDTO sapMaterialDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapMaterialDTOToInsert = null;
-
             string errorMessage = string.Empty;
             bool needAskUser = false;
-
             var objectForCheckName = _sapMaterialRepository.GetByName(sapMaterialDTO.Name).Result;
-
             if (objectForCheckName != null)
             {
                 if (errorMessage != string.Empty)
@@ -491,7 +485,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "SapMaterial_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -506,7 +500,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
