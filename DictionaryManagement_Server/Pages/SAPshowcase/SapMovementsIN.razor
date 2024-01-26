@@ -13,7 +13,7 @@
 
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -331,21 +331,6 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-
-                    @*                     <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="MesError" Title="СИР ошибка" Filterable="true" Width="25px" TextAlign="TextAlign.Center">
-            <Template Context="data">
-            @if (data.MesError == true)
-            {
-            <RadzenCheckBox @bind-Value=data.MesError ReadOnly="true" TriState="false" TValue="bool?"
-            MouseEnter="@(args => ShowTooltip(args, new TooltipOptions(){ Position = TooltipPosition.Bottom }, data.MesErrorMessage))" />
-            }
-            else
-            {
-            <RadzenCheckBox @bind-Value=data.MesError ReadOnly="true" TriState="false" TValue="bool?" />
-            }
-            </Template>
-            </RadzenDataGridColumnApp> *@
-
                     <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="MesMovementDTOFK.MesParamDTOFK.Code" Title="Код тэга СИР" FilterProperty="MesMovementDTOFK.MesParamDTOFK.Code" SortProperty="MesMovementDTOFK.MesParamDTOFK.Code" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
                         <Template Context="data1">
                             @if (data1.MesMovementDTOFK != null)
@@ -420,16 +405,6 @@
                             }
                         </Template>
                     </RadzenDataGridColumnApp>
-
-                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapMovementsINDTO" Context="sapMovementsINDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-            <Template Context="sapMovementsINDTO">
-            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMovementsINDTO))" @onclick:stopPropagation="true">
-            </RadzenButton>
-            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMovementsINDTO))" @onclick:stopPropagation="true">
-            </RadzenButton>
-            </Template>
-            </RadzenDataGridColumnApp>
-            *@
                 </Columns>
             </RadzenDataGridApp>
         }
@@ -444,7 +419,6 @@
 
             }
         }
-
     </div>
 }
 
@@ -481,7 +455,7 @@
     bool ApplyButtonDisabled = true;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -538,12 +512,11 @@
         await SD.SetPageSettingsVersion("SapMovementsINGridSettings", _jsRuntime);
     }
 
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
                 applyRadioGroupValue = 1;
@@ -637,8 +610,7 @@
         }
         else
         {
-
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "SapMovementsIN_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -772,7 +744,7 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
@@ -785,7 +757,6 @@
         }
         IsLoading = false;
     }
-
 }
 
 
