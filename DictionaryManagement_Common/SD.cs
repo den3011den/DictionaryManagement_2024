@@ -35,7 +35,8 @@ namespace DictionaryManagement_Common
         {
             LoginOnly,
             NameOnly,
-            LoginAndName
+            LoginAndName,
+            LoginAndNameAndAccessMode
         }
 
         public enum AdminMode

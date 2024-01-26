@@ -201,7 +201,7 @@
 
     async Task OnUpdateRow(LogEventTypeDTO logEventTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (logEventTypeDTO == logEventTypeDTOToInsert)
             {

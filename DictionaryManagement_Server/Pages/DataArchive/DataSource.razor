@@ -30,8 +30,8 @@
         {
 
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый источник данных" 
-                    Click="@InsertRow" Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый источник данных"
+                              Click="@InsertRow" Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
             <RadzenDataGridApp @ref="dataSourceDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
@@ -66,7 +66,7 @@
                             @if (!dataSourceDTO.IsArchive)
                             {
                                 <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                        Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                              Click="@(args => DeleteRow(dataSourceDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
@@ -172,7 +172,7 @@
     {
         IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {            
+        {
             if (firstRender)
             {
                 IsLoading = true;
@@ -198,7 +198,7 @@
 
     async Task OnUpdateRow(DataSourceDTO dataSourceDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (dataSourceDTO == dataSourceDTOToInsert)
             {

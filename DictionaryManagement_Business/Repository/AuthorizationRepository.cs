@@ -131,7 +131,6 @@ namespace DictionaryManagement_Business.Repository
                 {
                     if (authState.User.Identity is not null && authState.User.Identity.IsAuthenticated)
                     {
-
                         string? loginStr = authState.User.Identity.Name;
 
                         if (loginReturnMode == LoginReturnMode.LoginOnly)
@@ -154,15 +153,14 @@ namespace DictionaryManagement_Business.Repository
                                     if (varString.IsNullOrEmpty())
                                         varString = principal.Surname + " " + principal.GivenName + " ";
 
-                                    if (loginReturnMode == LoginReturnMode.NameOnly)
+                                    if (loginReturnMode == LoginReturnMode.NameOnly || loginReturnMode == LoginReturnMode.LoginAndNameAndAccessMode)
                                     {
                                         returnString = varString;
                                     }
-                                    if (loginReturnMode == LoginReturnMode.LoginAndName)
+                                    if (loginReturnMode == LoginReturnMode.LoginAndName || loginReturnMode == LoginReturnMode.LoginAndNameAndAccessMode)
                                     {
                                         returnString = varString + " ( " + loginStr + " )";
                                     }
-
                                 }
                                 catch (Exception ex)
                                 {
@@ -172,6 +170,17 @@ namespace DictionaryManagement_Business.Repository
                             else
                             {
                                 returnString = loginStr;
+                            }
+                        }
+
+                        if (loginReturnMode == LoginReturnMode.LoginAndNameAndAccessMode)
+                        {
+                            AdminMode IsAdminMode = await CurrentUserIsInAdminRole(SD.MessageBoxMode.Off);
+                            switch (IsAdminMode)
+                            {
+                                case AdminMode.IsAdmin: returnString = returnString + " - полный доступ"; break;
+                                case AdminMode.IsAdminReadOnly: returnString = returnString + " - только чтение"; break;
+                                default: returnString = returnString + " - НЕТ ДОСТУПА"; break;
                             }
                         }
                     }

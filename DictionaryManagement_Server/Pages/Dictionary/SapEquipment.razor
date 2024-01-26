@@ -218,7 +218,7 @@
 
     async Task OnUpdateRow(SapEquipmentDTO sapEquipmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (sapEquipmentDTO == sapEquipmentDTOToInsert)
             {

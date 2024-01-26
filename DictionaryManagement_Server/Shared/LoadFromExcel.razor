@@ -960,7 +960,7 @@
     {
         if (ResultFileId != Guid.Empty)
         {
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + ResultFileId.ToString(), "_blank");
             }
