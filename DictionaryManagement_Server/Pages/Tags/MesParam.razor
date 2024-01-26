@@ -37,7 +37,7 @@
             <RadzenDataGridApp @bind-Settings="@MesParamGridSettings" SettingsName="MesParamGridSettings" @ref="mesParamDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@mesParamDTOs" TItem="MesParamDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
@@ -105,7 +105,7 @@
                             <RadzenDropDown @bind-Value=@selectedMesParamSourceType
                                             Change=OnSelectedMesParamSourceTypeChange Data="@(distinctMesParamSourceTypeInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 100%;"
+                                            Style="font-size:0.75rem;width: 30vw;"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -131,7 +131,7 @@
                             <RadzenDropDown @bind-Value=@selectedMesDepartment
                                             Change=OnSelectedMesDepartmentChange Data="@(distinctMesDepartmentInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 100%;"
+                                            Style="font-size:0.75rem;width: 30vw;"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -273,7 +273,6 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-
                     <RadzenDataGridColumnApp TItem="MesParamDTO" Property="IsArchive" Title="Арх" Filterable="true" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
@@ -330,7 +329,8 @@
 
     _Dialogs? _dialogs { get; set; }
 
-    IEnumerable<MesParamDTO>? mesParamDTOs;
+    IEnumerable<MesParamDTO>? mesParamDTOs;    
+
     // IEnumerable<MesParamSourceTypeDTO>? mesParamSourceTypeDTOs;
 
     IEnumerable<string> selectedMesParamSourceType;

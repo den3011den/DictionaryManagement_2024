@@ -272,7 +272,7 @@
                                 <RadzenDataGridApp @bind-Settings="@MesMovementsGridSettingsForReportEntity" @ref="mesMovementsDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                                    Data="@mesMovementsDTOs" TItem="MesMovementsDTO"
                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                   FilterMode="FilterMode.SimpleWithMenu"
+                                                   FilterMode="FilterMode.Advanced"
                                                    Density=Density.Compact
                                                    ShowPagingSummary="true"
                                                    Style="height:70vh"
@@ -284,9 +284,7 @@
                                                    ShowCleanGridSettingsHeaderButton="false"
                                                    ShowCleanGridFiltersHeaderButton="false"
                                                    ShowCleanGridSortsHeaderButton="false">
-
-                                    @* Style=@(iconMenuActive ? "height:calc(100vh - 170px); width:1760px" : "height:calc(100vh - 170px); width:1600px") *@
-
+                               
                                     <Columns>
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
                                                               FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
@@ -439,7 +437,7 @@
                                 <RadzenDataGridApp @bind-Settings="@MesNdoStocksGridSettingsForReportEntity" @ref="mesNdoStocksDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                                    Data="@mesNdoStocksDTOs" TItem="MesNdoStocksDTO"
                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                   FilterMode="FilterMode.SimpleWithMenu"
+                                                   FilterMode="FilterMode.Advanced"
                                                    Density=Density.Compact
                                                    ShowPagingSummary="true"
                                                    AllowVirtualization="true"
@@ -680,7 +678,7 @@
                                 <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="false" EditMode="DataGridEditMode.Single"
                                 Data="@(ActiveReportEntityDTO.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))" TItem="ReportEntityResendDatesDTO"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                FilterMode="FilterMode.SimpleWithMenu"
+                                FilterMode="FilterMode.Advanced"
                                 Density=Density.Compact
                                 ShowPagingSummary="true"
                                 Style="height:70vh"

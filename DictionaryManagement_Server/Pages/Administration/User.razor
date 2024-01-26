@@ -7,15 +7,11 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json;
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject IUserRepository _userRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
-
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -27,10 +23,8 @@
             <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/User">Пользователи</a></h6>
         </div>
 
-
         @if (IsLoading != true)
         {
-
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить нового пользователя" Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
@@ -40,12 +34,12 @@
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
                                Data="@userDTOs" TItem="UserDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                Density=Density.Compact
                                ShowPagingSummary="true"                               
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 170px)">
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="ToStringId" Title="Ид пользователя" Width="30px"
                                           FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
@@ -84,13 +78,13 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsSyncWithAD" Title="Автомат" Filterable="true" Width="13px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsSyncWithAD" Title="Автомат" Filterable="true" Width="30px" TextAlign="TextAlign.Center">
                         <Template Context="data4">
                             <RadzenCheckBox @bind-Value=data4.IsSyncWithAD ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsServiceUser" Title="Сервис" Filterable="true" Width="15px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsServiceUser" Title="Сервис" Filterable="true" Width="30px" TextAlign="TextAlign.Center">
                         <Template Context="data4">
                             <RadzenCheckBox @bind-Value=data4.IsServiceUser ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
@@ -100,7 +94,7 @@
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="SyncWithADGroupsLastTime" Title="Время посл. синх. AD" Width="40px" TextAlign="TextAlign.Center">
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsArchive" Title="Арх" Filterable="true" Width="8px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsArchive" Title="Арх" Filterable="true" Width="20px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>

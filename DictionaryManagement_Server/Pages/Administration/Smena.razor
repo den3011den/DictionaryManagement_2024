@@ -35,13 +35,13 @@
             <RadzenDataGridApp @bind-Settings="@SmenaGridSettings" SettingsName="SmenaGridSettings" @ref="smenaDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                             Data="@smenaDTOs" TItem="SmenaDTO"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            FilterMode="FilterMode.SimpleWithMenu"
+                            FilterMode="FilterMode.Advanced"
                             Density=Density.Compact
                             ShowPagingSummary="true"                            
                             AllowVirtualization="true"
                             AllowColumnResize="false"
                             GridLines="DataGridGridLines.Both"
-                            Style="height:calc(100vh - 170px)">
+                            Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SmenaDTO" Property="Id" Title="Ид записи" Width="70px">
                     </RadzenDataGridColumnApp>

@@ -5,7 +5,6 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels;
 
-
 @inject IJSRuntime _jsRuntime
 @inject TooltipService tooltipService
 @inject ILogEventRepository _logEventRepository
@@ -43,13 +42,13 @@
             <RadzenDataGridApp @bind-Settings="@LogEventGridSettings" SettingsName="LogEventGridSettings" @ref="logEventDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@logEventDTOs" TItem="LogEventDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                EmptyText="Нет записей для отображения"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 170px)"
+                               Style="height:calc(100vh - 155px)"
                                ShowCleanGridSortsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSettingsHeaderButton="false">
@@ -92,7 +91,7 @@
                                              FilterValue="@selectedLogEventTypes" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedLogEventTypes
-                                            Change=OnSelectedLogEventTypesChange Data="@(distinctLogEventTypesInList)" AllowClear="true" Multiple="true" Style="width: 500px; font-size:0.75rem"
+                                            Change=OnSelectedLogEventTypesChange Data="@(distinctLogEventTypesInList)" AllowClear="true" Multiple="true" Style="width: 30vw; font-size:0.75rem"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -109,7 +108,7 @@
                                              FilterValue="@selectedUsers" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedUsers
-                                            Change=OnSelectedUsersChange Data="@(distinctUsersInList)" AllowClear="true" Multiple="true" Style="width: 500px; font-size:0.75rem"
+                                            Change=OnSelectedUsersChange Data="@(distinctUsersInList)" AllowClear="true" Multiple="true" Style="width: 30vw; font-size:0.75rem"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -147,7 +146,7 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="LogEventDTO" Property="IsCriticalBool" Title="Крит." Filterable="true" Width="30px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="LogEventDTO" Property="IsCriticalBool" Title="Крит." Filterable="true" Width="60px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             @if (data.IsCriticalBool)
                             {
@@ -161,7 +160,7 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="LogEventDTO" Property="IsErrorBool" Title="Ошибка" Filterable="true" Width="30px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="LogEventDTO" Property="IsErrorBool" Title="Ошибка" Filterable="true" Width="60px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             @if (data.IsErrorBool)
                             {
@@ -176,7 +175,7 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="LogEventDTO" Property="IsWarningBool" Title="Предупреждение" Filterable="true" Width="30px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="LogEventDTO" Property="IsWarningBool" Title="Предупреждение" Filterable="true" Width="60px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.IsWarningBool ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>

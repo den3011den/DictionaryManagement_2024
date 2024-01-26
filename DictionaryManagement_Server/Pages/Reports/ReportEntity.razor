@@ -46,12 +46,12 @@
             <RadzenDataGridApp @bind-Settings="@ReportEntityGridSettings" SettingsName="ReportEntityGridSettings" @ref="reportEntityDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@reportEntityDTOs" TItem="ReportEntityDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                GridLines="DataGridGridLines.Both"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 170px)"
+                               Style="height:calc(100vh - 160px)"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false">
@@ -88,7 +88,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedDepartments
                                             Change=OnSelectedDepartmentsChange Data="@(distinctDepartmentsInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -103,7 +103,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedReportTemplateTypes
                                             Change=OnSelectedReportTemplateTypesChange Data="@(distinctReportTemplateTypesInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -132,7 +132,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedDownloadUsers
                                             Change=OnSelectedDownloadUsersChange Data="@(distinctDownloadUsersInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw;; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
 
@@ -158,7 +158,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedUploadUsers
                                             Change=OnSelectedUploadUsersChange Data="@(distinctUploadUsersInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
 

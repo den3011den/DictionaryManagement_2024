@@ -4,7 +4,6 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
-
 @inject IJSRuntime _jsRuntime
 
 @inject IRoleVMRepository _roleVMRepository
@@ -107,8 +106,8 @@
         IsLoading = true;
         StateHasChanged();
 
-        // ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
-        // Title = "Добавить пользователй к роли " + ActiveRoleVMDTO.Name;
+        ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+        Title = "Добавить пользователей к роли " + ActiveRoleVMDTO.Name;
 
         IsLoading = false;
         StateHasChanged();
@@ -123,8 +122,8 @@
             {
                 IsLoading = true;
                 StateHasChanged();
-                ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
-                Title = "Добавить пользователей к роли";
+                // ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+                // Title = "Добавить пользователей к роли";
                 UserDTOList = await _roleVMRepository.GetAllNotArchiveAndNotAutomaticUsersExceptAlreadyInRole(ActiveRoleVMDTO.Id);
                 IsLoading = false;
                 StateHasChanged();

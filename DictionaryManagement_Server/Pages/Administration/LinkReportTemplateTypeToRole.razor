@@ -104,7 +104,8 @@
 
         IsLoading = true;
         StateHasChanged();
-
+        ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+        Title = "Добавить типы шаблонов отчётов к роли";
         IsLoading = false;
         StateHasChanged();
     }
@@ -118,12 +119,7 @@
             {
                 IsLoading = true;
                 StateHasChanged();
-
-                ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
-                Title = "Добавить типы шаблонов отчётов к роли";
-
                 ReportTemplateTypeDTOList = await _roleVMRepository.GetAllNotArchiveReportTemplateTypesExceptAlreadyInRole(ActiveRoleVMDTO.Id);
-
                 IsLoading = false;
                 StateHasChanged();
             }

@@ -99,7 +99,8 @@
 
         IsLoading = true;
         StateHasChanged();
-
+        ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+        Title = "Добавить производства к роли";
         IsLoading = false;
         StateHasChanged();
     }
@@ -113,12 +114,7 @@
             {
                 IsLoading = true;
                 StateHasChanged();
-
-                ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
-                Title = "Добавить производства к роли";
-
                 MesDepartmentList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
-
                 IsLoading = false;
                 StateHasChanged();
             }
