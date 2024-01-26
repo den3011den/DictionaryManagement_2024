@@ -1,10 +1,8 @@
 ﻿@page "/reports/ReportTemplate/AddEditReportTemplate/{ReportTemplateId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
-
 @inject IReportTemplateRepository _reportTemplateRepository
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject IDataTypeRepository _dataTypeRepository
@@ -13,13 +11,11 @@
 @inject IWebHostEnvironment _environment
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 @inject ILogEventRepository _logEventRepository
-
-
 @inject DialogService _dialogService
 
 <_Dialogs @ref="_dialogs"></_Dialogs>
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     @if (IsLoading)
     {
@@ -39,8 +35,6 @@
                     <RadzenStack>
                         <RadzenFieldset Text="Шаблон отчёта" Style="font-weight: bold;">
                             <RadzenStack Gap="1rem">
-
-
                                 @if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
                                 {
                                     <RadzenFormField Text="ИД шаблона" Variant="@variant" Style="width: 100%;">
@@ -55,7 +49,6 @@
                                     <RadzenFormField Text="Кто добавил" Variant="@variant" Style="width: 100%;">
                                         <RadzenTextBox @bind-Value="@ActiveReportTemplateDTO.AddUserDTOFK.UserName" ReadOnly="true" />
                                     </RadzenFormField>
-
                                 }
 
                                 <RadzenFormField Text="Тип шаблона отчёта" Variant="@variant" Style="width: 100%;">
@@ -110,12 +103,12 @@
                     <RadzenStack>
                         <RadzenFieldset Text="Авторасчёт шаблона отчёта" Style="font-weight: bold;">
                             <RadzenStack Gap="1rem">
-                                @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK !=null && ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.CanAutoCalc == true)
-                                {       
+                                @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK != null && ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.CanAutoCalc == true)
+                                {
                                     <div class="rz-p-12 rz-text-align-center">
-                                    <RadzenCheckBox @bind-Value="@ActiveReportTemplateDTO.NeedAutoCalc" Name="CheckBoxNeedAutoCalc" />
-                                    <RadzenLabel Text="Включить авторасчёт шаблона отчёта" Component="CheckBoxNeedAutoCalc" Style="margin-left: 8px; vertical-align: middle; font-size: 14px" />
-                                    <ValidationMessage For="()=>ActiveReportTemplateDTO.NeedAutoCalc"></ValidationMessage>
+                                        <RadzenCheckBox @bind-Value="@ActiveReportTemplateDTO.NeedAutoCalc" Name="CheckBoxNeedAutoCalc" />
+                                        <RadzenLabel Text="Включить авторасчёт шаблона отчёта" Component="CheckBoxNeedAutoCalc" Style="margin-left: 8px; vertical-align: middle; font-size: 14px" />
+                                        <ValidationMessage For="()=>ActiveReportTemplateDTO.NeedAutoCalc"></ValidationMessage>
                                     </div>
                                     <RadzenFormField Text="Порядок авторасчёта" Variant="@variant" Style="width: 100%; max-width: 700px;">
                                         <RadzenNumeric @bind-Value="@ActiveReportTemplateDTO.AutoCalcOrder" Disabled="@(ActiveReportTemplateDTO.NeedAutoCalc == true ? false : true)" />
@@ -129,7 +122,7 @@
                                 else
                                 {
                                     <p style="color: lightgrey; font-size: 14px; text-align: center; margin: 2rem;">
-                                        @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK==null)
+                                        @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK == null)
                                         {
                                             @("Тип шаблона отчёта не выбран")
                                         }
@@ -144,17 +137,16 @@
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
-
-
-
             <div class="form-group py-2">
-                <button class="btn btn-primary" @onclick="(() => OnClickSave().GetAwaiter().GetResult())" disabled=@IsSubmited>@Title</button>
+                <button class="btn btn-primary" @onclick="(() => OnClickSave().GetAwaiter().GetResult())"
+                        disabled=@(IsSubmited || (IsAdmin != AdminMode.IsAdmin))>
+                    @Title
+                </button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
 }
-
 
 @code {
 
@@ -174,7 +166,7 @@
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     string uploadFileWarning = "";
 
@@ -207,11 +199,11 @@
         if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
         {
             ActiveReportTemplateDTO = new ReportTemplateDTO
-            {
-                NeedAutoCalc = false,
-                AutoCalcOrder = 1,
-                AutoCalcNumber = 1
-            };
+                {
+                    NeedAutoCalc = false,
+                    AutoCalcOrder = 1,
+                    AutoCalcNumber = 1
+                };
         }
         else
         {
@@ -228,47 +220,43 @@
     {
         if (firstRender)
         {
-            // if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
-            // {
-            IsAdmin = true;
-
-            IsLoading = true;
-            StateHasChanged();
-
-            if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                ActiveReportTemplateDTO = new ReportTemplateDTO
-                    {
-                        NeedAutoCalc = false,
-                        AutoCalcOrder = 1,
-                        AutoCalcNumber = 1
-                    };
+                IsLoading = true;
+                StateHasChanged();
+
+                if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
+                {
+                    ActiveReportTemplateDTO = new ReportTemplateDTO
+                        {
+                            NeedAutoCalc = false,
+                            AutoCalcOrder = 1,
+                            AutoCalcNumber = 1
+                        };
+                }
+                else
+                {
+                    ActiveReportTemplateDTO = await _reportTemplateRepository.GetById(ReportTemplateId);
+                    Title = "Изменить шаблон отчёта";
+                }
+
+                MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
+                ReportTemplateTypeDTOList = await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                DataTypeDTOList = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+
+                IsLoading = false;
+                StateHasChanged();
             }
             else
-            {
-                ActiveReportTemplateDTO = await _reportTemplateRepository.GetById(ReportTemplateId);
-                Title = "Изменить шаблон отчёта";
-            }
-
-            MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
-            ReportTemplateTypeDTOList = await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
-            DataTypeDTOList = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
-
-            IsLoading = false;
-            StateHasChanged();
-            // }
-            // else
-            //     _navigationManager.NavigateTo("/reports/ReportTemplate");
-
-
+                _navigationManager.NavigateTo("/reports/ReportTemplate");
         }
-
     }
-    
+
     private async Task AddEditReportTemplateProcedure()
     {
         IsSubmited = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             ReportTemplatePath = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
 
@@ -313,7 +301,7 @@
 
                 createdTemplateDTO.TemplateFileName = createdTemplateDTO.Id + ".xlsx";
 
-                var addedDTO =  await _reportTemplateRepository.Update(createdTemplateDTO);
+                var addedDTO = await _reportTemplateRepository.Update(createdTemplateDTO);
 
                 await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: null, newObject: addedDTO, "Добавление шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
 
@@ -362,9 +350,7 @@
                 _dialogService.Close(ActiveReportTemplateDTO);
             }
         }
-
         IsSubmited = false;
-
     }
 
     private async Task FillDescription()
@@ -412,7 +398,7 @@
     private async Task OnClickSave()
     {
         IsSubmited = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             UserDTO? currentUserDTO = await _authorizationRepository.GetCurrentUserDTO(SD.MessageBoxMode.Off);
             ActiveReportTemplateDTO.AddTime = DateTime.Now;
@@ -428,7 +414,7 @@
         IsSubmited = false;
     }
 
-    
+
     void OnProgress(UploadProgressArgs args)
     {
 

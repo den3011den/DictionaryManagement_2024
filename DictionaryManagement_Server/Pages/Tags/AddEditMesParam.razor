@@ -5,7 +5,6 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IMesParamRepository _mesParamRepository
 @inject IMesParamSourceTypeRepository _mesParamSourceTypeRepository
 @inject IMesDepartmentRepository _mesDepartmentRepository
@@ -15,19 +14,12 @@
 @inject ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository
 @inject IMesUnitOfMeasureRepository _mesUnitOfMeasureRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
 
-
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
-
-    @*<div class="row my-10">
-
-
-    <div class="col-md-12">*@
     @if (IsLoading)
     {
         <div class="text-center">
@@ -38,10 +30,6 @@
     {
         <EditForm Model="ActiveMesParamDTO" OnValidSubmit="AddEditMesParamProcedure">
             <DataAnnotationsValidator />
-            @*                <RadzenRow Gap="1rem">
-    <RadzenColumn Size="12">
-    <RadzenStack>*@
-
             <RadzenRow Gap="1rem">
                 <RadzenColumn Size="12" SizeMD="5">
                     <RadzenStack>
@@ -232,15 +220,12 @@
             </RadzenRow>
 
             <div class="form-group py-2">
-                <button class="btn btn-primary">@Title</button>
+                <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
-    @*    </div>
-</div>*@
 }
-
 
 @code {
 
@@ -254,7 +239,7 @@
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     public bool IsNdoDiasabled { get; set; } = false;
     public bool NeedReadFromSapDisabled { get; set; } = false;
@@ -317,14 +302,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
-        {
-            IsAdmin = true;
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {            
             if (firstRender)
             {
                 IsLoading = true;
                 StateHasChanged();
-
                 switch (Mode)
                 {
                     case SD.EditMode.Create:
@@ -380,7 +364,7 @@
 
     private async Task AddEditMesParamProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if ((Mode == SD.EditMode.Create) || (Mode == SD.EditMode.CreateBasedOnRow))
             { // создание

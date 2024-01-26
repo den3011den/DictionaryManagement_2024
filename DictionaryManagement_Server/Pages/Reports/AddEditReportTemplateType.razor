@@ -1,19 +1,16 @@
 ﻿@page "/reports/ReportTemplateType/AddEditReportTemplateType/{ReportTemplateTypeId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <div class="row my-2">
-
         <div class="col-md-10">
             @if (IsLoading)
             {
@@ -45,9 +42,8 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -68,7 +64,7 @@
     Variant variant = Variant.Outlined;
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     public ReportTemplateTypeDTO ActiveReportTemplateTypeDTO { get; set; }
 
@@ -98,15 +94,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            IsAdmin = true;
             if (firstRender)
             {
-
                 IsLoading = true;
                 StateHasChanged();
-
                 if (ReportTemplateTypeId == 0)
                 {
                     ActiveReportTemplateTypeDTO = new ReportTemplateTypeDTO();
@@ -127,7 +121,7 @@
 
     private async Task AddEditReportTemplateTypeProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (ReportTemplateTypeId == 0)
             { // создание

@@ -13,7 +13,7 @@
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
-    <div class="row my-2">        
+    <div class="row my-2">
 
         <div class="col-md-10">
             @if (IsLoading)
@@ -50,16 +50,8 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-                    
                     <div class="form-group py-2">
-                        @if(IsAdmin == AdminMode.IsAdmin)
-                        {
-                            <button class="btn btn-primary">@Title</button>
-                        }
-                        else
-                        {
-                            <button disabled class="btn btn-primary">@Title</button>
-                        }
+                        <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -97,7 +89,7 @@
 
         if (ADGroupId == Guid.Empty)
         {
-            ActiveADGroupDTO = new ADGroupDTO();            
+            ActiveADGroupDTO = new ADGroupDTO();
         }
         else
         {
@@ -114,7 +106,7 @@
     {
         IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {        
+        {
             if (firstRender)
             {
 
@@ -123,7 +115,7 @@
 
                 if (ADGroupId == Guid.Empty)
                 {
-                    ActiveADGroupDTO = new ADGroupDTO();                    
+                    ActiveADGroupDTO = new ADGroupDTO();
                 }
                 else
                 {
@@ -149,13 +141,13 @@
                 if (foundByName != null)
                 {
                     await _jsRuntime.ToastrError("Уже есть группа AD с наименованием " + foundByName.Name + " (ИД: " + foundByName.Id.ToString() + ")");
-                    return;                    
+                    return;
                 }
 
                 ADGroupDTO addedDTO = await _adGroupRepository.Create(ActiveADGroupDTO);
                 await _logEventRepository.ToLog<ADGroupDTO>(oldObject: null, newObject: addedDTO, "Добавление группы AD", "Группа AD: ", _authorizationRepository);
                 await _jsRuntime.ToastrSuccess("Группа AD \"" + ActiveADGroupDTO.Name + "\" создана");
-         
+
                 _dialogService.Close(ActiveADGroupDTO);
 
             }
@@ -171,8 +163,8 @@
                 ADGroupDTO oldADGroupDTO = await _adGroupRepository.Get(ActiveADGroupDTO.Id);
                 ADGroupDTO newADGroupDTO = await _adGroupRepository.Update(ActiveADGroupDTO);
                 await _logEventRepository.ToLog<ADGroupDTO>(oldObject: oldADGroupDTO, newObject: newADGroupDTO, "Изменение группы AD", "Группа AD: ", _authorizationRepository);
-                await _jsRuntime.ToastrSuccess("Группа AD \"" + ActiveADGroupDTO.Name +  " \" изменена");
-                
+                await _jsRuntime.ToastrSuccess("Группа AD \"" + ActiveADGroupDTO.Name + " \" изменена");
+
                 _dialogService.Close(ActiveADGroupDTO);
             }
         }

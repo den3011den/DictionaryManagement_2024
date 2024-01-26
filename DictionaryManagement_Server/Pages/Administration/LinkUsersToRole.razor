@@ -33,16 +33,16 @@
                             <RadzenStack>
                                 <RadzenStack Gap="1rem">
                                     <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="15" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                                                    Data="UserDTOList" TItem="UserDTO"
-                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                    FilterMode="FilterMode.Simple"
-                                                    Density=Density.Compact
-                                                    ShowPagingSummary="true"
-                                                    EmptyText="Нет записей для отображения"
-                                                    AllowVirtualization="true"
-                                                    ShowCleanGridSettingsHeaderButton="false"
-                                                    ShowCleanGridFiltersHeaderButton="false"
-                                                    ShowCleanGridSortsHeaderButton="false">
+                                                       Data="UserDTOList" TItem="UserDTO"
+                                                       FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                       FilterMode="FilterMode.Simple"
+                                                       Density=Density.Compact
+                                                       ShowPagingSummary="true"
+                                                       EmptyText="Нет записей для отображения"
+                                                       AllowVirtualization="true"
+                                                       ShowCleanGridSettingsHeaderButton="false"
+                                                       ShowCleanGridFiltersHeaderButton="false"
+                                                       ShowCleanGridSortsHeaderButton="false">
                                         <Columns>
 
                                             <RadzenDataGridColumnApp TItem="UserDTO" Property="Checked" Title=" " Filterable="true" Width="15px">
@@ -70,14 +70,7 @@
                     </RadzenText>
 
                     <div class="form-group py-2">
-                        @if (IsAdmin == AdminMode.IsAdmin)
-                        {
-                            <button class="btn btn-primary">@Title</button>
-                        }
-                        else
-                        {
-                            <button disabled class="btn btn-primary">@Title</button>
-                        }
+                        <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>

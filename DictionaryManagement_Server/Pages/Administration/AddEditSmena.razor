@@ -67,14 +67,7 @@
             </RadzenRow>
 
             <div class="form-group py-2">
-                @if (IsAdmin == AdminMode.IsAdmin)
-                {
-                    <button class="btn btn-primary">@Title</button>
-                }
-                else
-                {
-                    <button disabled class="btn btn-primary">@Title</button>
-                }
+                <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
@@ -129,7 +122,7 @@
     {
         IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {                     
+        {
             if (firstRender)
             {
 

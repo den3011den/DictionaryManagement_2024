@@ -20,11 +20,10 @@
 @inject DialogService _dialogService
 
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
  
-
     @if (IsLoading)
     {
         <div class="text-center">
@@ -788,7 +787,7 @@
     public string fileUploadFullPath = "";
 
     public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public AdminMode IsAdmin { get; set; }
 
     public ReportEntityDTO? ActiveReportEntityDTO { get; set; }
 
@@ -798,7 +797,8 @@
     {
         await base.OnInitializedAsync();
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);        
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
             StateHasChanged();
@@ -819,11 +819,8 @@
                 fileDownloadFullPath = "";
             else
                 fileDownloadFullPath = reportDownloadPath + ActiveReportEntityDTO.DownloadReportFileName;
-
-            IsLoading = false;
-            IsAdmin = true;
+            IsLoading = false;            
             StateHasChanged();
-
         }
     }
 
@@ -834,20 +831,14 @@
 
     async Task DownloadReportEntityDownloadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
-        {
-            IsAdmin = true;
-            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
-        }
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)        
+            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");        
     }
 
     async Task DownloadReportEntityUploadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
-        {
-            IsAdmin = true;
-            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + id.ToString(), "_blank");
-        }
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)        
+            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + id.ToString(), "_blank");        
     }
 
 
