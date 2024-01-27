@@ -281,15 +281,16 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-@*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapMovementsOUTDTO" Context="sapMovementsOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-                        <Template Context="sapMovementsOUTDTO">
-                            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMovementsOUTDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMovementsOUTDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                        </Template>
-                    </RadzenDataGridColumnApp>
- *@                </Columns>
+                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapMovementsOUTDTO" Context="sapMovementsOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+            <Template Context="sapMovementsOUTDTO">
+            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMovementsOUTDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMovementsOUTDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            </Template>
+            </RadzenDataGridColumnApp>
+            *@
+                </Columns>
             </RadzenDataGridApp>
         }
         else
@@ -310,7 +311,7 @@
 <style>
     .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
         font-size: 0.75rem;
-    }    
+    }
 </style>
 
 @code {
@@ -350,7 +351,7 @@
     {
         IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {            
+        {
             if (firstRender)
             {
                 applyRadioGroupValue = 1;
@@ -617,7 +618,8 @@
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-вход)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName }
-                    ,{"DataList", (IEnumerable<SapMovementsOUTDTO>)sapMovementsOUTDTOGrid.View }}, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    ,{"DataList", (IEnumerable<SapMovementsOUTDTO>)sapMovementsOUTDTOGrid.View }}
+                    , new DialogOptions() { Width = $"{60}rem" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

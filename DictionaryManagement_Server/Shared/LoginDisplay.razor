@@ -7,20 +7,23 @@
             <div class="col-6 justify-content-end text-primary">
                 Интеграционное решение - Dictionary Management - @SD.AppVersion - @(SD.AppFactoryMode)
             </div>
-            <div class="col-6 justify-content-end" style="position:absolute;right:0">
-                @if (UserLogin.Contains("полный доступ"))
-                {
-                    <p>@("Пользователь: " + UserLogin.Replace("полный доступ",""))<span style="color:green; font-weight:600">полный доступ</span></p>
-                }
-                @if (UserLogin.Contains("только чтение"))
-                {
-                    <p>@("Пользователь: " + UserLogin.Replace("только чтение", ""))<span style="color:blue; font-weight:600">только чтение</span></p>
-                }
-                @if (UserLogin.Contains("НЕТ ДОСТУПА"))
-                {
-                    <p>@("Пользователь: " + UserLogin.Replace("НЕТ ДОСТУПА", ""))<span style="color:red; font-weight:600">НЕТ ДОСТУПА</span></p>
-                }
-            </div>
+            @if (UserLogin != null)
+            {
+                <div class="col-6 justify-content-end" style="position:absolute;right:0">
+                    @if (UserLogin.Contains("полный доступ"))
+                    {
+                        <p>@("Пользователь: " + UserLogin.Replace("полный доступ", ""))<span style="color:green; font-weight:600">полный доступ</span></p>
+                    }
+                    @if (UserLogin.Contains("только чтение"))
+                    {
+                        <p>@("Пользователь: " + UserLogin.Replace("только чтение", ""))<span style="color:blue; font-weight:600">только чтение</span></p>
+                    }
+                    @if (UserLogin.Contains("НЕТ ДОСТУПА"))
+                    {
+                        <p>@("Пользователь: " + UserLogin.Replace("НЕТ ДОСТУПА", ""))<span style="color:red; font-weight:600">НЕТ ДОСТУПА</span></p>
+                    }
+                </div>
+            }
         </div>
     </div>
 
@@ -56,8 +59,18 @@
     //private Task<AuthenticationState>? authenticationState { get; set; }
     public string UserLogin { get; set; }
 
+
     protected override async Task OnInitializedAsync()
     {
-        UserLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginAndNameAndAccessMode);
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            UserLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginAndNameAndAccessMode);
+            StateHasChanged();
+        }
     }
 }

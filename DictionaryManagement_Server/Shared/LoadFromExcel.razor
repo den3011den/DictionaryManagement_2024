@@ -35,133 +35,134 @@
     }
     else
     {
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <RadzenTabs @bind-SelectedIndex=@selectedTabIndex Change="@(args => OnTabChange(args))">
+                <Tabs>
+                    <RadzenTabsItem Text="Получение шаблона для заполнения">
+                        <RadzenRow Gap="1rem">
+                            <RadzenStack>
+                                <RadzenFieldset Text="Варианты получения шаблона для заполнения" Style="font-weight: bold;">
+                                    <RadzenStack Gap="1rem">
+                                        @if (String.IsNullOrEmpty(reportTemplateTypeName))
+                                        {
+                                            <br />
+                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                                @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + LoadFromExcelReportTemplateTypeNameSettingName + "\"")
+                                            </RadzenText>
+                                            errorFlag = true;
+                                        }
+                                        @if (errorFlag == false && String.IsNullOrEmpty(reportTemplateTypeName))
+                                        {
+                                            <br />
+                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                                @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + SD.ReportTemplatePathSettingName + "\"")
+                                            </RadzenText>
+                                            errorFlag = true;
+                                        }
+                                        @if (errorFlag == false && ActiveReportTemplateTypeDTO == null)
+                                        {
+                                            <br />
+                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                                @("Невозможно получить шаблон, так как не найден тип шаблона отчёта с наименованием \"" + reportTemplateTypeName + "\"")
+                                            </RadzenText>
+                                            errorFlag = true;
+                                        }
 
-        <RadzenTabs @bind-SelectedIndex=@selectedTabIndex Change="@(args => OnTabChange(args))">
-            <Tabs>
-                <RadzenTabsItem Text="Получение шаблона для заполнения">
-                    <RadzenRow Gap="1rem">
-                        <RadzenStack>
-                            <RadzenFieldset Text="Варианты получения шаблона для заполнения" Style="font-weight: bold;">
-                                <RadzenStack Gap="1rem">
-                                    @if (String.IsNullOrEmpty(reportTemplateTypeName))
-                                    {
-                                        <br />
-                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                                            @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + LoadFromExcelReportTemplateTypeNameSettingName + "\"")
-                                        </RadzenText>
-                                        errorFlag = true;
-                                    }
-                                    @if (errorFlag == false && String.IsNullOrEmpty(reportTemplateTypeName))
-                                    {
-                                        <br />
-                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                                            @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + SD.ReportTemplatePathSettingName + "\"")
-                                        </RadzenText>
-                                        errorFlag = true;
-                                    }
-                                    @if (errorFlag == false && ActiveReportTemplateTypeDTO == null)
-                                    {
-                                        <br />
-                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                                            @("Невозможно получить шаблон, так как не найден тип шаблона отчёта с наименованием \"" + reportTemplateTypeName + "\"")
-                                        </RadzenText>
-                                        errorFlag = true;
-                                    }
+                                        @if (errorFlag == false && ActiveReportTemplateTypeDTO != null && ActiveReportTemplateDTO == null)
+                                        {
+                                            <br />
+                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                                @("Невозможно получить шаблон, так как не найден шаблона отчёта с типом \"" + ActiveReportTemplateTypeDTO.Name + "\"")
+                                            </RadzenText>
+                                            errorFlag = true;
+                                        }
+                                        @if (errorFlag == false && String.IsNullOrEmpty(reportTempPath))
+                                        {
+                                            <br />
+                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                                @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + SD.TempFilePathSettingName + "\"")
+                                            </RadzenText>
+                                            errorFlag = true;
+                                        }
 
-                                    @if (errorFlag == false && ActiveReportTemplateTypeDTO != null && ActiveReportTemplateDTO == null)
-                                    {
-                                        <br />
-                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                                            @("Невозможно получить шаблон, так как не найден шаблона отчёта с типом \"" + ActiveReportTemplateTypeDTO.Name + "\"")
-                                        </RadzenText>
-                                        errorFlag = true;
-                                    }
-                                    @if (errorFlag == false && String.IsNullOrEmpty(reportTempPath))
-                                    {
-                                        <br />
-                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                                            @("Невозможно получить шаблон, так как в справочнике настроек (таблица Settings) не найдена настройка с наименованием \"" + SD.TempFilePathSettingName + "\"")
-                                        </RadzenText>
-                                        errorFlag = true;
-                                    }
+                                        @if (errorFlag == false && foundActiveReportTemplateFile == false)
+                                        {
+                                            <br />
+                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                                                @("Невозможно получить шаблон, так как не найден файл шаблона отчёта на сервере по пути \"" + fileTemplateFullPath + "\"")
+                                            </RadzenText>
+                                            errorFlag = true;
+                                        }
 
-                                    @if (errorFlag == false && foundActiveReportTemplateFile == false)
-                                    {
-                                        <br />
-                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                                            @("Невозможно получить шаблон, так как не найден файл шаблона отчёта на сервере по пути \"" + fileTemplateFullPath + "\"")
-                                        </RadzenText>
-                                        errorFlag = true;
-                                    }
-
-                                    <div class="rz-text-align-center">
-                                        <RadzenButton Text="Скачать пустой шаблон для заполнения" title="Получить пустой шаблон файла с заголовками и подсказками для заполнения"
-                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                                      Click="@(args => ReportTemplateDownloadFile(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
-                                                      IsBusy=@reportTemplateDownloadFileBusyFlag BusyText="Выполняется ...">
-                                        </RadzenButton>
-                                    </div>
-                                    <div class="rz-text-align-center">
-                                        <RadzenButton Text="Скачать шаблон для заполнения с данными" title="Получить шаблон файла с данными справочника в качестве примера заполнения"
-                                                      Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                                      Click="@(args => ReportTemplateDownloadFileWithData(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
-                                                      IsBusy=@reportTemplateDownloadFileWithDataBusyFlag BusyText=@reportTemplateDownloadFileWithDataBusyText>
-                                        </RadzenButton>
-                                    </div>
-                                </RadzenStack>
-                            </RadzenFieldset>
-                        </RadzenStack>
-                    </RadzenRow>
-                </RadzenTabsItem>
-                <RadzenTabsItem Text="Загрузить данные из Excel" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                    <RadzenRow Gap="1rem">
-                        <RadzenStack>
-                            <RadzenCard Style="width: 100%;">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл Excel с загружаемыми данными</RadzenText>
-                                <RadzenUpload @ref="upload" Auto="false" ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                              Url=@("UploadFileController/UploadReportEntityFile/"+Guid.NewGuid().ToString())
-                                              Change=@(args => OnChangeUploadFile(args)) Progress=@(args => OnProgressUploadFile(args)) Style="width: 850px;" />
-                                @*                                 @if (!String.IsNullOrEmpty(uploadFileWarning))
-                        {
-                        <br />
-                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
-                        } *@
-                            </RadzenCard>
-                            <RadzenCard Style="width: 100%;">
-                                <RadzenButton Text="Загрузить данные из файла" title="Запуск загрузки данных из выбранного файла"
-                                              Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                              Click=@(() => LoadExcelFile().GetAwaiter()) @onclick:stopPropagation="true"
-                                              IsBusy=@loadExcelFileBusyFlag BusyText="Выполняется ...">
-                                </RadzenButton>
-                            </RadzenCard>
-                            @if (isClickedLoadExcelFile)
+                                        <div class="rz-text-align-center">
+                                            <RadzenButton Text="Скачать пустой шаблон для заполнения" title="Получить пустой шаблон файла с заголовками и подсказками для заполнения"
+                                                          Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                          Click="@(args => ReportTemplateDownloadFile(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
+                                                          IsBusy=@reportTemplateDownloadFileBusyFlag BusyText="Выполняется ...">
+                                            </RadzenButton>
+                                        </div>
+                                        <div class="rz-text-align-center">
+                                            <RadzenButton Text="Скачать шаблон для заполнения с данными" title="Получить шаблон файла с данными справочника в качестве примера заполнения"
+                                                          Icon="download" Disabled="@(!foundActiveReportTemplateFile)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                          Click="@(args => ReportTemplateDownloadFileWithData(@ActiveReportTemplateDTO.Id))" @onclick:stopPropagation="true"
+                                                          IsBusy=@reportTemplateDownloadFileWithDataBusyFlag BusyText=@reportTemplateDownloadFileWithDataBusyText>
+                                            </RadzenButton>
+                                        </div>
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            </RadzenStack>
+                        </RadzenRow>
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Загрузить данные из Excel" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                        <RadzenRow Gap="1rem">
+                            <RadzenStack>
+                                <RadzenCard Style="width: 100%;">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл Excel с загружаемыми данными</RadzenText>
+                                    <RadzenUpload @ref="upload" Auto="false" ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                  Url=@("UploadFileController/UploadReportEntityFile/"+Guid.NewGuid().ToString())
+                                                  Change=@(args => OnChangeUploadFile(args)) Progress=@(args => OnProgressUploadFile(args)) Style="width: 850px;" />
+                                    @*                                 @if (!String.IsNullOrEmpty(uploadFileWarning))
                             {
-                                <RadzenCard Style="width: 100%; height: 420px;">
-                                    <EventConsole @ref=@console />
+                            <br />
+                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                            } *@
                                 </RadzenCard>
-                            }
-                        </RadzenStack>
-                    </RadzenRow>
-                </RadzenTabsItem>
+                                <RadzenCard Style="width: 100%;">
+                                    <RadzenButton Text="Загрузить данные из файла" title="Запуск загрузки данных из выбранного файла"
+                                                  Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                  Click=@(() => LoadExcelFile().GetAwaiter()) @onclick:stopPropagation="true"
+                                                  IsBusy=@loadExcelFileBusyFlag BusyText="Выполняется ...">
+                                    </RadzenButton>
+                                </RadzenCard>
+                                @if (isClickedLoadExcelFile)
+                                {
+                                    <RadzenCard Style="width: 100%; height: 420px;">
+                                        <EventConsole @ref=@console />
+                                    </RadzenCard>
+                                }
+                            </RadzenStack>
+                        </RadzenRow>
+                    </RadzenTabsItem>
 
-                <RadzenTabsItem Text="Результат загрузки">
-                    <RadzenRow Gap="1rem">
-                        <RadzenStack>
-                            <RadzenFieldset Text="Скачать результат обработки файла" Style="font-weight: bold;">
-                                <RadzenStack Gap="1rem">
-                                    <div class="rz-text-align-center">
-                                        <RadzenButton Text="Скачать результат" title="Получить обработанный файл с сообщениями об ошибках или удачной обработке строк Excel-файла"
-                                                      Icon="download" Disabled="@(ResultFileId == Guid.Empty)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                                      Click="@(() => DownloadResultFile())" @onclick:stopPropagation="true">
-                                        </RadzenButton>
-                                    </div>
-                                </RadzenStack>
-                            </RadzenFieldset>
-                        </RadzenStack>
-                    </RadzenRow>
-                </RadzenTabsItem>
-            </Tabs>
-        </RadzenTabs>
+                    <RadzenTabsItem Text="Результат загрузки">
+                        <RadzenRow Gap="1rem">
+                            <RadzenStack>
+                                <RadzenFieldset Text="Скачать результат обработки файла" Style="font-weight: bold;">
+                                    <RadzenStack Gap="1rem">
+                                        <div class="rz-text-align-center">
+                                            <RadzenButton Text="Скачать результат" title="Получить обработанный файл с сообщениями об ошибках или удачной обработке строк Excel-файла"
+                                                          Icon="download" Disabled="@(ResultFileId == Guid.Empty)" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                          Click="@(() => DownloadResultFile())" @onclick:stopPropagation="true">
+                                            </RadzenButton>
+                                        </div>
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            </RadzenStack>
+                        </RadzenRow>
+                    </RadzenTabsItem>
+                </Tabs>
+            </RadzenTabs>
+        </div>
     }
 }
 
@@ -416,7 +417,7 @@
         if (System.IO.File.Exists(fileTemplateFullPath))
             foundActiveReportTemplateFile = true;
 
-        IsLoading = false;        
+        IsLoading = false;
         StateHasChanged();
     }
 
@@ -424,7 +425,7 @@
     {
         reportTemplateDownloadFileBusyFlag = true;
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {            
+        {
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportTemplateFile/" + id.ToString(), "_blank");
         }
         reportTemplateDownloadFileBusyFlag = false;
@@ -571,7 +572,7 @@
             await InvokeAsync(StateHasChanged);
 
             if (IsAdmin == AdminMode.IsAdmin)
-            {                
+            {
                 Guid reportEntityId = Guid.NewGuid();
                 console.Log($"Загрузка файла на сервер");
                 try
@@ -688,8 +689,8 @@
                             return;
                         }
                     }
-                }                
-               
+                }
+
                 IXLWorksheet worksheet = null;
                 IXLWorksheet worksheetSapEquipment = null;
                 IXLWorksheet worksheetSapMaterial = null;

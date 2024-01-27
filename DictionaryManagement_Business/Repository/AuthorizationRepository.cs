@@ -191,8 +191,6 @@ namespace DictionaryManagement_Business.Repository
             {
                 await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не удалось получить логин текущего пользователя.");
             }
-
-
             return returnString;
         }
 

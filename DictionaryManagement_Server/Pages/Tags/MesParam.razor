@@ -329,7 +329,7 @@
 
     _Dialogs? _dialogs { get; set; }
 
-    IEnumerable<MesParamDTO>? mesParamDTOs;    
+    IEnumerable<MesParamDTO>? mesParamDTOs;
 
     // IEnumerable<MesParamSourceTypeDTO>? mesParamSourceTypeDTOs;
 
@@ -716,7 +716,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesParamLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{ "DataList", null }}
-                    , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    , new DialogOptions() { Width = $"{60}rem" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

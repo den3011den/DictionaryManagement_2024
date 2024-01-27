@@ -750,7 +750,8 @@
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-вход)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName }
-                    ,{"DataList", (IEnumerable<SapMovementsINDTO>)sapMovementsINDTOGrid.View }}, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    ,{"DataList", (IEnumerable<SapMovementsINDTO>)sapMovementsINDTOGrid.View }}
+                    , new DialogOptions() { Width = $"{60}rem" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

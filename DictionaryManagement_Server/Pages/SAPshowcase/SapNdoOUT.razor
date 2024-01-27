@@ -53,7 +53,7 @@
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
-                               ShowPagingSummary="true"                               
+                               ShowPagingSummary="true"
                                AllowVirtualization="true"
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
@@ -134,15 +134,16 @@
                     </RadzenDataGridColumnApp>
 
 
-@*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapNdoOUTDTO" Context="sapNdoOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-                        <Template Context="sapNdoOUTDTO">
-                            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                        </Template>
-                    </RadzenDataGridColumnApp>
- *@                </Columns>
+                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapNdoOUTDTO" Context="sapNdoOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+            <Template Context="sapNdoOUTDTO">
+            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            </Template>
+            </RadzenDataGridColumnApp>
+            *@
+                </Columns>
             </RadzenDataGridApp>
         }
         else
@@ -197,9 +198,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);        
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {            
+        {
             if (firstRender)
             {
                 applyRadioGroupValue = 1;
@@ -352,7 +353,8 @@
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - НДО-выход)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName }
-                    ,{"DataList", (IEnumerable<SapNdoOUTDTO>)sapNdoOUTDTOGrid.View }}, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    ,{"DataList", (IEnumerable<SapNdoOUTDTO>)sapNdoOUTDTOGrid.View }}
+                    , new DialogOptions() { Width = $"{60}rem" });
         }
         IsLoading = false;
     }

@@ -37,17 +37,17 @@
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Группы AD" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@ADGroupGridSettings" SettingsName="ADGroupGridSettings" @ref="adGroupDTOGrid" AllowAlternatingRows="true"
-                            AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
-                            Data="@adGroupDTOs" TItem="ADGroupDTO"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
+                               Data="@adGroupDTOs" TItem="ADGroupDTO"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                FilterMode="FilterMode.Advanced"
-                            Density=Density.Compact
-                            ShowPagingSummary="true"                                                        
-                            AllowVirtualization="true"
-                            Style="height:calc(100vh - 155px)">
+                               Density=Density.Compact
+                               ShowPagingSummary="true"
+                               AllowVirtualization="true"
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="ADGroupDTO" Property="ToStringId" Title="Ид группы" Width="40px"
-                                          FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
+                                             FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 10px">
                                 @data1.ToStringId
@@ -136,7 +136,7 @@
     {
         IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        { 
+        {
             if (firstRender)
             {
                 IsLoading = true;
@@ -248,7 +248,7 @@
                     bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление группы AD", "Удалить группу AD \"" + adGroupDTO.Name
                          + ")\" в архив ?", "Удалить", "Отмена");
                     if (selectionResult == false)
-                    {                        
+                    {
                         return;
                     }
                 }
@@ -257,7 +257,7 @@
                     bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление группы AD", "Восстановить группу AD \"" + adGroupDTO.Name
                         + "\" из архива ?", "Восстановить", "Отмена");
                     if (selectionResult == false)
-                    {                        
+                    {
                         return;
                     }
                 }
@@ -311,7 +311,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.ADGroupsLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{"DataList", (IEnumerable<ADGroupDTO>)adGroupDTOGrid.View }}
-                , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    ,new DialogOptions() { Width = $"{60}rem" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

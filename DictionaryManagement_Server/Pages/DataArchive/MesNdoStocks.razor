@@ -62,19 +62,19 @@
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false">
-                <HeaderTemplate>    
-                        <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
-                                      ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
-                        </RadzenButton>
-                        <RadzenButton Size="ButtonSize.Small" Text="Очистить все фильтры" Icon="filter_alt"
-                                      ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllFiltersCustom()">
-                        </RadzenButton>
-                        <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
-                                      ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
-                        </RadzenButton>
-                        <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @mesNdoStocksDTOGrid.View.Count().ToString()+" из "+(mesNdoStocksDTOs == null ? "0" : mesNdoStocksDTOs.Count().ToString())+" в выборке")
-                                      ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
-                        </RadzenButton>
+                <HeaderTemplate>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
+                    </RadzenButton>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все фильтры" Icon="filter_alt"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllFiltersCustom()">
+                    </RadzenButton>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
+                    </RadzenButton>
+                    <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @mesNdoStocksDTOGrid.View.Count().ToString()+" из "+(mesNdoStocksDTOs == null ? "0" : mesNdoStocksDTOs.Count().ToString())+" в выборке")
+                                  ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
+                    </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
@@ -301,7 +301,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {            
+        {
             if (firstRender)
             {
                 applyRadioGroupValue = 1;
@@ -571,7 +571,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{"DataList", (IEnumerable<MesNdoStocksDTO>)mesNdoStocksDTOGrid.View } }
-                    , new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    , new DialogOptions() { Width = $"{60}rem" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }
