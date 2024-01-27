@@ -6,7 +6,6 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
 
-
 @inject DialogService DialogService
 
 @inject IJSRuntime _jsRuntime
@@ -526,7 +525,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{ "DataList", null } }
-                    , new DialogOptions() { Width = $"{60}rem" });
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             // if (dialogResult==true)
             // {
             await this.OnAfterRenderAsync(true);

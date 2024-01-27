@@ -204,14 +204,13 @@
             if (adGroupDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Создать группу AD", new Dictionary<string, object>() { { "ADGroupId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Создать группу AD", new Dictionary<string, object>() { { "ADGroupId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
-
 
             if (dialogResult != null)
             {
@@ -311,7 +310,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.ADGroupsLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{"DataList", (IEnumerable<ADGroupDTO>)adGroupDTOGrid.View }}
-                    ,new DialogOptions() { Width = $"{60}rem" });
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

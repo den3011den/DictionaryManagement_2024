@@ -5,8 +5,6 @@
 @using DictionaryManagement_Models.IntDBModels;
 @using System.Text.Json;
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject ISchedulerRepository _schedulerRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
@@ -172,14 +170,13 @@
             if (schedulerDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Добавить задание", new Dictionary<string, object>() { { "SchedulerId", 0 } }, new DialogOptions() { Width = $"{500}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Добавить задание", new Dictionary<string, object>() { { "SchedulerId", 0 } }, new DialogOptions() { Width = $"{500}px", Left = $"calc(50vw - 300px)"});
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Изменить задание", new Dictionary<string, object>() { { "SchedulerId", schedulerDTO.Id } }, new DialogOptions() { Width = $"{500}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Изменить задание", new Dictionary<string, object>() { { "SchedulerId", schedulerDTO.Id } }, new DialogOptions() { Width = $"{500}px", Left = $"calc(50vw - 300px)" });
             }
-
 
             if (dialogResult != null)
             {

@@ -23,7 +23,7 @@
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
- 
+
     @if (IsLoading)
     {
         <div class="text-center">
@@ -32,7 +32,6 @@
     }
     else
     {
-
         <RadzenTabs @bind-SelectedIndex=@selectedTabIndex Change="@(args => OnTabChange(args))">
             <Tabs>
                 <RadzenTabsItem Text="Детали">
@@ -242,11 +241,11 @@
                     <div class="row">
                         @if (IsLoading != true)
                         {
-@*                             <p>
-                                <center>
-                                    <RadzenLabel Style="font-size: 12px; color:powderblue; font-weight:bold;" Text="Отображаются только кэшированные данные, если они есть в файле. Пересчёт формул не производится" />
-                                </center>
-                            </p> *@
+                            @*                             <p>
+                <center>
+                <RadzenLabel Style="font-size: 12px; color:powderblue; font-weight:bold;" Text="Отображаются только кэшированные данные, если они есть в файле. Пересчёт формул не производится" />
+                </center>
+                </p> *@
                             <ShowExcelSheetData gridSettings="OutputDataSheetWithSirTagsGridSettings" gridRef="outputDataExcelSheetWithSirTagsDTOGrid" gridData="outputDataExcelSheetWithSirTagsDTOList"></ShowExcelSheetData>
 
                         }
@@ -263,9 +262,9 @@
                     </div>
                 </RadzenTabsItem>
 
-                 <RadzenTabsItem Text="Данные в Архиве данных пришедшие из отчёта" Disabled="@(ActiveReportEntityDTO.UploadSuccessFlag ? false : true)">
-                     <div class="row">
-                         @if (IsLoading != true)
+                <RadzenTabsItem Text="Данные в Архиве данных пришедшие из отчёта" Disabled="@(ActiveReportEntityDTO.UploadSuccessFlag ? false : true)">
+                    <div class="row">
+                        @if (IsLoading != true)
                         {
                             @if (@ActiveReportEntityDTO.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() != "РУЧНОЙ ВВОД НДО")
                             {
@@ -284,10 +283,10 @@
                                                    ShowCleanGridSettingsHeaderButton="false"
                                                    ShowCleanGridFiltersHeaderButton="false"
                                                    ShowCleanGridSortsHeaderButton="false">
-                               
+
                                     <Columns>
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
-                                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
+                                                                 FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     @data1.ToStringId
@@ -306,7 +305,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="DataTypeDTOFK.Name" Title="Тип"
-                                                              TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                                                                 TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                                             <Template Context="data1">
                                                 @if (data1.DataTypeDTOFK != null)
                                                 {
@@ -319,7 +318,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="MesParamDTOFK.Code" Title="Тэг (code)"
-                                                              TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                                                                 TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     @(data1.MesParamDTOFK.Code == null ? "" : data1.MesParamDTOFK.Code)
@@ -328,7 +327,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="MesParamDTOFK.Name" Title="Тэг (name)"
-                                                              TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                                                                 TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     @(data1.MesParamDTOFK.Name == null ? "" : data1.MesParamDTOFK.Name)
@@ -348,7 +347,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringValue" Title="Значение" TextAlign="TextAlign.Center" Filterable="true" Sortable="true"
-                                                              FilterProperty="Value" SortProperty="Value">
+                                                                 FilterProperty="Value" SortProperty="Value">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-wrap; font-size: 12px">
                                                     <strong>
@@ -376,7 +375,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="MesGoneTime" Title="Время MES забрал" TextAlign="TextAlign.Center"
-                                                              FilterProperty="MesGoneTime" FilterOperator="FilterOperator.Contains" SortProperty="MesGoneTime">
+                                                                 FilterProperty="MesGoneTime" FilterOperator="FilterOperator.Contains" SortProperty="MesGoneTime">
                                             <Template Context="data1">
                                                 @if (data1.MesGoneTime != null)
                                                 {
@@ -396,7 +395,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapMovementsOUTDTOFK.SapGoneTime" Title="Время Sap забрал" TextAlign="TextAlign.Center"
-                                                              FilterProperty="SapMovementsOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Contains" SortProperty="SapMovementsOUTDTOFK.SapGoneTime">
+                                                                 FilterProperty="SapMovementsOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Contains" SortProperty="SapMovementsOUTDTOFK.SapGoneTime">
                                             <Template Context="data1">
                                                 @if (data1.SapMovementOutId != null)
                                                 {
@@ -413,7 +412,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringCorrectionReason" Title="Причина корректировки"
-                                                              TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                                                                 TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     @(data1.ToStringCorrectionReason == null ? "" : data1.ToStringCorrectionReason)
@@ -422,7 +421,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringCorrectionComment" Title="Комментарий корректировки"
-                                                              TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                                                                 TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     @(data1.ToStringCorrectionComment == null ? "" : data1.ToStringCorrectionComment)
@@ -452,7 +451,7 @@
 
                                     <Columns>
                                         <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
-                                                              FilterProperty="Id" SortProperty="Id">
+                                                                 FilterProperty="Id" SortProperty="Id">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-wrap; font-size: 12px">
                                                     @data1.ToStringId
@@ -507,7 +506,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ToStringValue" Title="Значение" TextAlign="TextAlign.Center" Filterable="true" Sortable="true"
-                                                              FilterProperty="Value" SortProperty="Value">
+                                                                 FilterProperty="Value" SortProperty="Value">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-wrap; font-size: 12px">
                                                     <strong>
@@ -518,7 +517,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="ToStringValueDifference" Title="Разность" TextAlign="TextAlign.Center" Filterable="true" Sortable="true"
-                                                              FilterProperty="ValueDifference" SortProperty="ValueDifference">
+                                                                 FilterProperty="ValueDifference" SortProperty="ValueDifference">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-wrap; font-size: 12px">
                                                     <strong>
@@ -530,7 +529,7 @@
                                         </RadzenDataGridColumnApp>
 
                                         <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapNdoOUTDTOFK.ToStringId" Title="ИД записи в витрине" TextAlign="TextAlign.Center"
-                                                              FilterProperty="SapNdoOUTDTOFK.ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="SapNdoOUTDTOFK.ToStringId">
+                                                                 FilterProperty="SapNdoOUTDTOFK.ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="SapNdoOUTDTOFK.ToStringId">
                                             <Template Context="data1">
                                                 @if (data1.SapNdoOutId != null)
                                                 {
@@ -554,7 +553,7 @@
 
 
                                         <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapNdoOUTDTOFK.SapGoneTime" Title="Время Sap забрал" TextAlign="TextAlign.Center"
-                                                              FilterProperty="SapNdoOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Contains" SortProperty="SapNdoOUTDTOFK.SapGoneTime">
+                                                                 FilterProperty="SapNdoOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Contains" SortProperty="SapNdoOUTDTOFK.SapGoneTime">
                                             <Template Context="data1">
                                                 @if (data1.SapNdoOutId != null)
                                                 {
@@ -603,7 +602,7 @@
                                                ShowCleanGridSortsHeaderButton="false">
                                 <Columns>
                                     <RadzenDataGridColumnApp TItem="ReportEntityLogDTO" Property="ToStringId" Title="Ид записи" Width="35px" TextAlign="TextAlign.Center"
-                                                          FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
+                                                             FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
                                         <Template Context="data1">
                                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                 @data1.ToStringId
@@ -622,7 +621,7 @@
                                     </RadzenDataGridColumnApp>
 
                                     <RadzenDataGridColumnApp TItem="ReportEntityLogDTO" Property="LogMessage" Title="Событие" Width="130px" TextAlign="TextAlign.Start"
-                                                          FilterProperty="LogMessage" FilterOperator="FilterOperator.Contains" SortProperty="LogMessage">
+                                                             FilterProperty="LogMessage" FilterOperator="FilterOperator.Contains" SortProperty="LogMessage">
                                         <Template Context="data1">
                                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                 @data1.LogMessage
@@ -631,7 +630,7 @@
                                     </RadzenDataGridColumnApp>
 
                                     <RadzenDataGridColumnApp TItem="ReportEntityLogDTO" Property="LogType" Title="Тип" Width="130px" TextAlign="TextAlign.Start"
-                                                          FilterProperty="LogType" FilterOperator="FilterOperator.Contains" SortProperty="LogType">
+                                                             FilterProperty="LogType" FilterOperator="FilterOperator.Contains" SortProperty="LogType">
                                         <Template Context="data1">
                                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                 @data1.LogType
@@ -676,23 +675,23 @@
                             @if (IsLoading != true)
                             {
                                 <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="false" EditMode="DataGridEditMode.Single"
-                                Data="@(ActiveReportEntityDTO.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))" TItem="ReportEntityResendDatesDTO"
-                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                FilterMode="FilterMode.Advanced"
-                                Density=Density.Compact
-                                ShowPagingSummary="true"
-                                Style="height:70vh"
-                                AllowVirtualization="false"
-                                AllowColumnReorder="false"
-                                AllowColumnResize="false"
-                                ColumnWidth="200px"
-                                GridLines="DataGridGridLines.Both"
-                                ShowCleanGridSettingsHeaderButton="false"
-                                ShowCleanGridFiltersHeaderButton="false"
-                                ShowCleanGridSortsHeaderButton="false">
+                                                   Data="@(ActiveReportEntityDTO.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))" TItem="ReportEntityResendDatesDTO"
+                                                   FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                   FilterMode="FilterMode.Advanced"
+                                                   Density=Density.Compact
+                                                   ShowPagingSummary="true"
+                                                   Style="height:70vh"
+                                                   AllowVirtualization="false"
+                                                   AllowColumnReorder="false"
+                                                   AllowColumnResize="false"
+                                                   ColumnWidth="200px"
+                                                   GridLines="DataGridGridLines.Both"
+                                                   ShowCleanGridSettingsHeaderButton="false"
+                                                   ShowCleanGridFiltersHeaderButton="false"
+                                                   ShowCleanGridSortsHeaderButton="false">
                                     <Columns>
                                         <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDate" Title="Дата переотправки в SAP" TextAlign="TextAlign.Center"
-                                            Width="200px" Filterable="true" Sortable="true">
+                                                                 Width="200px" Filterable="true" Sortable="true">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     <strong>
@@ -712,15 +711,14 @@
                                     //отображение gif загрузки
                                     <div class="text-center">
                                         <img src="/images/loading.gif">
-                                </div>
+                                    </div>
+                                }
                             }
-                        }
-                    </div>
-                </RadzenTabsItem>
+                        </div>
+                    </RadzenTabsItem>
                 }
             </Tabs>
         </RadzenTabs>
-
         @*    <div class="form-group py-2">
         <NavLink @onclick="(() => ReportEntityDetailesClose())" class="btn btn-primary">OK</NavLink>
     </div>*@
@@ -747,7 +745,7 @@
 
     _Dialogs? _dialogs { get; set; }
 
-   
+
     IEnumerable<MesMovementsDTO>? mesMovementsDTOs;
     RadzenDataGrid<MesMovementsDTO> mesMovementsDTOGrid;
 
@@ -795,7 +793,7 @@
     {
         await base.OnInitializedAsync();
 
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);        
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
@@ -817,7 +815,7 @@
                 fileDownloadFullPath = "";
             else
                 fileDownloadFullPath = reportDownloadPath + ActiveReportEntityDTO.DownloadReportFileName;
-            IsLoading = false;            
+            IsLoading = false;
             StateHasChanged();
         }
     }
@@ -829,14 +827,14 @@
 
     async Task DownloadReportEntityDownloadFile(Guid id)
     {
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)        
-            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");        
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
     }
 
     async Task DownloadReportEntityUploadFile(Guid id)
     {
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)        
-            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + id.ToString(), "_blank");        
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + id.ToString(), "_blank");
     }
 
 

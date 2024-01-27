@@ -602,7 +602,7 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -633,7 +633,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -660,18 +660,15 @@
         {
             await GetDistincts();
         }
-
         await InvokeAsync(SaveStateAsync);
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-
     }
 
     async Task CleanAllOrdersCustom()
     {
-
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -702,7 +699,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{"DataList", (IEnumerable<MesMovementsDTO>)mesMovementsDTOGrid.View } }
-                    , new DialogOptions() { Width = $"{60}rem" });
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             await this.OnAfterRenderAsync(true);
         }
         IsLoading = false;

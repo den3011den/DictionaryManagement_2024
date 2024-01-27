@@ -225,14 +225,13 @@
             if (userDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Создать пользователя", new Dictionary<string, object>() { { "UserId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Создать пользователя", new Dictionary<string, object>() { { "UserId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)"});
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
-
 
             if (dialogResult != null)
             {
@@ -337,7 +336,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.UsersLoadFromExcelReportTemplateTypeNameSettingName }
                         ,{"DataList", (IEnumerable<UserDTO>)userDTOGrid.View }}
-                        , new DialogOptions() { Width = $"{60}rem" });
+                        , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

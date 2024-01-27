@@ -5,8 +5,6 @@
 @using DictionaryManagement_Models.IntDBModels;
 @using System.Text.Json;
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject ISmenaRepository _smenaRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
@@ -181,12 +179,12 @@
             if (smenaDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditSmena>("Добавить смену", new Dictionary<string, object>() { { "SmenaId", 0 } }, new DialogOptions() { Width = $"{900}px", Left = $"{400}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditSmena>("Добавить смену", new Dictionary<string, object>() { { "SmenaId", 0 } }, new DialogOptions() { Width = $"{900}px", Left = $"calc(50vw - 700px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditSmena>("Изменить смену", new Dictionary<string, object>() { { "SmenaId", smenaDTO.Id } }, new DialogOptions() { Width = $"{900}px", Left = $"{400}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditSmena>("Изменить смену", new Dictionary<string, object>() { { "SmenaId", smenaDTO.Id } }, new DialogOptions() { Width = $"{900}px", Left = $"calc(50vw - 700px)" });
             }
 
 

@@ -217,12 +217,12 @@
             if (mesDepartmentDTO == null)
             {
                 dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Создать производство", new Dictionary<string, object>() { { "MesDepartmentId", 0 } }
-                    , new DialogOptions() { Width = $"{1100}px", Left = $"{300}px" });
+                    , new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
             }
             else
             {
                 dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", mesDepartmentDTO.Id } },
-                new DialogOptions() { Width = $"{1100}px", Left = $"{300}px" });
+                new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
             }
 
             if (dialogResult != null)

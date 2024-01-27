@@ -442,26 +442,28 @@
             {
                 case SD.EditMode.Create:
                     IsLoading = false;
-                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР", new Dictionary<string, object>() { { "MesParamId", 0 }, { "Mode", modePar } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР", new Dictionary<string, object>() { { "MesParamId", 0 }, { "Mode", modePar } }
+                        , new DialogOptions() { Width = $"{90}rem",  Left = $"calc(50vw - 55rem)" });
                     break;
                 case SD.EditMode.Edit:
                     IsLoading = false;
-                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Изменить тэг СИР", new Dictionary<string, object>() { { "MesParamId", mesParamDTO.Id }, { "Mode", modePar } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Изменить тэг СИР", new Dictionary<string, object>() { { "MesParamId", mesParamDTO.Id }, { "Mode", modePar } }
+                    , new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
                     break;
                 case SD.EditMode.CreateBasedOnRow:
                     IsLoading = false;
-                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР на основании", new Dictionary<string, object>() { { "MesParamId", mesParamDTO.Id }, { "Mode", modePar } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР на основании", new Dictionary<string, object>() { { "MesParamId", mesParamDTO.Id }, { "Mode", modePar } }
+                    , new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
                     break;
                 default:
                     IsLoading = false;
-                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР", new Dictionary<string, object>() { { "MesParamId", 0 }, { "Mode", SD.EditMode.Create } }, new DialogOptions() { Width = $"{1400}px", Left = $"{100}px" });
+                    dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР", new Dictionary<string, object>() { { "MesParamId", 0 }, { "Mode", SD.EditMode.Create } }
+                    , new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
                     break;
             }
 
-
             if (dialogResult != null)
             {
-
                 if ((modePar == SD.EditMode.Create || modePar == SD.EditMode.CreateBasedOnRow) && (modePar != SD.EditMode.Edit))
                 {
                     IsLoading = true;
@@ -510,7 +512,6 @@
             }
             IsLoading = false;
         }
-
     }
 
     async Task DeleteRow(MesParamDTO mesParamDTO)
@@ -605,7 +606,10 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+
+        //     var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
+        // new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px"});
 
         if (selectionResult != true)
         {
@@ -634,7 +638,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" } );
 
         if (selectionResult != true)
         {
@@ -669,9 +673,8 @@
 
     async Task CleanAllOrdersCustom()
     {
-
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -716,7 +719,7 @@
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesParamLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{ "DataList", null }}
-                    , new DialogOptions() { Width = $"{60}rem" });
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }

@@ -131,7 +131,7 @@ namespace DictionaryManagement_Server.Extensions
         {
             await Task.CompletedTask;
             var selectionResult = await _dialogs.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
             if (selectionResult != true)
             {
@@ -151,7 +151,7 @@ namespace DictionaryManagement_Server.Extensions
         async Task CleanAllFilters()
         {
             var selectionResult = await _dialogs.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
             if (selectionResult != true)
             {
@@ -178,10 +178,8 @@ namespace DictionaryManagement_Server.Extensions
 
         async Task CleanAllOrders()
         {
-
             var selectionResult = await _dialogs.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
-
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
             if (selectionResult != true)
             {
                 await InvokeAsync(SaveStateAsync);

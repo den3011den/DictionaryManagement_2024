@@ -403,7 +403,7 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -435,7 +435,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -462,20 +462,17 @@
             .Select(u => u.LogEventTypeDTOFK.Name).Distinct().ToList();
             distinctUsersInList = (List<string>)logEventDTOs.OrderBy(u => u.UserDTOFK.UserName)
                 .Select(u => u.UserDTOFK.UserName).Distinct().ToList();
-
         }
-
         await InvokeAsync(SaveStateAsync);
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-
     }
 
     async Task CleanAllOrdersCustom()
     {
 
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {

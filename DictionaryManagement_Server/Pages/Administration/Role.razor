@@ -406,12 +406,12 @@
             if (roleVMDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{700}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             if (dialogResult != null)
             {
@@ -502,7 +502,7 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkUsersToRole>("Привязка пользователей к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"{200}px" });
+                dialogResult = await _dialogService.OpenAsync<LinkUsersToRole>("Привязка пользователей к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
 
                 roleVMDTO.UserToRoleDTOs = await _roleVMRepository.GetUsersLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
@@ -527,7 +527,7 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkDepartmentToRole>("Привязка производств к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"{200}px" });
+                dialogResult = await _dialogService.OpenAsync<LinkDepartmentToRole>("Привязка производств к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
 
                 roleVMDTO.RoleToDepartmentDTOs = await _roleVMRepository.GetDepartmentsLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
@@ -590,7 +590,7 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkReportTemplateTypeToRole>("Привязка типов шаблонов отчётов к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1200}px", Left = $"{100}px" });
+                dialogResult = await _dialogService.OpenAsync<LinkReportTemplateTypeToRole>("Привязка типов шаблонов отчётов к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1200}px", Left = $"calc(50vw - 750px)" });
                 roleVMDTO.ReportTemplateTypeTоRoleDTOs = await _roleVMRepository.GetReportTemplateTypesLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
@@ -654,7 +654,7 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkADGroupToRole>("Привязка групп AD к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1500}px", Left = $"{100}px" });
+                dialogResult = await _dialogService.OpenAsync<LinkADGroupToRole>("Привязка групп AD к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1500}px", Left = $"calc(50vw - 950px)" });
                 roleVMDTO.RoleToADGroupDTOs = await _roleVMRepository.GetADGroupsLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
@@ -836,7 +836,7 @@
             UserDTO dialogResult;
 
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId } }, new DialogOptions() { Width = $"{900}px", Left = $"{300}px" });
+            dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
@@ -855,7 +855,7 @@
             IsLoading = true;
             ADGroupDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId } }, new DialogOptions() { Width = $"{900}px", Left = $"{300}px" });
+            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
@@ -874,7 +874,7 @@
             IsLoading = true;
             MesDepartmentDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", departmentId } }, new DialogOptions() { Width = $"{1100}px", Left = $"{300}px" });
+            dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", departmentId } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
             if (dialogResult != null)
             {
                 roleVMDTO.RoleToDepartmentDTOs = await _roleVMRepository.GetDepartmentsLinkedToRoleByRoleId(roleVMDTO.Id);
@@ -892,7 +892,7 @@
             IsLoading = true;
             ReportTemplateTypeDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditReportTemplateType>("Изменить тип шаблона отчёта", new Dictionary<string, object>() { { "ReportTemplateTypeId", reportTemplateTypeId } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+            dialogResult = await _dialogService.OpenAsync<AddEditReportTemplateType>("Изменить тип шаблона отчёта", new Dictionary<string, object>() { { "ReportTemplateTypeId", reportTemplateTypeId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 500px)" });
             if (dialogResult != null)
             {
                 roleVMDTO.ReportTemplateTypeTоRoleDTOs = await _roleVMRepository.GetReportTemplateTypesLinkedToRoleByRoleId(roleVMDTO.Id);

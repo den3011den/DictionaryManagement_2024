@@ -429,9 +429,11 @@
                 IsLoading = false;
                 dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
                 <string, object>
-                () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"{20}px" });
+            () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"calc(50vw - 950px)" });
+    //             dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
+    // <string, object>
+    // () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"{20}px" });
             }
-
             IsLoading = false;
         }
     }
@@ -492,7 +494,7 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -522,7 +524,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -560,7 +562,7 @@
     {
 
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {

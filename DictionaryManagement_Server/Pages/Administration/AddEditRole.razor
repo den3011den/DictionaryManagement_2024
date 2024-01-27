@@ -1,7 +1,6 @@
 ﻿@page "/administration/Role/AddEditRole/{RoleId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
@@ -188,6 +187,4 @@
     }
 
     private async Task OnClickCancel() => _dialogService.Close(null);
-
-
 }
