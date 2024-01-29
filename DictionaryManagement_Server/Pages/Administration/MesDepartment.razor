@@ -32,10 +32,21 @@
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
                               Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="@(IsExpandModeOn ? "Свернуть всю иерархию производств" : "Развернуть всю иерархию производств")" Text="@(IsExpandModeOn ? "Свернуть" : "Развернуть")"
+@*                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="@(IsExpandModeOn ? "Свернуть всю иерархию производств" : "Развернуть всю иерархию производств")" Text="@(IsExpandModeOn ? "Свернуть" : "Развернуть")"
                               Icon="@(IsExpandModeOn ? "unfold_less" : "unfold_more")" Click="@(args => ToggleRowsExpand(!IsExpandModeOn))"
                               IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..." />
-                <div class="mt-1 mb-1 col-6" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
+        *@
+
+@*                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
+                              title="@(ExpandLevel <= MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString() + " иерархии производств" : "Достигнут максимальный уровень равный " + MaxExpandLevel.ToString())"
+                              Text="@(ExpandLevel <= MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString():" Maкс уровень " + MaxExpandLevel.ToString())"
+                    Icon="unfold_more" Click="@(args => ToggleRowsExpand(true))"
+                    IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..." /> *@
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Свернуть всю иерархию производств" Text="Свернуть"
+                              Icon="unfold_less" Click="@(args => ToggleRowsExpand(false))"
+                              IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..."/>
+
+                 <div class="mt-1 mb-1 col-6" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
                     <RadzenLabel Text="* фильтр работает только по записям, которые развёрнуты в отображаемом списке" />
                 </div>
             </RadzenRow>
@@ -124,14 +135,14 @@
 
     RadzenDataGrid<MesDepartmentDTO> mesDepartmentDTOGrid;
 
+    public int ExpandLevel { get; set; } = 2;
     public bool IsLoading { get; set; }
     public AdminMode IsAdmin { get; set; }
     public bool ExpandInProgressFlag { get; set; } = false;
     public bool excelExportFlag { get; set; } = false;
-    public bool IsExpandModeOn { get; set; } = false;
 
     // считаем что больше уровней производств вряд ли будет
-    public int MaxExpandLevel { get; set; } = 8;
+    public int MaxExpandLevel { get; set; } = 4;
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,7 +163,6 @@
                 mesDepartmentDTOs = await _mesDepartmentRepository.GetAllTopLevel();
                 IsLoading = false;
                 StateHasChanged();
-                await ToggleRowsExpand(!IsExpandModeOn);
             }
         }
         else
@@ -218,22 +228,59 @@
             {
                 dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Создать производство", new Dictionary<string, object>() { { "MesDepartmentId", 0 } }
                     , new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
+                if (dialogResult != null)
+                {                    
+                    await LoadStateAsync();
+                    StateHasChanged();
+                    mesDepartmentDTOs = await _mesDepartmentRepository.GetAllTopLevel();
+                    IsLoading = false;
+                    StateHasChanged();
+                }
             }
             else
             {
                 dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", mesDepartmentDTO.Id } },
                 new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
+                if (dialogResult != null)
+                {
+                    if (mesDepartmentDTO.ParentDepartmentId != dialogResult.ParentDepartmentId)
+                    {
+                        await LoadStateAsync();
+                        StateHasChanged();
+                        mesDepartmentDTOs = await _mesDepartmentRepository.GetAllTopLevel();
+                        IsLoading = false;
+                        StateHasChanged();
+                    }
+                    else
+                    {
+                        mesDepartmentDTO.Name = dialogResult.Name;
+                        mesDepartmentDTO.ShortName = dialogResult.ShortName;
+                        mesDepartmentDTO.DepLevel = dialogResult.DepLevel;
+                        mesDepartmentDTO.DepartmentParentDTO = dialogResult.DepartmentParentDTO;
+                        mesDepartmentDTO.IsArchive = dialogResult.IsArchive;
+                        mesDepartmentDTO.ParentDepartmentId = dialogResult.ParentDepartmentId;
+                        mesDepartmentDTO.MesCode = dialogResult.MesCode;
+                        await mesDepartmentDTOGrid.UpdateRow(mesDepartmentDTO);
+                        StateHasChanged();
+                    }
+                }
             }
 
-            if (dialogResult != null)
-            {
-                IsLoading = true;
-                await LoadStateAsync();
-                StateHasChanged();
-                mesDepartmentDTOs = await _mesDepartmentRepository.GetAllTopLevel();
-                IsLoading = false;
-                StateHasChanged();
-            }
+            // if (dialogResult != null)
+            // {
+            //     roleVMDTO.Name = dialogResult.Name;
+            //     roleVMDTO.Description = dialogResult.Description;
+            //     roleVMDTO.IsAdmin = dialogResult.IsAdmin;
+            //     roleVMDTO.IsAdminReadOnly = dialogResult.IsAdminReadOnly;
+            //     await roleVMDTOGrid.UpdateRow(roleVMDTO);
+
+            //     IsLoading = true;
+            //     await LoadStateAsync();
+            //     StateHasChanged();
+            //     mesDepartmentDTOs = await _mesDepartmentRepository.GetAllTopLevel();
+            //     IsLoading = false;
+            //     StateHasChanged();
+            // }
         }
     }
 
@@ -293,26 +340,26 @@
 
     async Task ToggleRowsExpand(bool value)
     {
-        // ExpandInProgressFlag = true;
-        // await Task.Delay(10);
-        // await InvokeAsync(StateHasChanged);
+        ExpandInProgressFlag = true;
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
-        for (int i = 0; i < MaxExpandLevel; i++)
+        if (value == true)
         {
-            if (value == true)
+            if (ExpandLevel <= MaxExpandLevel)
             {
                 await mesDepartmentDTOGrid.ExpandRows(mesDepartmentDTOGrid.PagedView);
-            }
-            else if (value == false)
-            {
-                await mesDepartmentDTOGrid.CollapseRows(mesDepartmentDTOGrid.PagedView);
+                ExpandLevel++;
             }
         }
-
-        IsExpandModeOn = value;
-        // ExpandInProgressFlag = false;
-        // await Task.Delay(10);
-        // await InvokeAsync(StateHasChanged);
+        else if (value == false)
+            {                
+                await mesDepartmentDTOGrid.CollapseRows(mesDepartmentDTOGrid.PagedView);
+                ExpandLevel = 2;
+            }
+        ExpandInProgressFlag = false;
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
     }
 

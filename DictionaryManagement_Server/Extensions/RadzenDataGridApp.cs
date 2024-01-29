@@ -108,7 +108,9 @@ namespace DictionaryManagement_Server.Extensions
                 bool addRecordCountSign = true;
                 if (this.Data != null)
                     if (this.Data.GetType().ToString().ToUpper().Contains("MESDEPARTMENTDTO"))
+                    {
                         addRecordCountSign = false;
+                    }
                 if (addRecordCountSign)
                 {
                     builder.OpenComponent<RadzenButton>(22);
