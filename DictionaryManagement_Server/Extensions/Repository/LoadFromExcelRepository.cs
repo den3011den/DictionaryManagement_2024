@@ -94,7 +94,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     await loadFromExcelPage.RefreshSate();
                 }
 
-                excelColNum = 2;
+                excelColNum = 3;
                 worksheet.Cell(excelRowNum, excelColNum).Value = materialDTOItem.Id.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = materialDTOItem.Code;
@@ -131,7 +131,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     await loadFromExcelPage.RefreshSate();
                 }
 
-                excelColNum = 2;
+                excelColNum = 3;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapEquipmentDTOItem.Id.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapEquipmentDTOItem.ErpPlantId;
@@ -205,7 +205,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     await loadFromExcelPage.RefreshSate();
                 }
 
-                excelColNum = 2;
+                excelColNum = 3;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.Id.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesParamDTOItem.Code;
@@ -705,7 +705,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
             loadFromExcelPage.haveChanges = false;
 
-            int resultColumnNumber = 7;
+            int resultColumnNumber = 8;
             int rowNumber = 9;
 
             bool isEmptyString = false;
@@ -720,11 +720,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
 
-                string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
-                string codeVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
-                string nameVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
-                string shortNameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
-                string isArchiveVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string codeVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string nameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string shortNameVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string isArchiveVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
 
                 string resultString = "";
                 int idVarInt = 0;
@@ -736,6 +737,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     continue;
                 }
 
+                if (!(actionVarString.Trim().ToUpper() == "X" || actionVarString.Trim().ToUpper() == "Х"))
+                {
+                    rowNumber++;
+                    continue;
+                }
+
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
                 await loadFromExcelPage.RefreshSate();
 
@@ -743,10 +750,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 {
                     haveErrors = true;
                     idVarInt = 0;
-                    resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3. И ИД записи, и Код материала пустые. Изменения не применялись.";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
-                    rowNumber++;
-                    continue;
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбцы 3, 4. И ИД записи, и Код материала пустые. Изменения не применялись.";
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 3, 4 }, resultString);
                 }
 
                 string isUpdateOrAddMode = "NONE";
@@ -769,9 +774,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         idVarInt = 0;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Не удалось получить целое число ИД записи." +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -779,8 +784,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (idVarInt <= 0)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -792,8 +797,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (foundMaterialDTO == null)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -884,8 +889,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 if (String.IsNullOrEmpty(changedMaterialDTO.Name))
                 {
                     haveErrors = true;
-                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Наименование материала не может быть пустым. Изменения не применялись.";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 4 }, resultString);
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Наименование материала не может быть пустым. Изменения не применялись.";
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -893,12 +898,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 if (String.IsNullOrEmpty(changedMaterialDTO.ShortName))
                 {
                     haveErrors = true;
-                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Сокращённое наименование материала не может быть пустым. Изменения не применялись.";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 5 }, resultString);
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 6. Сокращённое наименование материала не может быть пустым. Изменения не применялись.";
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
                     rowNumber++;
                     continue;
                 }
-
 
                 if (needCheckCode)
                 {
@@ -925,16 +929,15 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (isBad)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом материала " + codeVarString
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с кодом материала " + codeVarString
                                 + ". ИД записи: " + objectForCheckCode.Id.ToString() +
                                 ". Наименование: " + objectForCheckCode.ShortName + ". Изменения не применялись."; ;
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 3 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
                             rowNumber++;
                             continue;
                         }
                     }
                 }
-
 
                 if (needCheckName)
                 {
@@ -1026,9 +1029,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, 2).Value = newMaterialDTO.Id.ToString();
                                 worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
-                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 3).Value = newMaterialDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString);
                             }
                             else
@@ -1037,9 +1041,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "!!! OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, 2).Value = newMaterialDTO.Id.ToString();
-                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
-                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 3).Value = newMaterialDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
 
@@ -1096,6 +1101,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
                             else
@@ -1105,6 +1111,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
 
@@ -1115,7 +1122,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     default:
                         {
                             resultString = "!!! Для строки " + rowNumber.ToString() + " определен не предусмотренный режим обработки = " + isUpdateOrAddMode + ". Изменения не производились.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 1 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1138,7 +1145,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
-            int resultColumnNumber = 8;
+            int resultColumnNumber = 9;
 
             bool isEmptyString = false;
 
@@ -1152,12 +1159,13 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 var rowVar = worksheet.Row(rowNumber);
 
-                string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
-                string erpPlantIdVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
-                string erpIdVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
-                string nameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
-                string isWarehouseVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
-                string isArchiveVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string erpPlantIdVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string erpIdVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string nameVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string isWarehouseVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string isArchiveVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
                 string resultString = "";
                 int idVarInt = 0;
 
@@ -1176,8 +1184,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 {
                     haveErrors = true;
                     idVarInt = 0;
-                    resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3, 4. Пустые: ИД записи, и одно из полей \"Код завода SAP\" или . \"Код ресурса/склада SAP\". Изменения не применялись.";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 3, 4 }, resultString);
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбцы 3, 4, 5. Пустые: ИД записи, и одно из полей \"Код завода SAP\" или . \"Код ресурса/склада SAP\". Изменения не применялись.";
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[4] { 2, 3, 4, 5 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -1200,9 +1208,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         idVarInt = 0;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Не удалось получить целое число ИД записи." +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1210,8 +1218,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (idVarInt <= 0)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1220,9 +1228,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         (!String.IsNullOrEmpty(erpPlantIdVarString) && !String.IsNullOrEmpty(erpIdVarString))))
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3, 4. Если указан ИД записи (режим редактирования записи), то \"Код завода SAP\" и \"Код ресурса/склада SAP\" должны быть" +
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 4, 5. Если указан ИД записи (режим редактирования записи), то \"Код завода SAP\" и \"Код ресурса/склада SAP\" должны быть" +
                             " или оба пусты (тогда останутся без изменений), или оба заполнены. Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 3, 4 }, resultString);
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 4, 5 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1233,8 +1241,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (foundSapEquipmentDTO == null)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ".Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1293,8 +1301,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (String.IsNullOrEmpty(changedSapEquipmentDTO.Name))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 5. Наименование Ресурса SAP не может быть пустым. Изменения не применялись.";
-                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 5 }, resultString);
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 6. Наименование Ресурса SAP не может быть пустым. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 6 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -1335,10 +1343,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (isBad)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 3, 4. Уже есть запись с сочетанием \"Код завода SAP\" + \"Код ресурса/склада SAP\" равным " +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 4, 5. Уже есть запись с сочетанием \"Код завода SAP\" + \"Код ресурса/склада SAP\" равным " +
                                 "\"" + erpPlantIdVarString + "\" + \"" + erpIdVarString + "\". ИД записи: " + objectForCheckErpPlantIdPlusErpId.Id.ToString() +
                                 ". Наименование: " + objectForCheckErpPlantIdPlusErpId.Name + ". Изменения не применялись."; ;
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 3, 4 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 4, 5 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1396,6 +1404,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "ОК";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 3).Value = newSapEquipmentDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
@@ -1404,8 +1417,13 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "!!! ОК";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
-                                worksheet.Cell(rowNumber, 5).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 3).Value = newSapEquipmentDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+
+                                worksheet.Cell(rowNumber, 6).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
                             await loadFromExcelPage.RefreshSate();
@@ -1452,6 +1470,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
@@ -1460,6 +1479,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "!!! ОК";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
@@ -1470,16 +1490,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     default:
                         {
                             resultString = "!!! Для строки " + rowNumber.ToString() + " определен не предусмотренный режим обработки = " + isUpdateOrAddMode + ". Изменения не производились.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 1 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
                             rowNumber++;
                             continue;
                         }
                 }
             }
-
             loadFromExcelPage.console.Log($"Окончание загрузки данных листа SapEquipment в справочник Ресурсов SAP");
             await loadFromExcelPage.RefreshSate();
-
             return haveErrors;
         }
 
@@ -1496,7 +1514,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
             int rowNumber = 9;
 
-            int resultColumnNumber = 34;
+            int resultColumnNumber = 35;
 
             bool isEmptyString = false;
 
@@ -1510,56 +1528,55 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 var rowVar = worksheet.Row(rowNumber);
 
-                string idVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
-                string codeVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
-                string nameVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
-                string descriptionVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
-                string mesParamSourceTypeNameVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
-                string mesParamSourceLinkVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
-                string departmentIdVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
-                string departmentNameVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
+                string codeVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
+                string nameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
+                string descriptionVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
+                string mesParamSourceTypeNameVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
+                string mesParamSourceLinkVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
+                string departmentIdVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
+                string departmentNameVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
 
-                string sapEquipmentIdSourceVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
-                string erpPlantIdSourceVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
-                string erpIdSourceVarString = rowVar.Cell(12).CachedValue.ToString().Trim();
-                string erpNameSourceVarString = rowVar.Cell(13).CachedValue.ToString().Trim();
+                string sapEquipmentIdSourceVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
+                string erpPlantIdSourceVarString = rowVar.Cell(12).CachedValue.ToString().Trim();
+                string erpIdSourceVarString = rowVar.Cell(13).CachedValue.ToString().Trim();
+                string erpNameSourceVarString = rowVar.Cell(14).CachedValue.ToString().Trim();
 
-                string sapEquipmentIdDestVarString = rowVar.Cell(14).CachedValue.ToString().Trim();
-                string erpPlantIdDestVarString = rowVar.Cell(15).CachedValue.ToString().Trim();
-                string erpIdDestVarString = rowVar.Cell(16).CachedValue.ToString().Trim();
-                string erpNameDestVarString = rowVar.Cell(17).CachedValue.ToString().Trim();
+                string sapEquipmentIdDestVarString = rowVar.Cell(15).CachedValue.ToString().Trim();
+                string erpPlantIdDestVarString = rowVar.Cell(16).CachedValue.ToString().Trim();
+                string erpIdDestVarString = rowVar.Cell(17).CachedValue.ToString().Trim();
+                string erpNameDestVarString = rowVar.Cell(18).CachedValue.ToString().Trim();
 
-                string sapMaterialIdVarString = rowVar.Cell(18).CachedValue.ToString().Trim();
-                string sapMaterialCodeVarString = rowVar.Cell(19).CachedValue.ToString().Trim();
-                string sapMaterialNameVarString = rowVar.Cell(20).CachedValue.ToString().Trim();
+                string sapMaterialIdVarString = rowVar.Cell(19).CachedValue.ToString().Trim();
+                string sapMaterialCodeVarString = rowVar.Cell(20).CachedValue.ToString().Trim();
+                string sapMaterialNameVarString = rowVar.Cell(21).CachedValue.ToString().Trim();
 
-                string sapUnitOfMeasureNameVarString = rowVar.Cell(21).CachedValue.ToString().Trim();
-                string daysRequestInPastVarString = rowVar.Cell(22).CachedValue.ToString().Trim();
+                string sapUnitOfMeasureNameVarString = rowVar.Cell(22).CachedValue.ToString().Trim();
+                string daysRequestInPastVarString = rowVar.Cell(23).CachedValue.ToString().Trim();
 
-                string TIVarString = rowVar.Cell(23).CachedValue.ToString().Trim();
-                string nameTIVarString = rowVar.Cell(24).CachedValue.ToString().Trim();
+                string TIVarString = rowVar.Cell(24).CachedValue.ToString().Trim();
+                string nameTIVarString = rowVar.Cell(25).CachedValue.ToString().Trim();
 
-                string TMVarString = rowVar.Cell(25).CachedValue.ToString().Trim();
-                string nameTMVarString = rowVar.Cell(26).CachedValue.ToString().Trim();
+                string TMVarString = rowVar.Cell(26).CachedValue.ToString().Trim();
+                string nameTMVarString = rowVar.Cell(27).CachedValue.ToString().Trim();
 
-                string mesToSirUnitOfMeasureKoefVarString = rowVar.Cell(27).CachedValue.ToString().Trim();
+                string mesToSirUnitOfMeasureKoefVarString = rowVar.Cell(28).CachedValue.ToString().Trim();
 
-                string needWriteToSapVarString = rowVar.Cell(28).CachedValue.ToString().Trim();
-                string needReadFromSapVarString = rowVar.Cell(29).CachedValue.ToString().Trim();
+                string needWriteToSapVarString = rowVar.Cell(29).CachedValue.ToString().Trim();
+                string needReadFromSapVarString = rowVar.Cell(30).CachedValue.ToString().Trim();
 
-                string needReadFromMesVarString = rowVar.Cell(30).CachedValue.ToString().Trim();
-                string needWriteToMesVarString = rowVar.Cell(31).CachedValue.ToString().Trim();
+                string needReadFromMesVarString = rowVar.Cell(31).CachedValue.ToString().Trim();
+                string needWriteToMesVarString = rowVar.Cell(32).CachedValue.ToString().Trim();
 
-                string isNdoVarString = rowVar.Cell(32).CachedValue.ToString().Trim();
-                string isArchiveVarString = rowVar.Cell(33).CachedValue.ToString().Trim();
-
+                string isNdoVarString = rowVar.Cell(33).CachedValue.ToString().Trim();
+                string isArchiveVarString = rowVar.Cell(34).CachedValue.ToString().Trim();
 
                 string resultString = "";
                 int idVarInt = 0;
 
-
                 // монструозный if. Наверное лучше какой-нить Dictionary. Но пока так.
-                // Нет данных во всех 32-х колонках - выходим
+                // Нет данных во всех колонках - выходим
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString) && String.IsNullOrEmpty(nameVarString)
                    && String.IsNullOrEmpty(descriptionVarString)
                    && String.IsNullOrEmpty(mesParamSourceTypeNameVarString) && String.IsNullOrEmpty(mesParamSourceLinkVarString))
@@ -1580,6 +1597,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     continue;
                                 }
 
+                if (!(actionVarString.Trim().ToUpper() == "X" || actionVarString.Trim().ToUpper() == "Х"))
+                {
+                    rowNumber++;
+                    continue;
+                }
+
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
                 await loadFromExcelPage.RefreshSate();
 
@@ -1587,8 +1610,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 {
                     haveErrors = true;
                     idVarInt = 0;
-                    resultString = "! Строка " + rowNumber.ToString() + ", столбцы 2, 3. Пустые одновременно поля \"ИД записи\" и \"Код тэга СИР\". Изменения не применялись.";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбцы 3, 4. Пустые одновременно поля \"ИД записи\" и \"Код тэга СИР\". Изменения не применялись.";
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 3, 4 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -1619,9 +1642,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         idVarInt = 0;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не удалось получить целое число ИД записи." +
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Не удалось получить целое число ИД записи." +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1629,8 +1652,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (idVarInt <= 0)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Неверное значение ИД записи равное " + idVarInt.ToString() + ".Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1640,8 +1663,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (foundMesParamDTO == null)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 2. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ". Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 2 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Не найдена запись в справочнике с ИД записи равным " + idVarInt.ToString() + ". Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1681,8 +1704,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     (String.IsNullOrEmpty(mesParamSourceTypeNameVarString) && !String.IsNullOrEmpty(mesParamSourceLinkVarString)))
                 {
                     haveErrors = true;
-                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 6, 7. Поля \"Источник\" и \"Тэг/ИД источника\" могут быть или оба проставлены, или оба пустые. Изменения не применялись.";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 6, 7 }, resultString);
+                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7, 8. Поля \"Источник\" и \"Тэг/ИД источника\" могут быть или оба проставлены, или оба пустые. Изменения не применялись.";
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 7, 8 }, resultString);
                     rowNumber++;
                     continue;
 
@@ -1709,10 +1732,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (isBad)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 3. Уже есть запись с кодом Тэга СИР " + codeVarString
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Уже есть запись с кодом Тэга СИР " + codeVarString
                                 + ". ИД записи: " + objectForCheckCode.Id.ToString() +
                                 ". Наименование: " + objectForCheckCode.Name + ". Изменения не применялись."; ;
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 3 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1724,9 +1747,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 {
                     if (!String.IsNullOrEmpty(mesParamSourceLinkVarString) && !String.IsNullOrEmpty(mesParamSourceTypeNameVarString))
                     {
-
                         MesParamDTO? objectForCheckMesParamSourceLink = _mesParamRepository.GetByMesParamSourceLink(mesParamSourceLinkVarString).GetAwaiter().GetResult();
-
                         if (objectForCheckMesParamSourceLink != null)
                         {
                             bool isBad = false;
@@ -1801,7 +1822,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             departmentIdVarInt = 0;
                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 8. Не удалось получить целое число ИД производства." +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 8 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1811,8 +1832,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundMesDepartment == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 8. Не удалось найти производство с \"ИД производства\" равным " + departmentIdVarInt.ToString() + ". Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 8 }, resultString);
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Не удалось найти производство с \"ИД производства\" равным " + departmentIdVarInt.ToString() + ". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1828,8 +1849,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (foundMesDepartmentList.Count() > 1)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
-                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 9 }, resultString);
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Найдено более одного производства с наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 10 }, resultString);
                                     rowNumber++;
                                     continue;
                                 }
@@ -1844,8 +1865,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     if (foundMesDepartmentList.Count() > 1)
                                     {
                                         haveErrors = true;
-                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 9. Найдено более одного производства с сокращённым наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
-                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 9 }, resultString);
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Найдено более одного производства с сокращённым наименованием равным " + departmentNameVarString + ". Изменения не применялись.";
+                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 10 }, resultString);
                                         rowNumber++;
                                         continue;
                                     }
@@ -1857,8 +1878,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (foundMesDepartment == null && (!String.IsNullOrEmpty(departmentIdVarString) || !String.IsNullOrEmpty(departmentNameVarString)))
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9. не найдено производство. Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 8, 9 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 9, 10. не найдено производство. Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 9, 10 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1887,9 +1908,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             sapEquipmentIdSourceVarInt = 0;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Не удалось получить целое число \"ИД ресурса-источника SAP\"" +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 11. Не удалось получить целое число \"ИД ресурса-источника SAP\"" +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 10 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 11 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1899,8 +1920,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundSapEquipmentSourceDTO == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 10. Не найден Ресурс-источник SAP c \"ИД ресурса-источника SAP\" равным " + sapEquipmentIdSourceVarInt.ToString() + ". Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 10 }, resultString);
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 11. Не найден Ресурс-источник SAP c \"ИД ресурса-источника SAP\" равным " + sapEquipmentIdSourceVarInt.ToString() + ". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 11 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1914,9 +1935,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (foundSapEquipmentSourceDTO == null)
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12. Ресурс SAP с \"Кодом завода ресурса-источника SAP\" равным " + erpPlantIdSourceVarString +
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 12, 13. Ресурс SAP с \"Кодом завода ресурса-источника SAP\" равным " + erpPlantIdSourceVarString +
                                     " и \"Кодом ресурса/склада ресурса-источника SAP\" равным " + erpIdSourceVarString + " не найден в справочнике Ресурсов SAP. Изменения не применялись.";
-                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 11, 12 }, resultString);
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 12, 13 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -1926,8 +1947,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (!String.IsNullOrEmpty(erpPlantIdSourceVarString) || !String.IsNullOrEmpty(erpIdSourceVarString))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12. Поля \"Код завода ресурса-источника SAP\" и \"Код ресурса/склада ресурса-источника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
-                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 11, 12 }, resultString);
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 12, 13. Поля \"Код завода ресурса-источника SAP\" и \"Код ресурса/склада ресурса-источника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 12, 13 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -1940,9 +1961,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundSapEquipmentSourceDTO == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 13. Ресурс-источник SAP с наименованием равным " + erpNameSourceVarString +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 14. Ресурс-источник SAP с наименованием равным " + erpNameSourceVarString +
                                 " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 13 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 14 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1951,8 +1972,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (foundSapEquipmentSourceDTO == null)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 10, 11, 12, 13. Ресурс-источник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[4] { 10, 11, 12, 13 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 11, 12, 13, 14. Ресурс-источник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[5] { 2, 11, 12, 13, 14 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -1981,9 +2002,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             sapEquipmentIdDestVarInt = 0;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 14. Не удалось получить целое число \"ИД ресурса-приёмника SAP\"" +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 15. Не удалось получить целое число \"ИД ресурса-приёмника SAP\"" +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 14 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 15 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -1993,8 +2014,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundSapEquipmentDestDTO == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 14. Не найден Ресурс-приёмник SAP c \"ИД ресурса-приёмника SAP\" равным " + sapEquipmentIdDestVarInt.ToString() + ". Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 14 }, resultString);
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 15. Не найден Ресурс-приёмник SAP c \"ИД ресурса-приёмника SAP\" равным " + sapEquipmentIdDestVarInt.ToString() + ". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 15 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -2008,9 +2029,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (foundSapEquipmentDestDTO == null)
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16. Ресурс SAP с \"Кодом завода ресурса-приёмника SAP\" равным " + erpPlantIdDestVarString +
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 16, 17. Ресурс SAP с \"Кодом завода ресурса-приёмника SAP\" равным " + erpPlantIdDestVarString +
                                     " и \"Кодом ресурса/склада ресурса-приёмника SAP\" равным " + erpIdDestVarString + " не найден в справочнике Ресурсов SAP. Изменения не применялись.";
-                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 15, 16 }, resultString);
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 16, 17 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -2020,8 +2041,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (!String.IsNullOrEmpty(erpPlantIdDestVarString) || !String.IsNullOrEmpty(erpIdDestVarString))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16. Поля \"Код завода ресурса-приёмника SAP\" и \"Код ресурса/склада ресурса-приёмника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
-                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 15, 16 }, resultString);
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 16, 17. Поля \"Код завода ресурса-приёмника SAP\" и \"Код ресурса/склада ресурса-приёмника SAP\" должны быть или оба пустые, или оба заполнены. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 16, 17 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -2034,9 +2055,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundSapEquipmentDestDTO == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 17. Ресурс-приёмник SAP с наименованием равным " + erpNameDestVarString +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 18. Ресурс-приёмник SAP с наименованием равным " + erpNameDestVarString +
                                 " не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 17 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 18 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -2045,8 +2066,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (foundSapEquipmentDestDTO == null)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 14, 15, 16, 17. Ресурс-приёмник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[4] { 14, 15, 16, 17 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 15, 16, 17, 18. Ресурс-приёмник SAP не найден в справочнике Ресурсы SAP. Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[5] { 2, 15, 16, 17, 18 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -2075,9 +2096,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         {
                             haveErrors = true;
                             sapMaterialIdVarInt = 0;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 18. Не удалось получить целое число \"ИД материала SAP\"" +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 19. Не удалось получить целое число \"ИД материала SAP\"" +
                                 " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 18 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 19 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -2087,8 +2108,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundSapMaterialDTO == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 18. Не найден Материал SAP c \"ИД материала SAP\" равным " + sapMaterialIdVarInt.ToString() + ". Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 18 }, resultString);
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 19. Не найден Материал SAP c \"ИД материала SAP\" равным " + sapMaterialIdVarInt.ToString() + ". Изменения не применялись.";
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 19 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -2100,9 +2121,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundSapMaterialDTO == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 19. Материал SAP с кодом равным " + sapMaterialCodeVarString +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 20. Материал SAP с кодом равным " + sapMaterialCodeVarString +
                                 " не найден в справочнике Материалы SAP. Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 19 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 20 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -2117,9 +2138,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (foundSapMaterialDTO == null)
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 20. Материал SAP с наименованием или сокр. наименованием " + sapMaterialNameVarString +
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 21. Материал SAP с наименованием или сокр. наименованием " + sapMaterialNameVarString +
                                     " не найден в справочнике Материалы SAP. Изменения не применялись.";
-                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 20 }, resultString);
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 21 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -2128,8 +2149,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     if (foundSapMaterialDTO == null)
                     {
                         haveErrors = true;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 18, 19, 20. Материал SAP не найден в справочнике Материалы SAP. Изменения не применялись.";
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 18, 19, 20 }, resultString);
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 19, 20, 21. Материал SAP не найден в справочнике Материалы SAP. Изменения не применялись.";
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[4] { 2, 19, 20, 21 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -2166,7 +2187,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 haveErrors = true;
                                 resultString = "! Строка " + rowNumber.ToString() + ". Уже есть не архивный Тэг СИР с таким же маппингом \"Ресурс-источник SAP + Ресурс-приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + "). Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber,
-                                    new int[11] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, resultString);
+                                    new int[12] { 2, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -2177,7 +2198,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         haveErrors = true;
                         resultString = "! Строка " + rowNumber.ToString() + ". Не полный мэппинг Тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть проставлены или все 3 параметра, или ни одного. Изменения не применялись.";
                         await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber,
-                                new int[11] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, resultString);
+                                new int[12] { 2, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -2197,9 +2218,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         if (foundSapUnitOfMeasureDTO == null)
                         {
                             haveErrors = true;
-                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 21. Единица измерения SAP с наименованием или сокр. наименованием " + sapUnitOfMeasureNameVarString +
+                            resultString = "! Строка " + rowNumber.ToString() + ", столбец 22. Единица измерения SAP с наименованием или сокр. наименованием " + sapUnitOfMeasureNameVarString +
                                 " не найдена в справочнике Единиц измерения SAP. Изменения не применялись.";
-                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 21 }, resultString);
+                            await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 22 }, resultString);
                             rowNumber++;
                             continue;
                         }
@@ -2226,9 +2247,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         daysRequestInPastVarInt = 0;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 22. Не удалось получить целое число \"Глубина опроса в днях\"" +
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 23. Не удалось получить целое число \"Глубина опроса в днях\"" +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 22 }, resultString);
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 23 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -2255,9 +2276,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     {
                         haveErrors = true;
                         mesToSirUnitOfMeasureKoefVarInt = 0;
-                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 27. Не удалось получить число \"Коэффициент пересчёта данных по тэгу ед. изм. MES в ед. изм. СИР\"" +
+                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 28. Не удалось получить число \"Коэффициент пересчёта данных по тэгу ед. изм. MES в ед. изм. СИР\"" +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
-                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[1] { 27 }, resultString);
+                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 28 }, resultString);
                         rowNumber++;
                         continue;
                     }
@@ -2275,7 +2296,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Параметр НДО\", \"Читать из SAP\", \"Передавать в MES\". Тэг СИР с признаком \"Параметр НДО\" не может иметь признаки \"Читать из SAP\" или \"Передавать в MES\"." +
                         " Изменения не применялись";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 29, 31, 32 }, resultString);
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[4] { 2, 30, 32, 33 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -2285,7 +2306,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Читать из MES\", \"Передавать в MES\". Тэг СИР не может одновременно иметь включенными признаки \"Читать из MES\" и \"Передавать в MES\"." +
                         " Изменения не применялись";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 29, 31 }, resultString);
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 30, 32 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -2295,7 +2316,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Передавать в SAP\", \"Читать из SAP\". Тэг СИР не может одновременно иметь включенными признаки \"Передавать в SAP\" и \"Читать из SAP\"." +
                         " Изменения не применялись";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 28, 29 }, resultString);
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 29, 30 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -2305,7 +2326,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Передавать в SAP\", \"Передавать в MES\". Тэг СИР не может одновременно иметь включенными признаки \"Передавать в SAP\" и \"Передавать в MES\"." +
                         " Изменения не применялись";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 28, 31 }, resultString);
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 29, 32 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -2315,7 +2336,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     haveErrors = true;
                     resultString = "! Строка " + rowNumber.ToString() + ", поля \"Читать из SAP\", \"Читать из MES\". Тэг СИР не может одновременно иметь включенными признаки \"Читать из SAP\" и \"Читать из MES\"." +
                         " Изменения не применялись";
-                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 29, 30 }, resultString);
+                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 30, 31 }, resultString);
                     rowNumber++;
                     continue;
                 }
@@ -2341,6 +2362,10 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 3).Value = newMesParamDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
@@ -2349,8 +2374,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "!!! OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.YellowGreen;
-                                worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 3).Value = newMesParamDTO.Id.ToString();
+                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 8).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 8).Style.Font.SetBold(true);
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
@@ -2393,6 +2422,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                                 loadFromExcelPage.console.Log(resultString);
                             }
@@ -2401,8 +2431,9 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 worksheet.Cell(rowNumber, 1).Value = "OK";
                                 worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
                                 worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, 7).Style.Font.FontColor = XLColor.YellowGreen;
-                                worksheet.Cell(rowNumber, 7).Style.Font.SetBold(true);
+                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 8).Style.Font.FontColor = XLColor.YellowGreen;
+                                worksheet.Cell(rowNumber, 8).Style.Font.SetBold(true);
                                 worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
                                 loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
                             }
@@ -2420,7 +2451,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 }
             }
 
-            loadFromExcelPage.console.Log($"Окончание загрузки данных листа SapEquipment в справочник Ресурсов SAP");
+            loadFromExcelPage.console.Log($"Окончание загрузки данных листа MesParam в справочник Тэгов СИР");
             await loadFromExcelPage.RefreshSate();
 
             return haveErrors;
