@@ -34,7 +34,6 @@ namespace DictionaryManagement_Server.Controllers
                 return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
             }
 
-
             string pathVar = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
             try
             {

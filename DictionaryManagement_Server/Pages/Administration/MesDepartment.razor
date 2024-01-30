@@ -31,17 +31,17 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
                               Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || ExpandInProgressFlag == true || CollapseInProgressFlag == true)" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" 
-                        IsBusy=@excelExportFlag BusyText="Выполняется ..."
-                        Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
                 @*                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="@(IsExpandModeOn ? "Свернуть всю иерархию производств" : "Развернуть всю иерархию производств")" Text="@(IsExpandModeOn ? "Свернуть" : "Развернуть")"
         Icon="@(IsExpandModeOn ? "unfold_less" : "unfold_more")" Click="@(args => ToggleRowsExpand(!IsExpandModeOn))"
         IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..." />
         *@
 
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
-                              title="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString() + " иерархии производств" : "Достигнут максимальный уровень равный " + MaxExpandLevel.ToString())"
-                              Text="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString():" Maкс уровень " + MaxExpandLevel.ToString())"
+                              title="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString() + " иерархии производств" : "Достигнут максимальный уровень равный " + (MaxExpandLevel-1).ToString())"
+                              Text="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString():" Maкс уровень " + (MaxExpandLevel-1).ToString())"
                               Icon="unfold_more" Click="@(args => ToggleRowsExpand(true))"
                               IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..."
                               Disabled="@(ExpandLevel >= MaxExpandLevel || CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
@@ -52,8 +52,12 @@
                               IsBusy=@CollapseInProgressFlag BusyText="Выполняется ..."
                               Disabled="@(ExpandLevel <= 2 || CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
 
-                <div class="mt-1 mb-1 col-3" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
+                <div class="mt-1 mb-1 col-4" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
                     <RadzenLabel Text="@("* фильтр только по \"развёрнутым\" записям")" />
+                    @*                     <RadzenButton Size=ButtonSize.Small Style="text-transform:none" ButtonStyle=ButtonStyle.Primary Variant=Variant.Text
+            Text="@(String.Concat("Отображается ", mesDepartmentDTOGrid.View == null ? "0" : mesDepartmentDTOGrid.View.Count().ToString(),
+            " из ", mesDepartmentFullListDTOs == null ? "0" : mesDepartmentFullListDTOs.Count().ToString(), " записей"))" />
+            *@
                 </div>
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@MesDepartmentGridSettings" SettingsName="MesDepartmentGridSettings" @ref="mesDepartmentDTOGrid" ExpandMode="DataGridExpandMode.Multiple"
@@ -65,7 +69,8 @@
                                Density="Density.Compact"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               MesDepartmentCount="@mesDepartmentCount">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="Name" Title="Наименование" Frozen="true" Width="200px"
                                              FilterOperator="FilterOperator.Contains" SortProperty="Name" FilterProperty="Name">
@@ -93,8 +98,8 @@
                     <RadzenDataGridColumnApp Title="Действия" TItem="MesDepartmentDTO" Context="mesDepartmentDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="50px">
                         <Template Context="mesDepartmentDTO">
                             <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
-                                Size="ButtonSize.Medium" Click="@(args => EditRow(mesDepartmentDTO))" 
-                                @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag|| ExpandInProgressFlag)"/>
+                                          Size="ButtonSize.Medium" Click="@(args => EditRow(mesDepartmentDTO))"
+                                          @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag|| ExpandInProgressFlag)" />
                             @if (!mesDepartmentDTO.IsArchive)
                             {
                                 <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
@@ -142,19 +147,22 @@
 
     RadzenDataGrid<MesDepartmentDTO> mesDepartmentDTOGrid;
 
+
+
     public int ExpandLevel { get; set; } = 1;
     public bool IsLoading { get; set; }
     public AdminMode IsAdmin { get; set; }
     public bool ExpandInProgressFlag { get; set; } = false;
     public bool CollapseInProgressFlag { get; set; } = false;
     public bool excelExportFlag { get; set; } = false;
-
+    public int? mesDepartmentCount = 0;
+    
     // считаем что больше уровней производств вряд ли будет
     public int MaxExpandLevel { get; set; } = 5;
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        await base.OnInitializedAsync();        
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -164,14 +172,17 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 mesDepartmentFullListDTOs = await GetRecords();
                 mesDepartmentDTOs = await GetAllTopLevel();
+                if(mesDepartmentDTOs != null)
+                    mesDepartmentCount = mesDepartmentFullListDTOs.Count();
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 //await ToggleRowsExpand(true);
             }
             else
@@ -359,7 +370,7 @@
             await InvokeAsync(StateHasChanged);
             if (ExpandLevel <= MaxExpandLevel)
             {
-                await mesDepartmentDTOGrid.ExpandRows(mesDepartmentDTOGrid.PagedView.Where(u => u.DepLevel == (ExpandLevel-1)));
+                await mesDepartmentDTOGrid.ExpandRows(mesDepartmentDTOGrid.PagedView.Where(u => u.DepLevel == (ExpandLevel - 1)));
                 ExpandLevel++;
             }
             ExpandInProgressFlag = false;
@@ -378,7 +389,7 @@
             }
             CollapseInProgressFlag = false;
             await Task.Delay(10);
-            await InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);            
         }
     }
 
@@ -403,7 +414,7 @@
                 item.DepLevel = ExpandLevel;
             ExpandLevel++;
             return mesDepartmentFullListDTOs.Where(u => (u.ParentDepartmentId == null || u.ParentDepartmentId <= 0)).ToList();
-        }         
+        }
         return null;
     }
 
@@ -411,7 +422,7 @@
     {
         if (id == null)
         {
-            var tempList =  mesDepartmentFullListDTOs.Where(u => (u.ParentDepartmentId == null || u.ParentDepartmentId == 0
+            var tempList = mesDepartmentFullListDTOs.Where(u => (u.ParentDepartmentId == null || u.ParentDepartmentId == 0
                 || u.ParentDepartmentId == u.Id)).ToList();
             foreach (var item in tempList)
                 item.DepLevel = ExpandLevel;
@@ -423,7 +434,7 @@
             foreach (var item in tempList)
                 item.DepLevel = ExpandLevel;
             return tempList;
-        }        
+        }
     }
 
     async Task ExcelExport()

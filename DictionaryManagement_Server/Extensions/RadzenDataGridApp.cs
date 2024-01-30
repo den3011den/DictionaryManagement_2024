@@ -12,6 +12,7 @@ namespace DictionaryManagement_Server.Extensions
         [Parameter] public bool? ShowCleanGridFiltersHeaderButton { get; set; } = true;
         [Parameter] public bool? ShowCleanGridSortsHeaderButton { get; set; } = true;
         [Parameter] public string? SettingsName { get; set; } = "";
+        [Parameter] public int? MesDepartmentCount { get; set; } = 0;
 
         [Inject]
         IJSRuntime? JS { get; set; }
@@ -111,17 +112,22 @@ namespace DictionaryManagement_Server.Extensions
                     {
                         addRecordCountSign = false;
                     }
+                builder.OpenComponent<RadzenButton>(22);
+                builder.AddAttribute(23, "Size", ButtonSize.Small);
+                builder.AddAttribute(24, "Style", "text-transform:none;");
                 if (addRecordCountSign)
                 {
-                    builder.OpenComponent<RadzenButton>(22);
-                    builder.AddAttribute(23, "Size", ButtonSize.Small);
-                    builder.AddAttribute(24, "Style", "text-transform:none;");
                     builder.AddAttribute(25, "Text", String.Concat("Записей с учётом фильтров ", this.View == null ? "0" : this.View.Count().ToString(),
                         " из ", this.Data == null ? "0" : this.Data.Count().ToString(), " в выборке"));
-                    builder.AddAttribute(26, "ButtonStyle", ButtonStyle.Primary);
-                    builder.AddAttribute(27, "Variant", Variant.Text);
-                    builder.CloseComponent();
                 }
+                else
+                {
+                    builder.AddAttribute(25, "Text", String.Concat("Отображается ", this.View == null ? "0" : this.View.Count().ToString(),
+                        " из ", this.Data == null ? "0" : MesDepartmentCount.ToString(), " записей"));
+                }
+                builder.AddAttribute(26, "ButtonStyle", ButtonStyle.Primary);
+                builder.AddAttribute(27, "Variant", Variant.Text);
+                builder.CloseComponent();
             }
             else
             {
