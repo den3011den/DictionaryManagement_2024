@@ -306,7 +306,7 @@
                 await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: null, newObject: addedDTO, "Добавление шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
 
                 upload.Url = @"UploadFileController/UploadReportTemplateFile/" + createdTemplateDTO.Id;
-                await upload.Upload();
+                upload.Upload().GetAwaiter().GetResult();
 
                 await _jsRuntime.ToastrSuccess("Шаблон \"" + ActiveReportTemplateDTO.Description + "\" создан");
                 _dialogService.Close(ActiveReportTemplateDTO);
@@ -333,7 +333,7 @@
                 if (!String.IsNullOrEmpty(uploadFileWarning))
                 {
                     upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
-                    await upload.Upload();
+                    upload.Upload().GetAwaiter().GetResult();
 
                     Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
                     await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUserId, "", "", false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
@@ -408,7 +408,7 @@
                 ActiveReportTemplateDTO.AddUserDTOFK = currentUserDTO;
                 // ActiveReportTemplateDTO.AddUserId = SD.CurrentUserDTO.Id;
                 // ActiveReportTemplateDTO.AddUserDTOFK = SD.CurrentUserDTO;
-            }
+            }            
             ActiveReportTemplateDTO.TemplateFileName = "sddsds";
         }
         IsSubmited = false;
@@ -434,9 +434,7 @@
     }
 
     void OnChange(UploadChangeEventArgs args)
-    {
-        //console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
-
+    {        
         uploadFileWarning = "";
         if (args.Files.Count() > 0)
         {
