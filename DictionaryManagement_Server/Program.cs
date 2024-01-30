@@ -40,8 +40,9 @@ builder.WebHost.UseUrls("http://+:5555");
 SD.AppFactoryMode = builder.Configuration.GetValue<string>("FactoryMode");
 
 builder.Services.AddDbContext<IntDBApplicationDbContext>(options =>
-options.UseSqlServer(
-    builder.Configuration.GetConnectionString("IntDBConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("IntDBConnection"),
+    u => u.CommandTimeout(SD.SqlCommandConnectionTimeout))
+);
 
 
 builder.Services.AddScoped<ISapEquipmentRepository, SapEquipmentRepository>();

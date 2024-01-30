@@ -83,7 +83,7 @@ namespace DictionaryManagement_Common
         public static string SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapNdoOUTLoadFromExcelReportTemplateTypeName";
         public static string UsersLoadFromExcelReportTemplateTypeNameSettingName = "UsersLoadFromExcelReportTemplateTypeName";
         public static string ADGroupsLoadFromExcelReportTemplateTypeNameSettingName = "ADGroupsLoadFromExcelReportTemplateTypeName";
-
+        public static int SqlCommandConnectionTimeout = 180;
 
         public static String RemoveInvalidCharsFromFilename(this String file_name, int? maxFileNameLength = 200)
         {

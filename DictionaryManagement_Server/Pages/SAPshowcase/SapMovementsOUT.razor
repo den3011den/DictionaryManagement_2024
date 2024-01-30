@@ -37,7 +37,8 @@
                                     </Items>
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                @* <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                                 <RadzenButton Size="ButtonSize.Small" title="Загрузка данных из Excel в Витрины SAP - Движения - выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
@@ -337,7 +338,7 @@
 
     int applyRadioGroupValue = 1;
 
-    bool ApplyButtonDisabled = true;
+    bool ApplyButtonDisabled = false;
 
     public bool IsLoading { get; set; }
     public AdminMode IsAdmin { get; set; }
@@ -426,17 +427,59 @@
 
     private async Task ChangeStartDate()
     {
-        ApplyButtonDisabled = false;
-        maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
-        minEndDate = ((DateTime)startDate).AddDays(-1);
-        if (endDate > maxEndDate)
-            endDate = maxEndDate;
+        if (startDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (startDate != null && endDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+            }
+            ApplyButtonDisabled = false;
+        }
+        // ApplyButtonDisabled = false;
+        // maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
+        // minEndDate = ((DateTime)startDate).AddDays(-1);
+        // if (endDate > maxEndDate)
+        //     endDate = maxEndDate;
 
     }
 
     private async Task ChangeEndDate()
     {
-        ApplyButtonDisabled = false;
+        if (endDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (startDate != null && endDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+            }
+            ApplyButtonDisabled = false;
+        }
+        // ApplyButtonDisabled = false;
     }
 
 
@@ -453,10 +496,9 @@
         List<string> distinctSapUnitOfMeasureInList = new List<string>();
         await GetDistincts();
 
-        ApplyButtonDisabled = true;
+        ApplyButtonDisabled = false;
         IsLoading = false;
         StateHasChanged();
-
     }
 
 

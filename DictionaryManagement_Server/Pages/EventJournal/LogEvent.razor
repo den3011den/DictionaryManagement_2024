@@ -17,7 +17,6 @@
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/EventJournal">Журнал событий</a> - <a href="/EventJournal/LogEvent">Журнал событий</a></h6>
         </div>
@@ -30,7 +29,8 @@
                         <RadzenStack Gap="0.5rem">
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                @* <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                             </RadzenRow>
@@ -48,7 +48,7 @@
                                EmptyText="Нет записей для отображения"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 160px)"
                                ShowCleanGridSortsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSettingsHeaderButton="false">
@@ -225,7 +225,7 @@
 
     int applyRadioGroupValue = 1;
 
-    bool ApplyButtonDisabled = true;
+    bool ApplyButtonDisabled = false;
 
     public bool IsLoading { get; set; }
     public AdminMode IsAdmin { get; set; }
@@ -317,20 +317,60 @@
 
 
     private async Task ChangeStartDate()
-    {
-        ApplyButtonDisabled = false;
-        maxEndDate = ((DateTime)startDate).AddDays(2).AddSeconds(-1);
-        minEndDate = ((DateTime)startDate).AddDays(-1);
-        if (endDate > maxEndDate)
-            endDate = maxEndDate;
+    {        
+        if (startDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (startDate != null && endDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 14)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+            }
+            ApplyButtonDisabled = false;
+        }
+
+        // maxEndDate = ((DateTime)startDate).AddDays(2).AddSeconds(-1);
+        // minEndDate = ((DateTime)startDate).AddDays(-1);
+        // if (endDate > maxEndDate)
+        //     endDate = maxEndDate;
 
     }
 
     private async Task ChangeEndDate()
     {
-        ApplyButtonDisabled = false;
+        if (endDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (startDate != null && endDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.Days > 14)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+            }
+            ApplyButtonDisabled = false;
+        }
     }
-
 
     async Task GetRows()
     {
@@ -344,7 +384,7 @@
         distinctUsersInList = (List<string>)logEventDTOs.OrderBy(u => u.UserDTOFK.UserName)
             .Select(u => u.UserDTOFK.UserName).Distinct().ToList();
 
-        ApplyButtonDisabled = true;
+        ApplyButtonDisabled = false;
         IsLoading = false;
         StateHasChanged();
 

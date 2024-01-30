@@ -16,5 +16,9 @@ namespace DictionaryManagement_Server.Helper
         {
             await jsRuntime.InvokeVoidAsync("ShowToastr", "warning", message);
         }
+        public static async ValueTask ToastrWarningLight(this IJSRuntime jsRuntime, string message)
+        {
+            await jsRuntime.InvokeVoidAsync("ShowToastr", "warning_light", message);
+        }
     }
 }
