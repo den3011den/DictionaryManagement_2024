@@ -27,9 +27,9 @@
         {
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый вид данных"
-                        Click="@InsertRow" Disabled=@(dataTypeDTOToInsert != null || dataTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" 
-                    Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                              Click="@InsertRow" Disabled=@(dataTypeDTOToInsert != null || dataTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
+                              Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
             <RadzenDataGridApp @ref="dataTypeDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@DataTypeGridSettings" SettingsName="DataTypeGridSettings"
@@ -84,14 +84,14 @@
                             </RadzenButton>
                             @if (!dataTypeDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" 
-                                             Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
                                 <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                             Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                              Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
@@ -99,8 +99,8 @@
                             <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@((args) => SaveRow(dataTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" 
-                                    Click="@((args) => CancelEdit(dataTypeDTO))">
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@((args) => CancelEdit(dataTypeDTO))">
                             </RadzenButton>
                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@(args => DeleteRow(dataTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
@@ -191,10 +191,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        if (firstRender)
         {
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
                 await LoadStateAsync();
@@ -203,9 +203,9 @@
                 IsLoading = false;
                 StateHasChanged();
             }
+            else
+                _navigationManager.NavigateTo("/dataarchive");
         }
-        else
-            _navigationManager.NavigateTo("/dataarchive");
     }
 
     async Task EditRow(DataTypeDTO dataTypeDTO)
@@ -273,7 +273,7 @@
                         if (item.IsAutoCalcDestDataType == true)
                         {
                             oldDataTypeDTO = await _dataTypeRepository.Get(item.Id);
-                            item.IsAutoCalcDestDataType = false;                            
+                            item.IsAutoCalcDestDataType = false;
                             newDataTypeDTO = await _dataTypeRepository.Update(item, SD.UpdateMode.Update);
                             await _logEventRepository.ToLog<DataTypeDTO>(oldObject: oldDataTypeDTO, newObject: newDataTypeDTO, "Изменение вида данных", "Вид данных: ", _authorizationRepository);
                         }
@@ -424,7 +424,7 @@
             var newDTO = await _dataTypeRepository.Create(dataTypeDTO);
             await _logEventRepository.ToLog<DataTypeDTO>(oldObject: null, newObject: newDTO, "Добавление вида данных", "Вид данных: ", _authorizationRepository);
 
-            if (newDTO.IsAutoCalcDestDataType == true)                        
+            if (newDTO.IsAutoCalcDestDataType == true)
             {
 
                 DataTypeDTO oldDataTypeDTO = new DataTypeDTO();

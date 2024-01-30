@@ -157,11 +157,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        if (firstRender)
         {
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
+
                 IsLoading = true;
                 //StateHasChanged();
                 await LoadStateAsync();
@@ -170,10 +171,9 @@
                 IsLoading = false;
                 StateHasChanged();
             }
+            else
+                _navigationManager.NavigateTo("/administration");
         }
-        else
-            _navigationManager.NavigateTo("/administration");
-
     }
 
     DataGridSettings _userGridSettings;
@@ -225,7 +225,7 @@
             if (userDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Создать пользователя", new Dictionary<string, object>() { { "UserId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)"});
+                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Создать пользователя", new Dictionary<string, object>() { { "UserId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {

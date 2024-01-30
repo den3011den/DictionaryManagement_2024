@@ -176,10 +176,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        if (firstRender)
         {
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
                 await LoadStateAsync();
@@ -188,9 +188,9 @@
                 IsLoading = false;
                 StateHasChanged();
             }
+            else
+                _navigationManager.NavigateTo("/dictionary");
         }
-        else
-            _navigationManager.NavigateTo("/dictionary");
     }
 
     async Task EditRow(SapUnitOfMeasureDTO sapUnitOfMeasureDTO)

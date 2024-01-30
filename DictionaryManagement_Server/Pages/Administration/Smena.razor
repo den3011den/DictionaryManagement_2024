@@ -31,15 +31,15 @@
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@SmenaGridSettings" SettingsName="SmenaGridSettings" @ref="smenaDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                            Data="@smenaDTOs" TItem="SmenaDTO"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            FilterMode="FilterMode.Advanced"
-                            Density=Density.Compact
-                            ShowPagingSummary="true"                            
-                            AllowVirtualization="true"
-                            AllowColumnResize="false"
-                            GridLines="DataGridGridLines.Both"
-                            Style="height:calc(100vh - 155px)">
+                               Data="@smenaDTOs" TItem="SmenaDTO"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.Advanced"
+                               Density=Density.Compact
+                               ShowPagingSummary="true"
+                               AllowVirtualization="true"
+                               AllowColumnResize="false"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SmenaDTO" Property="Id" Title="Ид записи" Width="70px">
                     </RadzenDataGridColumnApp>
@@ -111,10 +111,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        if (firstRender)
         {
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
                 await LoadStateAsync();
@@ -123,9 +123,9 @@
                 IsLoading = false;
                 StateHasChanged();
             }
+            else
+                _navigationManager.NavigateTo("/administration");
         }
-        else
-            _navigationManager.NavigateTo("/administration");
     }
 
 
@@ -218,7 +218,7 @@
             }
 
             await _smenaRepository.Delete(smenaDTO.Id);
-            Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;            
+            Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
             await _logEventRepository.AddRecord("Удаление смены", addedUserId, "", "", false, "Удаление смены: " + smenaDTO.ToString());
             smenaDTOs = await _smenaRepository.GetAll();
             smenaDTOGrid.Reload();

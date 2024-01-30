@@ -57,8 +57,8 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="SchedulerDTO" Context="SchedulerDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="55px">
                         <Template Context="schedulerDTO">
-                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" 
-                                Click="@(args => EditRow(schedulerDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@(args => EditRow(schedulerDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
                             <RadzenButton title="Удалить" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@(args => DeleteRow(schedulerDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
@@ -100,12 +100,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {            
-            if (firstRender)
+        if (firstRender)
+        {
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
                 await LoadStateAsync();
                 StateHasChanged();
@@ -113,9 +112,9 @@
                 IsLoading = false;
                 StateHasChanged();
             }
+            else
+                _navigationManager.NavigateTo("/administration");
         }
-        else
-            _navigationManager.NavigateTo("/administration");
     }
 
 
@@ -170,7 +169,7 @@
             if (schedulerDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Добавить задание", new Dictionary<string, object>() { { "SchedulerId", 0 } }, new DialogOptions() { Width = $"{500}px", Left = $"calc(50vw - 300px)"});
+                dialogResult = await _dialogService.OpenAsync<AddEditScheduler>("Добавить задание", new Dictionary<string, object>() { { "SchedulerId", 0 } }, new DialogOptions() { Width = $"{500}px", Left = $"calc(50vw - 300px)" });
             }
             else
             {

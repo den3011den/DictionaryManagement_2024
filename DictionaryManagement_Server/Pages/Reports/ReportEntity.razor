@@ -264,10 +264,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {            
-            if (firstRender)
+        if (firstRender)
+        {
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
@@ -286,9 +286,9 @@
                 IsLoading = false;
                 StateHasChanged();
             }
+            else
+                _navigationManager.NavigateTo("/reports");
         }
-        else
-            _navigationManager.NavigateTo("/reports");
     }
 
 
@@ -428,11 +428,11 @@
             {
                 IsLoading = false;
                 dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
-                <string, object>
-            () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"calc(50vw - 950px)" });
-    //             dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
-    // <string, object>
-    // () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"{20}px" });
+            <string, object>
+        () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"calc(50vw - 950px)" });
+                //             dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
+                // <string, object>
+                // () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"{20}px" });
             }
             IsLoading = false;
         }
@@ -494,7 +494,7 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+    new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -524,7 +524,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+    new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -562,7 +562,7 @@
     {
 
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+    new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -587,18 +587,18 @@
         if (reportEntityDTOs != null)
         {
             distinctDepartmentsInList = (List<string>)reportEntityDTOs.Where(u => u.ReportDepartmentDTOFK != null).OrderBy(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName)
-            .Select(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
+        .Select(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
             distinctReportTemplateTypesInList = (List<string>)reportEntityDTOs.OrderBy(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name)
-            .Select(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name).Distinct().ToList();
+        .Select(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name).Distinct().ToList();
             distinctDownloadUsersInList = (List<string>)reportEntityDTOs.Where(u => u.DownloadUserDTOFK != null).OrderBy(u => u.DownloadUserDTOFK.UserName)
-            .Select(u => u.DownloadUserDTOFK.UserName).Distinct().ToList();
+        .Select(u => u.DownloadUserDTOFK.UserName).Distinct().ToList();
             distinctUploadUsersInList = (List<string>)reportEntityDTOs.Where(u => u.UploadUserDTOFK != null).OrderBy(u => u.UploadUserDTOFK.UserName)
-            .Select(u => u.UploadUserDTOFK.UserName).Distinct().ToList();
+        .Select(u => u.UploadUserDTOFK.UserName).Distinct().ToList();
         }
     }
 
     void ShowTooltip(IEnumerable<ReportEntityResendDatesDTO>? reportEntityResendDatesListDTO, ElementReference elementReference, TooltipOptions options = null
-        ) => _tooltipService.Open(elementReference, ds =>
+    ) => _tooltipService.Open(elementReference, ds =>
     @<div>
         <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="false" AllowPaging="false" AllowSorting="true" EditMode="DataGridEditMode.Single"
                            Data="@reportEntityResendDatesListDTO" TItem="ReportEntityResendDatesDTO"

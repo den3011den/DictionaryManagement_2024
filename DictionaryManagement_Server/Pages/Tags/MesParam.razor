@@ -355,10 +355,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        if (firstRender)
         {
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
                 //StateHasChanged();
@@ -371,10 +371,9 @@
                 IsLoading = false;
                 StateHasChanged();
             }
+            else
+                _navigationManager.NavigateTo("/tags");
         }
-        else
-            _navigationManager.NavigateTo("/tags");
-
     }
 
 
@@ -443,7 +442,7 @@
                 case SD.EditMode.Create:
                     IsLoading = false;
                     dialogResult = await _dialogService.OpenAsync<AddEditMesParam>("Создать тэг СИР", new Dictionary<string, object>() { { "MesParamId", 0 }, { "Mode", modePar } }
-                        , new DialogOptions() { Width = $"{90}rem",  Left = $"calc(50vw - 55rem)" });
+                        , new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
                     break;
                 case SD.EditMode.Edit:
                     IsLoading = false;
@@ -638,7 +637,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" } );
+            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
