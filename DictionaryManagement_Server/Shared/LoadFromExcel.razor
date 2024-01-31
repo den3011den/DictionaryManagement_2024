@@ -17,6 +17,8 @@
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject IReportTemplateRepository _reportTemplateRepository
 @inject ILoadFromExcelRepository _loadFromExcelRepository
+@inject ISapEquipmentRepository _sapEquipmentRepository
+@inject ISapMaterialRepository _sapMaterialRepository
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 
 @inject DialogService _dialogService
@@ -210,6 +212,9 @@
     public ReportTemplateDTO? ActiveReportTemplateDTO { get; set; }
     public SettingsDTO? ActiveSettingDTO { get; set; }
 
+    public IEnumerable<MaterialDTO>? MaterialListDTO { get; set; }
+    public IEnumerable<SapEquipmentDTO>? SapEquipmentListDTO { get; set; }
+    public IEnumerable<MesParamDTO>? MesParamListDTO { get; set; }
     public IEnumerable<MesNdoStocksDTO>? MesNdoStocksListDTO { get; set; }
     public IEnumerable<SapNdoOUTDTO>? SapNdoOUTListDTO { get; set; }
     public IEnumerable<MesMovementsDTO>? MesMovementsListDTO { get; set; }
@@ -290,26 +295,28 @@
         {
             Title = "Загрузка данных из Excel в справочник Материалы SAP";
             objectName = "SapMaterial";
+            MaterialListDTO = (IEnumerable<MaterialDTO>?)DataList;
         }
         if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesMaterialLoadFromExcelReportTemplateTypeNameSettingName))
         {
             Title = "Загрузка данных из Excel в справочник Материалы MES";
             objectName = "MesMaterial";
+            MaterialListDTO = (IEnumerable<MaterialDTO>?)DataList;
         }
 
         if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName))
         {
             Title = "Загрузка данных из Excel в справочник Ресурсов SAP";
             objectName = "SapEquipment";
+            SapEquipmentListDTO = (IEnumerable<SapEquipmentDTO>?)DataList;
         }
-
 
         if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesParamLoadFromExcelReportTemplateTypeNameSettingName))
         {
             Title = "Загрузка данных из Excel в справочник Тэгов СИР";
             objectName = "MesParam";
+            MesParamListDTO = (IEnumerable<MesParamDTO>?)DataList;
         }
-
 
         if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName))
         {
@@ -454,17 +461,17 @@
                     {
                         case "SapMaterial":
                             {
-                                filename = await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                filename = await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet, MaterialListDTO);
                                 break;
                             }
                         case "MesMaterial":
                             {
-                                filename = await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet);
+                                filename = await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet, MaterialListDTO);
                                 break;
                             }
                         case "SapEquipment":
                             {
-                                filename = await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet);
+                                filename = await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet, SapEquipmentListDTO);
                                 break;
                             }
                         case "MesParam":
@@ -472,10 +479,12 @@
                                 var worksheet1 = workbook.Worksheet("Ед_изм(справочно)");
                                 await _loadFromExcelRepository.SapUnitOfMeasureReportTemplateDownloadFileWithData(this, worksheet1);
                                 var worksheet2 = workbook.Worksheet("SapMaterial");
-                                await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet2);
+                                MaterialListDTO = await _sapMaterialRepository.GetAll(SelectDictionaryScope.All);
+                                await _loadFromExcelRepository.MaterialReportTemplateDownloadFileWithData(this, worksheet2, MaterialListDTO);
                                 var worksheet3 = workbook.Worksheet("SapEquipment");
-                                await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet3);
-                                filename = await _loadFromExcelRepository.MesParamReportTemplateDownloadFileWithData(this, worksheet);
+                                SapEquipmentListDTO = await _sapEquipmentRepository.GetAll(SelectDictionaryScope.All);
+                                await _loadFromExcelRepository.SapEquipmentReportTemplateDownloadFileWithData(this, worksheet3, SapEquipmentListDTO);
+                                filename = await _loadFromExcelRepository.MesParamReportTemplateDownloadFileWithData(this, worksheet, MesParamListDTO);
                                 break;
                             }
                         case "MesNdoStocks":

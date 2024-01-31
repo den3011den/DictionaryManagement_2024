@@ -717,7 +717,7 @@
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Тэги СИР)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesParamLoadFromExcelReportTemplateTypeNameSettingName }
-                    ,{ "DataList", null }}
+                    ,{ "DataList", (IEnumerable<MesParamDTO>)mesParamDTOGrid.View }}
                     , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);

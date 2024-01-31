@@ -67,18 +67,19 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
         }
 
-        public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
+        public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MaterialDTO>? materialList)
         {
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Материалов " + worksheet.Name.Substring(0, 3);
             await loadFromExcelPage.RefreshSate();
 
-            IEnumerable<MaterialDTO> MaterialDTOList;
-            if (worksheet.Name.Equals("SapMaterial"))
+            if (materialList == null || materialList.Count() <= 0)
             {
-                MaterialDTOList = (IEnumerable<MaterialDTO>)(await _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
+                await loadFromExcelPage.ShowSwal("warning", "Пустая выборка. Измените фильтры в отображаемом списке записей материалов");
+                return worksheet.Name + "_Example_with_data_";
             }
-            else
-                MaterialDTOList = (IEnumerable<MaterialDTO>)(await _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
+
+            IEnumerable<MaterialDTO> MaterialDTOList;
+            MaterialDTOList = materialList.OrderBy(u => u.Id);
 
             int recordCount = MaterialDTOList.Count();
             int recordOrder = 0;
@@ -110,12 +111,18 @@ namespace DictionaryManagement_Server.Extensions.Repository
         }
 
 
-        public async Task<string> SapEquipmentReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
+        public async Task<string> SapEquipmentReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<SapEquipmentDTO>? sapEquipmentListPar)
         {
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Ресурсов SAP)";
             await loadFromExcelPage.RefreshSate();
 
-            IEnumerable<SapEquipmentDTO> sapEquipmentDTOList = (await _sapEquipmentRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
+            if (sapEquipmentListPar == null || sapEquipmentListPar.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Пустая выборка. Измените фильтры в отображаемом списке ресурсов SAP");
+                return "SapEquipment_Example_with_data_";
+            }
+
+            IEnumerable<SapEquipmentDTO> sapEquipmentDTOList = sapEquipmentListPar.OrderBy(u => u.Id);
 
             int recordCount = sapEquipmentDTOList.Count();
             int recordOrder = 0;
@@ -183,13 +190,19 @@ namespace DictionaryManagement_Server.Extensions.Repository
         }
 
 
-        public async Task<string> MesParamReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet)
+        public async Task<string> MesParamReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MesParamDTO>? mesParamList)
         {
 
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка Тэгов СИР)";
             await loadFromExcelPage.RefreshSate();
 
-            IEnumerable<MesParamDTO> mesParamDTOList = (await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All)).OrderBy(u => u.Id);
+            if (mesParamList == null || mesParamList.Count() <= 0)
+            {
+                await loadFromExcelPage.ShowSwal("warning", "Пустая выборка. Измените фильтры в отображаемом списке Тэгов СИР");
+                return "MesParam_Example_with_data_";
+            }
+
+            IEnumerable<MesParamDTO> mesParamDTOList = mesParamList.OrderBy(u => u.Id);
 
             int recordCount = mesParamDTOList.Count();
             int recordOrder = 0;
@@ -272,7 +285,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 excelRowNum++;
             }
-
             return "MesParam_Example_with_data_";
         }
 
@@ -752,6 +764,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     idVarInt = 0;
                     resultString = "! Строка " + rowNumber.ToString() + ", столбцы 3, 4. И ИД записи, и Код материала пустые. Изменения не применялись.";
                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 3, 4 }, resultString);
+                    rowNumber++;
+                    continue;
                 }
 
                 string isUpdateOrAddMode = "NONE";
@@ -1177,6 +1191,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     continue;
                 }
 
+                if (!(actionVarString.Trim().ToUpper() == "X" || actionVarString.Trim().ToUpper() == "Х"))
+                {
+                    rowNumber++;
+                    continue;
+                }
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
                 await loadFromExcelPage.RefreshSate();
 
@@ -4434,7 +4453,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 worksheet.Cell(rowNum, column).Style.Font.FontColor = XLColor.Red;
                 worksheet.Cell(rowNum, column).Style.Font.SetBold(true);
             }
-            loadFromExcelPage.console.Log(errorMessage);
+            loadFromExcelPage.console.Log(errorMessage, AlertStyle.Danger);
             await loadFromExcelPage.RefreshSate();
         }
 

@@ -306,7 +306,7 @@
                 await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: null, newObject: addedDTO, "Добавление шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
 
                 upload.Url = @"UploadFileController/UploadReportTemplateFile/" + createdTemplateDTO.Id;
-                upload.Upload().GetAwaiter().GetResult();
+                await upload.Upload();
 
                 await _jsRuntime.ToastrSuccess("Шаблон \"" + ActiveReportTemplateDTO.Description + "\" создан");
                 _dialogService.Close(ActiveReportTemplateDTO);
@@ -330,10 +330,12 @@
 
                 ActiveReportTemplateDTO.TemplateFileName = ActiveReportTemplateDTO.Id + ".xlsx";
 
+                //!!!
+
                 if (!String.IsNullOrEmpty(uploadFileWarning))
                 {
                     upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
-                    upload.Upload().GetAwaiter().GetResult();
+                    await upload.Upload();
 
                     Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
                     await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUserId, "", "", false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
