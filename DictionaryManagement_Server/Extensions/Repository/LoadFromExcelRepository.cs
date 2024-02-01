@@ -2809,6 +2809,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 rowNumber++;
                                 continue;
                             }
+                            changedSapNdoOUTDTO.TagName = tagNameVarString;
 
                             DateTime valueTimeVarDateTime;
                             if (!String.IsNullOrEmpty(valueTimeVarString))

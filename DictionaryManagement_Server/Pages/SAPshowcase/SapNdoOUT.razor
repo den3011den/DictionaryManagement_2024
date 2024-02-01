@@ -397,8 +397,9 @@
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{"DataList", (IEnumerable<SapNdoOUTDTO>)sapNdoOUTDTOGrid.View }}
                     , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
+            await this.OnAfterRenderAsync(true);
         }
-        IsLoading = false;
+        IsLoading = false;        
     }
 
 }
