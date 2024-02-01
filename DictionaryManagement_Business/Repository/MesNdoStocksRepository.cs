@@ -154,9 +154,9 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.ReportGuid == null)
+                if (objectToUpdateDTO.ReportGuid == null || objectToUpdateDTO.ReportGuid == Guid.Empty)
                 {
-                    objectToUpdate.ReportGuid = Guid.Empty;
+                    objectToUpdate.ReportGuid = null;
                     objectToUpdate.ReportEntityFK = null;
                 }
                 else

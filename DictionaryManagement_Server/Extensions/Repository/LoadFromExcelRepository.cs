@@ -3228,7 +3228,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (!String.IsNullOrEmpty(addUserNameVarString))
                                 {
                                     var userObjectList = await _userRepository.GetListByUserName(addUserNameVarString);
-                                    if (userObjectList != null)
+                                    if (userObjectList != null && userObjectList.Count() > 0)
                                     {
                                         if (userObjectList.Count() > 1)
                                         {
@@ -3265,7 +3265,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (objectForCheckMesParamCode == null)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден тэг с кодом " + objectForCheckMesParamCode + "." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден тэг с кодом " + mesParamCodeVarString +
                                         " Изменения не применялись.";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
                                     rowNumber++;
@@ -3545,7 +3545,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (!String.IsNullOrEmpty(addUserNameVarString))
                                 {
                                     var userObjectList = await _userRepository.GetListByUserName(addUserNameVarString);
-                                    if (userObjectList != null)
+                                    if (userObjectList != null && userObjectList.Count() > 0)
                                     {
                                         if (userObjectList.Count() > 1)
                                         {
@@ -3585,7 +3585,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (objectForCheckMesParamCode == null)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден не найден тэг с кодом " + mesParamCodeVarString + "." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден тэг с кодом " + mesParamCodeVarString + "." +
                                         " Изменения не применялись.";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
                                     rowNumber++;
@@ -4693,7 +4693,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (!String.IsNullOrEmpty(addUserNameVarString))
                                 {
                                     var userObjectList = await _userRepository.GetListByUserName(addUserNameVarString);
-                                    if (userObjectList != null)
+                                    if (userObjectList != null && userObjectList.Count() > 0)
                                     {
                                         if (userObjectList.Count() > 1)
                                         {
@@ -5133,7 +5133,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     var userObjectList = await _userRepository.GetListByUserName(addUserNameVarString);
                                     if (userObjectList != null)
                                     {
-                                        if (userObjectList.Count() > 1)
+                                        if (userObjectList.Count() > 1 && userObjectList.Count() > 0)
                                         {
                                             haveErrors = true;
                                             resultString = "! Строка " + rowNumber.ToString() + ", столбец 6 (\"ФИО добавившего пользователя\"). Найдено больше одного пользователя с ФИО " + addUserNameVarString + "." +
@@ -5171,7 +5171,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (objectForCheckMesParamCode == null)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден не найден тэг с кодом " + mesParamCodeVarString + "." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 7 (\"Код тэга\"). В Справочнике тэгов СИР не найден тэг с кодом " + mesParamCodeVarString + "." +
                                         " Изменения не применялись.";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 7 }, resultString);
                                     rowNumber++;
