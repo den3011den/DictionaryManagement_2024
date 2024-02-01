@@ -38,6 +38,7 @@ builder.WebHost.UseUrls("http://+:5555");
 //    SD.AppFactoryMode = SD.FactoryMode.NKNH;
 
 SD.AppFactoryMode = builder.Configuration.GetValue<string>("FactoryMode");
+SD.ShowBackgroundText = builder.Configuration.GetValue<int>("ShowBackgroundText");
 
 builder.Services.AddDbContext<IntDBApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("IntDBConnection"),

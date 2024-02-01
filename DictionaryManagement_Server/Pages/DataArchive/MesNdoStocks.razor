@@ -280,10 +280,8 @@
 
     List<string> distinctAddUsersInList = new List<string>();
 
-    DateTime? startDate = null;
-    DateTime? endDate = null;
-    DateTime? maxEndDate = null;
-    DateTime? minEndDate = null;
+    DateTime? startDate = DateTime.Today.AddDays(-7);
+    DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
 
@@ -309,12 +307,10 @@
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                if (startDate == null || endDate == null || maxEndDate == null || minEndDate == null)
+                if (startDate == null || endDate == null)
                 {
                     startDate = DateTime.Today.AddDays(-7);
                     endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                    maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                    minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
                 }
                 IsLoading = true;
                 await LoadStateAsync();

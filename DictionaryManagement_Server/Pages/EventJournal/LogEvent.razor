@@ -216,10 +216,8 @@
     List<string> distinctLogEventTypesInList = new List<string>();
     List<string> distinctUsersInList = new List<string>();
 
-    DateTime? startDate = null;
-    DateTime? endDate = null;
-    DateTime? maxEndDate = null;
-    DateTime? minEndDate = null;
+    DateTime? startDate = DateTime.Today.AddDays(-1);
+    DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
 
@@ -245,12 +243,10 @@
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                if (startDate == null || endDate == null || maxEndDate == null || minEndDate == null)
+                if (startDate == null || endDate == null)
                 {
                     startDate = DateTime.Today.AddDays(-1);
                     endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                    maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                    minEndDate = DateTime.Today.AddDays(-3);
                 }
                 IsLoading = true;
                 await LoadStateAsync();

@@ -4376,7 +4376,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                             loadFromExcelPage.console.Log(resultString);
-                            break;
+                            rowNumber++;
+                            continue;
                         }
                     case "ДОБАВИТЬ":
                         {

@@ -17,15 +17,14 @@
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
-    <div class="row">
+    <div class="row">        
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/SAPshowcase">Витрины SAP</a> - <a href="/SAPshowcase/SapMovementsOUT">Движения - выход</a></h6>
         </div>
 
         @if (IsLoading != true)
-        {
-
-            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
+        {                           
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">                
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
                         <RadzenStack Gap="0.5rem">
@@ -59,13 +58,13 @@
                                AllowVirtualization="true"
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
-                               Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
+                               Style=@(iconMenuActive ? "height:calc(100vh - 165px); width:calc(100vw - 120px)" : "height:calc(100vh - 165px); width:calc(100vw - 280px);")
                                ColumnWidth="200px"
                                AllowColumnPicking="true"
                                GridLines="DataGridGridLines.Both"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSortsHeaderButton="false">
+                               ShowCleanGridSortsHeaderButton="false">                               
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -82,11 +81,12 @@
                     </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
+                    
                     <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                @data1.ToStringId
+                                @data1.ToStringId                                
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
@@ -97,7 +97,7 @@
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data1.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff")
-                                </strong>
+                                </strong>                                
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
@@ -292,7 +292,7 @@
             </RadzenDataGridColumnApp>
             *@
                 </Columns>
-            </RadzenDataGridApp>
+            </RadzenDataGridApp>         
         }
         else
         {
@@ -329,11 +329,9 @@
     IEnumerable<string> selectedSapUnitOfMeasure;
     List<string> distinctSapUnitOfMeasureInList = new List<string>();
 
-    DateTime? startDate = null;
-    DateTime? endDate = null;
-    DateTime? maxEndDate = null;
-    DateTime? minEndDate = null;
-
+    DateTime? startDate = DateTime.Today.AddDays(-7);
+    DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+    
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
@@ -358,12 +356,10 @@
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                if (startDate == null || endDate == null || maxEndDate == null || minEndDate == null)
+                if (startDate == null || endDate == null)
                 {
-                    startDate = DateTime.Today.AddDays(-7); ;
+                    startDate = DateTime.Today.AddDays(-7);
                     endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                    maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                    minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
                 }
                 IsLoading = true;
                 await LoadStateAsync();

@@ -46,12 +46,12 @@ namespace DictionaryManagement_Business.Repository
             {
                 LogEventTypeId = logEventTypeId,
                 UserId = userId,
-                Description = description,
+                Description = description.Length > 4000 ? description.Substring(0, 4000) : description,
                 IsError = isError,
                 IsCritical = false,
                 IsWarning = false,
-                OldValue = oldValue,
-                NewValue = newValue,
+                OldValue = oldValue.Length > 200 ? oldValue.Substring(0, 200) : oldValue,
+                NewValue = oldValue.Length > 200 ? newValue.Substring(0, 200) : newValue,
                 EventTime = DateTime.Now
             };
 
