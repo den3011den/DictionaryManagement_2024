@@ -245,6 +245,28 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapMovementInId" Title="ИД записи в витрине SAP (вход)" FilterProperty="SapMovementInId" SortProperty="SapMovementInId" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (data1.SapMovementInId != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.SapMovementInId
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringSapMovementOutId" Title="ИД записи в витрине SAP (выход)" FilterProperty="ToStringSapMovementOutId" SortProperty="ToStringSapMovementOutId" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (data1.ToStringSapMovementOutId != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.ToStringSapMovementOutId
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
                     <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapGoneBool" Title="Sap забрал" Filterable="true" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.SapGoneBool ReadOnly="true" TriState="false" TValue="bool" />

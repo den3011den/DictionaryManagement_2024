@@ -442,6 +442,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.MesGone == true ? "Да" : "Нет";
                 excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.MesGoneTime == null ? "" : ((DateTime)mesMovementsItemDTO.MesGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.NeedWriteToSap == true ? "Да" : "Нет";
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = mesMovementsItemDTO.PreviousRecordId == null ? "" : mesMovementsItemDTO.PreviousRecordId.ToString();
@@ -2495,7 +2497,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             while (isEmptyString == false)
             {
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Cell(rowNumber, 2).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -2520,6 +2521,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(sapGoneVarString) && String.IsNullOrEmpty(sapGoneTimeVarString))
                 {
                     isEmptyString = true;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(actionVarString))
+                {
+                    rowNumber++;
                     continue;
                 }
 
@@ -3068,7 +3075,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             while (isEmptyString == false)
             {
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Cell(rowNumber, 2).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -3097,6 +3103,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(sapNdoOutIdVarString))
                 {
                     isEmptyString = true;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(actionVarString))
+                {
+                    rowNumber++;
                     continue;
                 }
 
@@ -3876,7 +3888,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Cell(rowNumber, 2).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -3902,6 +3913,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(isArchiveVarString))
                 {
                     isEmptyString = true;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(actionVarString))
+                {
+                    rowNumber++;
                     continue;
                 }
 
@@ -4226,7 +4243,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Cell(rowNumber, 2).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -4245,6 +4261,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(isArchiveVarString))
                 {
                     isEmptyString = true;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(actionVarString))
+                {
+                    rowNumber++;
                     continue;
                 }
 
@@ -4521,7 +4543,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Cell(rowNumber, 2).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -4536,8 +4557,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 string mesParamCodeVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
                 string valueTimeVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
                 string valueVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
-                string sapMovementOutIdVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
-                string sapMovementInIdVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
+                string sapMovementInIdVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
+                string sapMovementOutIdVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
                 string dataSourceNameVarString = rowVar.Cell(12).CachedValue.ToString().Trim();
                 string dataTypeNameVarString = rowVar.Cell(13).CachedValue.ToString().Trim();
                 string reportGuidVarString = rowVar.Cell(14).CachedValue.ToString().Trim();
@@ -4557,6 +4578,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(previousRecordIdVarString))
                 {
                     isEmptyString = true;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(actionVarString))
+                {
+                    rowNumber++;
                     continue;
                 }
 
@@ -4585,7 +4612,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 string mesMovementsIdWarningString = "";
 
-                switch (actionVarString.Trim().ToUpper())
+                switch (actionVarString.ToUpper())
                 {
                     case "ИЗМЕНИТЬ":
                         {
@@ -4807,7 +4834,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 Guid sapMovementOutIdVarGuid = Guid.Empty;
                                 try
                                 {
-                                    sapMovementOutIdVarGuid = Guid.Parse(reportGuidVarString);
+                                    sapMovementOutIdVarGuid = Guid.Parse(sapMovementOutIdVarString);
                                 }
                                 catch (Exception ex)
                                 {
@@ -4823,7 +4850,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (objectForCheckSapMovementsOUTDTO == null)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 11 (\"ИД записи в выходной витрине SapMovementsOUT\"). Не удалось найти запись в витрине SAP Движения-выход." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 11 (\"ИД записи в выходной витрине SapMovementsOUT\"). Не удалось найти запись " + sapMovementOutIdVarGuid.ToString() + " в витрине SAP Движения-выход." +
                                         " Изменения не применялись";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 11 }, resultString);
                                     rowNumber++;
@@ -5233,7 +5260,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 {
                                     haveErrors = true;
                                     resultString = "! Строка " + rowNumber.ToString() + ", столбец 10 (\"ИД записи во входной витрине SapMovementsIN\"). Не удалось найти запись с ИД "
-                                        + sapMovementInIdVarString + " в Витрине SAP \"НДО-вход\". Изменения не применялись";
+                                        + sapMovementInIdVarString + " в Витрине SAP \"Движения-вход\". Изменения не применялись";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 10 }, resultString);
                                     rowNumber++;
                                     continue;
@@ -5589,7 +5616,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Cell(rowNumber, 2).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -5641,6 +5667,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(mesMovementsIdVarString) && String.IsNullOrEmpty(previousRecordIdVarString))
                 {
                     isEmptyString = true;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(actionVarString))
+                {
+                    rowNumber++;
                     continue;
                 }
 
@@ -6544,7 +6576,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             {
 
                 worksheet.Cell(rowNumber, 1).Value = "";
-                worksheet.Cell(rowNumber, 2).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);
                 worksheet.Row(rowNumber).Style.Font.FontColor = XLColor.Black;
@@ -6585,6 +6616,12 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(moveTypeVarString))
                 {
                     isEmptyString = true;
+                    continue;
+                }
+
+                if (String.IsNullOrEmpty(actionVarString))
+                {
+                    rowNumber++;
                     continue;
                 }
 

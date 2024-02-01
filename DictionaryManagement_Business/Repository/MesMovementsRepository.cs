@@ -33,6 +33,7 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.AddUserId = objectToAddDTO.AddUserId;
             objectToAdd.MesParamId = objectToAddDTO.MesParamId;
             objectToAdd.ValueTime = objectToAddDTO.ValueTime;
+            objectToAdd.Value = objectToAddDTO.Value;
             objectToAdd.SapMovementOutId = objectToAddDTO.SapMovementOutId;
             objectToAdd.SapMovementInId = objectToAddDTO.SapMovementInId;
             objectToAdd.DataSourceId = objectToAddDTO.DataSourceId;
@@ -152,7 +153,7 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.AddUserId == null)
+                if (objectToUpdateDTO.AddUserId == null || objectToUpdateDTO.AddUserId == Guid.Empty)
                 {
                     objectToUpdate.AddUserId = Guid.Empty;
                     objectToUpdate.AddUserFK = null;
@@ -168,9 +169,9 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.ReportGuid == null)
+                if (objectToUpdateDTO.ReportGuid == null || objectToUpdateDTO.ReportGuid == Guid.Empty)
                 {
-                    objectToUpdate.ReportGuid = Guid.Empty;
+                    objectToUpdate.ReportGuid = null;
                     objectToUpdate.ReportEntityFK = null;
                 }
                 else
@@ -188,7 +189,7 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.SapMovementOutId == null)
+                if (objectToUpdateDTO.SapMovementOutId == null || objectToUpdateDTO.SapMovementOutId == Guid.Empty)
                 {
                     objectToUpdate.SapMovementOutId = null;
                     objectToUpdate.SapMovementsOUTFK = null;
@@ -259,7 +260,7 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.PreviousRecordId == null)
+                if (objectToUpdateDTO.PreviousRecordId == null || objectToUpdateDTO.PreviousRecordId == Guid.Empty)
                 {
                     objectToUpdate.PreviousRecordId = null;
                     objectToUpdate.MesMovementsFK = null;
