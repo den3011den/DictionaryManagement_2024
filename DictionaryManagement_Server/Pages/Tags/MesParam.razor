@@ -360,16 +360,15 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;
-                //StateHasChanged();
+                IsLoading = true;                
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
-
                 await GetDistincts();
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/tags");
@@ -467,11 +466,13 @@
                 {
                     IsLoading = true;
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
                     await GetDistincts();
                     IsLoading = false;
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     IsLoading = false;
                 }
                 else

@@ -101,11 +101,13 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
         ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
         Title = "Добавить группы AD к роли";
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -116,10 +118,12 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 ADGroupList = await _roleVMRepository.GetAllNotArchiveADGroupsExceptAlreadyInRole(ActiveRoleVMDTO.Id);
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration/Role");

@@ -343,14 +343,15 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;
-                //StateHasChanged();
+                IsLoading = true;                
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 roleVMDTOs = await _roleVMRepository.GetAll(SD.SelectDictionaryScope.All);
                 userDictionaryManagementGuid = (await _authorizationRepository.GetCurrentUserDTO()).Id;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration");
@@ -418,11 +419,12 @@
                 {
                     IsLoading = true;
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     roleVMDTOs = await _roleVMRepository.GetAll(SD.SelectDictionaryScope.All);
                     IsLoading = false;
-                    StateHasChanged();
-                    IsLoading = false;
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);                    
                 }
                 else
                 {
@@ -917,5 +919,4 @@
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
     }
-
 }

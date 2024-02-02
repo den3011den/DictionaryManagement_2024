@@ -144,12 +144,14 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 sapToMesMaterialMappingDTOs = _sapToMesMaterialMappingRepository.GetAll().Result;
                 sapMaterialDTOs = _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
                 mesMaterialDTOs = _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/mapping");

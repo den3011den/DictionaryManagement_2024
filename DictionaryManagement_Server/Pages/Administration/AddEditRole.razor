@@ -5,7 +5,6 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IRoleRepository _roleRepository
 @inject IRoleVMRepository _roleVMRepository
 @inject DialogService _dialogService
@@ -100,7 +99,8 @@
     {
         await base.OnInitializedAsync();
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
         if (RoleId == Guid.Empty)
         {
             ActiveRoleDTO = new RoleDTO();
@@ -111,7 +111,8 @@
             Title = "Изменить роль СИР";
         }
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -123,7 +124,8 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (RoleId == Guid.Empty)
                 {
                     ActiveRoleDTO = new RoleDTO();
@@ -136,11 +138,12 @@
                 RoleDTOList = await _roleRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration/Role");
-        }        
+        }
     }
 
     private async Task AddEditRoleProcedure()

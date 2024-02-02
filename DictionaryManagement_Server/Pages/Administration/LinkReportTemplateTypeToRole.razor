@@ -103,11 +103,13 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
         ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
         Title = "Добавить типы шаблонов отчётов к роли";
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -118,10 +120,12 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 ReportTemplateTypeDTOList = await _roleVMRepository.GetAllNotArchiveReportTemplateTypesExceptAlreadyInRole(ActiveRoleVMDTO.Id);
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration/Role");

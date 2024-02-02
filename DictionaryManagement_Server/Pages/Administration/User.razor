@@ -163,13 +163,14 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
 
-                IsLoading = true;
-                //StateHasChanged();
+                IsLoading = true;                
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 userDTOs = await _userRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration");
@@ -239,10 +240,12 @@
                 {
                     IsLoading = true;
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     userDTOs = await _userRepository.GetAll(SD.SelectDictionaryScope.All);
                     IsLoading = false;
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     IsLoading = false;
                 }
                 else

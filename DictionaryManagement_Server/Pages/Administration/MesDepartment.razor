@@ -7,13 +7,10 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json;
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject IMesDepartmentRepository _mesDepartmentRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -252,11 +249,13 @@
                 if (dialogResult != null)
                 {
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(10);
+                    await InvokeAsync(StateHasChanged);
                     mesDepartmentFullListDTOs = await GetRecords();
                     mesDepartmentDTOs = await GetAllTopLevel();
                     IsLoading = false;
-                    StateHasChanged();
+                    await Task.Delay(10);
+                    await InvokeAsync(StateHasChanged);
                 }
             }
             else
@@ -268,11 +267,13 @@
                     if (mesDepartmentDTO.ParentDepartmentId != dialogResult.ParentDepartmentId)
                     {
                         await LoadStateAsync();
-                        StateHasChanged();
+                        await Task.Delay(10);
+                        await InvokeAsync(StateHasChanged);
                         mesDepartmentFullListDTOs = await GetRecords();
                         mesDepartmentDTOs = await GetAllTopLevel();
                         IsLoading = false;
-                        StateHasChanged();
+                        await Task.Delay(10);
+                        await InvokeAsync(StateHasChanged);
                     }
                     else
                     {
@@ -284,7 +285,8 @@
                         mesDepartmentDTO.ParentDepartmentId = dialogResult.ParentDepartmentId;
                         mesDepartmentDTO.MesCode = dialogResult.MesCode;
                         await mesDepartmentDTOGrid.UpdateRow(mesDepartmentDTO);
-                        StateHasChanged();
+                        await Task.Delay(10);
+                        await InvokeAsync(StateHasChanged);
                     }
                 }
             }

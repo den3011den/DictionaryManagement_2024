@@ -298,7 +298,8 @@
 
         IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
 
         Title = "Загрузка данных из Excel";
         if (LoadFromExcelReportTemplateTypeNameSettingName.Equals(SD.SapMaterialLoadFromExcelReportTemplateTypeNameSettingName))
@@ -434,7 +435,8 @@
             foundActiveReportTemplateFile = true;
 
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task ReportTemplateDownloadFile(Guid id)
@@ -972,7 +974,8 @@
                     break;
                 }
         }
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task DownloadResultFile()

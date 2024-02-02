@@ -75,7 +75,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
 
         if (ReportTemplateTypeId == 0)
         {
@@ -88,8 +89,8 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -100,7 +101,8 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 if (ReportTemplateTypeId == 0)
                 {
                     ActiveReportTemplateTypeDTO = new ReportTemplateTypeDTO();
@@ -112,7 +114,8 @@
                 }
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/reports/ReportTemplateType");

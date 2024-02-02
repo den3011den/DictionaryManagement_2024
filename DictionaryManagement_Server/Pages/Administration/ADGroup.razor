@@ -8,15 +8,11 @@
 @using System.Text.Json;
 @using static DictionaryManagement_Common.SD
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject IADGroupRepository _adGroupRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
-
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -139,13 +135,14 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;
-                //StateHasChanged();
+                IsLoading = true;                
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 adGroupDTOs = await _adGroupRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration");
@@ -217,22 +214,22 @@
                 {
                     IsLoading = true;
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(10);
+                    await InvokeAsync(StateHasChanged);
                     adGroupDTOs = await _adGroupRepository.GetAll(SD.SelectDictionaryScope.All);
                     IsLoading = false;
-                    StateHasChanged();
+                    await Task.Delay(10);
+                    await InvokeAsync(StateHasChanged);
                     IsLoading = false;
                 }
                 else
                 {
                     adGroupDTO.Name = dialogResult.Name;
                     adGroupDTO.Description = dialogResult.Description;
-
                     await adGroupDTOGrid.UpdateRow(adGroupDTO);
                 }
             }
         }
-
     }
 
     async Task DeleteRow(ADGroupDTO adGroupDTO)

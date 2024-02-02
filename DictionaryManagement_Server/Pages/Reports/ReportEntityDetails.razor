@@ -797,7 +797,8 @@
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
 
             ActiveReportEntityDTO = await _reportEntityRepository.GetById(ReportEntityId);
             reportEntityLogDTOs = await _reportReportEntityLogRepository.GetByReportEntityId(ReportEntityId);
@@ -816,7 +817,8 @@
             else
                 fileDownloadFullPath = reportDownloadPath + ActiveReportEntityDTO.DownloadReportFileName;
             IsLoading = false;
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -1033,7 +1035,8 @@
                 }
         }
 
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task GetMesMovementsDTOs(Guid reportEntityId)
@@ -1041,12 +1044,13 @@
         if (firstTimeMesMovementsTab)
         {
             IsLoading = true;
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
             mesMovementsDTOs = await _mesMovementsRepository.GetAllByReportEntityId(ReportEntityId);
             IsLoading = false;
             firstTimeMesMovementsTab = false;
-            StateHasChanged();
-
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -1055,11 +1059,13 @@
         if (firstTimeMesMovementsTab)
         {
             IsLoading = true;
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
             mesNdoStocksDTOs = await _mesNdoStocksRepository.GetAllByReportEntityId(ReportEntityId);
             IsLoading = false;
             firstTimeMesMovementsTab = false;
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
 
         }
     }
@@ -1069,11 +1075,13 @@
         if (firstTimeLogEventTab)
         {
             IsLoading = true;
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
             reportEntityLogDTOs = await _reportEntityLogRepository.GetAllByReportEntityId(ReportEntityId);
             IsLoading = false;
             firstTimeLogEventTab = false;
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
         }
     }
 

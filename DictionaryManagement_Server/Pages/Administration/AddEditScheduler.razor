@@ -5,10 +5,8 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject ISchedulerRepository _schedulerRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -82,8 +80,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (SchedulerId == null || SchedulerId == 0)
         {
@@ -98,7 +96,8 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -110,7 +109,8 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (SchedulerId == null || SchedulerId == 0)
                 {
                     ActiveSchedulerDTO = new SchedulerDTO();
@@ -122,14 +122,13 @@
                     ActiveSchedulerDTO.StartTimeDateTime = DateTime.MinValue + ActiveSchedulerDTO.StartTime;
                     Title = "Изменить задание";
                 }
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration/Scheduler");
         }
-
     }
 
 

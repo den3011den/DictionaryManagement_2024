@@ -7,7 +7,6 @@
 @using System.Text.Json
 
 @inject DialogService DialogService
-
 @inject IJSRuntime _jsRuntime
 @inject ICorrectionReasonRepository _correctionReasonRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
@@ -182,10 +181,12 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 correctionReasonDTOs = await _correctionReasonRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/dictionary");

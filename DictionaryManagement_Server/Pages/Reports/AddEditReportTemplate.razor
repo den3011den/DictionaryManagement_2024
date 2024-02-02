@@ -193,8 +193,8 @@
 
         bool IsSubmited = false;
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
 
         if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
         {
@@ -213,7 +213,8 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -224,7 +225,8 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
 
                 if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
                 {
@@ -246,7 +248,8 @@
                 DataTypeDTOList = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/reports/ReportTemplate");
@@ -390,9 +393,7 @@
         }
 
         ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + repTemplateTypeName + "\" c вых данными: \"" +
-                dataTypeName + "\" для производства: \"" + depName + "\"";
-
-        // StateHasChanged();
+                dataTypeName + "\" для производства: \"" + depName + "\"";        
     }
 
     private async Task OnClickCancel() => _dialogService.Close(null);

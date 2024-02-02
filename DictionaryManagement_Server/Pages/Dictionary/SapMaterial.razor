@@ -6,7 +6,6 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
 
-
 @inject IJSRuntime _jsRuntime
 @inject ISapMaterialRepository _sapMaterialRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
@@ -196,10 +195,12 @@
             {
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 sapMaterialDTOs = _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.All).Result;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/dictionary");

@@ -1,12 +1,10 @@
 ﻿@page "/administration/User/AddEditUser/{UserId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IUserRepository _userRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
@@ -112,7 +110,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (UserId == Guid.Empty)
         {
@@ -127,10 +126,9 @@
 
             Title = "Изменить пользователя";
         }
-
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -141,7 +139,8 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (UserId == Guid.Empty)
                 {
                     ActiveUserDTO = new UserDTO();
@@ -156,7 +155,8 @@
                 }
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration/User");

@@ -5,7 +5,6 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IMesDepartmentRepository _mesDepartmentRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
@@ -95,7 +94,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (MesDepartmentId <= 0)
         {
@@ -108,7 +108,8 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         //employees = dbContext.Employees.Where(e => e.ReportsTo == null);
     }
@@ -119,7 +120,8 @@
         {
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             IsLoading = true;
-            StateHasChanged();
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
 
             if (MesDepartmentId <= 0)
             {
@@ -133,7 +135,8 @@
             MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
 
             IsLoading = false;
-            StateHasChanged();
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
         }
 
         //base.OnAfterRender(firstRender);

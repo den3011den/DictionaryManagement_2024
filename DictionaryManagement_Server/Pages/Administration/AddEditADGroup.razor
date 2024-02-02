@@ -5,7 +5,6 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IADGroupRepository _adGroupRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
@@ -84,7 +83,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (ADGroupId == Guid.Empty)
         {
@@ -95,10 +95,9 @@
             ActiveADGroupDTO = await _adGroupRepository.Get(ADGroupId);
             Title = "Изменить группу AD";
         }
-
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -109,7 +108,8 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (ADGroupId == Guid.Empty)
                 {
                     ActiveADGroupDTO = new ADGroupDTO();
@@ -119,9 +119,9 @@
                     ActiveADGroupDTO = await _adGroupRepository.Get(ADGroupId);
                     Title = "Изменить группу AD";
                 }
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/administration/ADGroup");

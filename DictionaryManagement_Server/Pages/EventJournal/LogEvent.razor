@@ -250,10 +250,12 @@
                 }
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 await GetRows();
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/EventJournal");
@@ -372,7 +374,8 @@
     {
         IsLoading = true;
         await LoadStateAsync();
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
         logEventDTOs = await _logEventRepository.GetAllByTimeInterval(startDate, endDate);
 
         distinctLogEventTypesInList = (List<string>)logEventDTOs.OrderBy(u => u.LogEventTypeDTOFK.Name)
@@ -382,8 +385,8 @@
 
         ApplyButtonDisabled = false;
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task ExcelExport()
@@ -462,7 +465,6 @@
                 .Select(u => u.UserDTOFK.UserName).Distinct().ToList();
 
         }
-
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
 

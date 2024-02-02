@@ -213,12 +213,14 @@
 
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 //sapNdoOUTDTOs = await _sapNdoOUTRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
                 await GetRows();
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/SAPshowcase");
@@ -325,15 +327,16 @@
     {
         IsLoading = true;
         await LoadStateAsync();
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
         if (applyRadioGroupValue == 1)
             sapNdoOUTDTOs = await _sapNdoOUTRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
         else
             sapNdoOUTDTOs = await _sapNdoOUTRepository.GetAllByTimeInterval(startDate, endDate, "ADDTIME");
         ApplyButtonDisabled = false;
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
 

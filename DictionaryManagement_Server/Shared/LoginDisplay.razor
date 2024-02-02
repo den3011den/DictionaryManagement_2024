@@ -71,7 +71,8 @@
         if (firstRender)
         {
             UserLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginAndNameAndAccessMode);
-            StateHasChanged();
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
         }
     }
 }
