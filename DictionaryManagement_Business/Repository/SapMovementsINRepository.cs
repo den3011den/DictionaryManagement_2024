@@ -300,7 +300,7 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<int> Delete(string id)
         {
-            if (id.Trim().IsNullOrEmpty())
+            if (!(id.Trim().IsNullOrEmpty()))
             {
                 var objectToDelete = _db.SapMovementsIN.FirstOrDefaultWithNoLock(u => u.ErpId.Trim().ToUpper() == id.Trim().ToUpper());
                 if (objectToDelete != null)

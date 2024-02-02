@@ -444,14 +444,14 @@
 
     DateTime? startDate = DateTime.Today.AddDays(-7);
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    
+
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
 
     bool ApplyButtonDisabled = false;
 
-    public bool IsLoading { get; set; }
+    public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()

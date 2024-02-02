@@ -6648,7 +6648,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (String.IsNullOrEmpty(idVarString))
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). В режиме добавления ИД записи обязательное поле. Изменения не применялись.";
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). В режиме изменения ИД записи обязательное поле. Изменения не применялись.";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                                     rowNumber++;
                                     continue;
@@ -6666,14 +6666,25 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             }
                             else
                             {
-                                if (!String.IsNullOrEmpty(idVarString))
+                                if (String.IsNullOrEmpty(idVarString))
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). В режиме изменения ИД записи должен быть пустым. Заполнится автоматически. Изменения не применялись.";
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). В режиме добавления ИД записи обязательное поле для витрины SapMovementsIN. Изменения не применялись.";
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
                                     rowNumber++;
                                     continue;
                                 }
+
+                                foundSapMovementsINDTO = await _sapMovementsINRepository.GetById(idVarString);
+                                if (foundSapMovementsINDTO != null)
+                                {
+                                    haveErrors = true;
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 3 (\"ИД записи\"). Уже есть запись с ИД: " + idVarString + ". Невозможно добавить ещё одну запись с таким ИД. Изменения не применялись.";
+                                    await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 3 }, resultString);
+                                    rowNumber++;
+                                    continue;
+                                }
+                                changedSapMovementsINDTO.ErpId = idVarString;
                             }
 
                             DateTime addTimeVarDateTime;
@@ -6908,6 +6919,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                         warningString = warningString + " Ед.изм. SAP с наименованием \"" + sapUnitOfMeasureVarString + "\" не найдена в Справочнике единиц измерения SAP.";
                                     }
                                 }
+                                changedSapMovementsINDTO.SapUnitOfMeasure = sapUnitOfMeasureVarString;
                             }
                             else
                             {
@@ -7047,38 +7059,72 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 changedSapMovementsINDTO.PreviousRecordDTOFK = sapMovementsINPreviousRecordDTO;
                             }
 
+                            changedSapMovementsINDTO.MoveType = moveTypeVarString;
+
                             if (actionVarString == "ИЗМЕНИТЬ")
                             {
                                 await _sapMovementsINRepository.Update(changedSapMovementsINDTO);
                                 await _logEventRepository.ToLog<SapMovementsINDTO>(oldObject: foundSapMovementsINDTO, newObject: changedSapMovementsINDTO
                                 , "Изменение записи в витрине SAP Движения вход SapMovementsIN", "Запись: ", _authorizationRepository);
                                 resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана.";
+                                resultString = resultString + warningString;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
-                                worksheet.Cell(rowNumber, 1).Value = "ОК";
-                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
-                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
-                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
-                                loadFromExcelPage.console.Log(resultString);
+                                if (String.IsNullOrEmpty(warningString))
+                                {
+                                    worksheet.Cell(rowNumber, 1).Value = "ОК";
+                                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                    worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                                    loadFromExcelPage.console.Log(resultString);
+                                }
+                                else
+                                {
+                                    worksheet.Cell(rowNumber, 1).Value = "!!! ОК";
+                                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
+                                    worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
+                                    loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
+                                }
                             }
                             else // ДОБАВИТЬ
                             {
+
                                 SapMovementsINDTO? newSapMovementsINDTO = await _sapMovementsINRepository.Create(changedSapMovementsINDTO);
                                 await _logEventRepository.ToLog<SapMovementsINDTO>(oldObject: null, newObject: newSapMovementsINDTO,
                                     "Добавление записи в витрину SAP Движения вход SapMovementsIN", "Запись: ", _authorizationRepository);
                                 resultString = "OK. Строка  " + rowNumber.ToString() + " успешно обработана. Добавлена запись с ИД " + newSapMovementsINDTO.ErpId;
+                                resultString = resultString + warningString;
                                 worksheet.Cell(rowNumber, resultColumnNumber).Value = resultString;
-                                worksheet.Cell(rowNumber, 1).Value = "OK";
-                                worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
-                                worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
-                                worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, 3).Value = newSapMovementsINDTO.ErpId;
-                                worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
-                                worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
-                                worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
-                                loadFromExcelPage.console.Log(resultString);
+                                if (String.IsNullOrEmpty(warningString))
+                                {
+                                    worksheet.Cell(rowNumber, 1).Value = "OK";
+                                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.Green;
+                                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.Green;
+                                    worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, 3).Value = newSapMovementsINDTO.ErpId;
+                                    worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.Green;
+                                    worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
+                                    loadFromExcelPage.console.Log(resultString);
+                                }
+                                else
+                                {
+                                    worksheet.Cell(rowNumber, 1).Value = "!!! OK";
+                                    worksheet.Cell(rowNumber, 1).Style.Font.FontColor = XLColor.YellowGreen;
+                                    worksheet.Cell(rowNumber, 1).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, 2).Style.Font.FontColor = XLColor.YellowGreen;
+                                    worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, 3).Value = newSapMovementsINDTO.ErpId;
+                                    worksheet.Cell(rowNumber, 3).Style.Font.FontColor = XLColor.YellowGreen;
+                                    worksheet.Cell(rowNumber, 3).Style.Font.SetBold(true);
+                                    worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.YellowGreen;
+                                    loadFromExcelPage.console.Log(resultString, AlertStyle.Light);
+                                }
                             }
                             await loadFromExcelPage.RefreshSate();
                             rowNumber++;
