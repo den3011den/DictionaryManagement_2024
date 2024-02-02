@@ -238,8 +238,7 @@ namespace DictionaryManagement_Business.Repository
                     {
                         objectToUpdate.MesMovementId = objectToUpdateDTO.MesMovementId;
                         var objectMesMovementsToUpdate = _db.MesMovements
-                            .Include("MesMovementFK")
-                            .Include("PreviousRecordFK")
+                            .Include("MesMovementsFK")
                             .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.MesMovementId);
                         objectToUpdate.MesMovementsFK = objectMesMovementsToUpdate;
                     }
@@ -316,7 +315,7 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<int> Delete(Guid id)
         {
-            if (id == Guid.Empty)
+            if (id != Guid.Empty)
             {
                 var objectToDelete = _db.SapMovementsOUT.FirstOrDefaultWithNoLock(u => u.Id == id);
                 if (objectToDelete != null)

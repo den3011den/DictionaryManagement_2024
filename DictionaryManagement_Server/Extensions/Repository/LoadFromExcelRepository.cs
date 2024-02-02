@@ -528,11 +528,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapUnitOfMeasure == null ? "" : sapMovementsOUTItemDTO.SapUnitOfMeasure;
                 excelColNum++;
-                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapUnitOfMeasure == null ? "" : sapMovementsOUTItemDTO.SapUnitOfMeasure;
-                excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapGone == true ? "Да" : "Нет";
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapGoneTime == null ? "" : ((DateTime)sapMovementsOUTItemDTO.SapGoneTime).ToString("dd.MM.yyyy HH:mm:ss.fff");
+                excelColNum++;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapError == true ? "Да" : "Нет";
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapErrorMessage == null ? "" : sapMovementsOUTItemDTO.SapErrorMessage;
                 excelColNum++;
@@ -3982,7 +3982,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                             if (objectForCheckLogin != null)
                             {
-                                if (objectForCheckLogin.Id != objectForCheckLogin.Id)
+                                if (objectForCheckLogin.Id != foundUserDTO.Id)
                                 {
                                     haveErrors = true;
                                     resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Логин\"). Уже есть запись с таким логином. ИД записи: " + objectForCheckLogin.Id.ToString() + ". Изменения не применялись.";
@@ -4000,7 +4000,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             UserDTO? objectForCheckUserName = _userRepository.GetByUserName(changedUserDTO.UserName).Result;
                             if (objectForCheckUserName != null)
                             {
-                                if (objectForCheckUserName.Id != objectForCheckUserName.Id)
+                                if (objectForCheckUserName.Id != foundUserDTO.Id)
                                 {
                                     haveErrors = true;
                                     resultString = "! Строка " + rowNumber.ToString() + ", столбец 5 (\"ФИО\"). Уже есть запись с таким ФИО. ИД записи: " + objectForCheckUserName.Id.ToString() + ". Изменения не применялись.";
@@ -4085,7 +4085,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             worksheet.Cell(rowNumber, 2).Style.Font.SetBold(true);
                             worksheet.Cell(rowNumber, resultColumnNumber).Style.Font.FontColor = XLColor.Green;
                             loadFromExcelPage.console.Log(resultString);
-                            break;
+                            rowNumber++;
+                            continue;
                         }
                     case "ДОБАВИТЬ":
                         {
@@ -4124,11 +4125,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             }
                             changedUserDTO.Login = loginVarString;
 
-                            if (String.IsNullOrEmpty(loginVarString))
+                            if (String.IsNullOrEmpty(userNameVarString))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Логин\"). В режиме добавления Логин не может быть пустым. Изменения не применялись.";
-                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 4 (\"Логин\"). В режиме добавления ФИО не может быть пустым. Изменения не применялись.";
+                                await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 5 }, resultString);
                                 rowNumber++;
                                 continue;
                             }
@@ -4173,7 +4174,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                             if (changedUserDTO.SyncWithADGroupsLastTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue)
                                 changedUserDTO.SyncWithADGroupsLastTime = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
-                            if (changedUserDTO.SyncWithADGroupsLastTime < (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue)
+                            if (changedUserDTO.SyncWithADGroupsLastTime > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue)
                                 changedUserDTO.SyncWithADGroupsLastTime = (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue;
 
                             if (String.IsNullOrEmpty(isServiceUserVarString))
@@ -6272,7 +6273,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (!String.IsNullOrEmpty(sapUnitOfMeasureVarString))
                             {
                                 sapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.GetByName(sapUnitOfMeasureVarString);
-                                if (sapMaterialDTO == null)
+                                if (sapUnitOfMeasureDTO == null)
                                 {
                                     sapUnitOfMeasureDTO = await _sapUnitOfMeasureRepository.GetByShortName(sapUnitOfMeasureVarString);
                                     if (sapUnitOfMeasureDTO == null)

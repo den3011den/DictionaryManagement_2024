@@ -36,13 +36,14 @@
 <style>
          :root:after {
             content: "@BackgroundText";
-            font-size: 100px;
+            font-size: 130px;
             font-weight: 900;
             position: fixed;
             color: rgb(251,251,251);
             top: 0;
             text-align: center;
             z-index: -1;
+        white-space: break-spaces;
         } 
 
 </style>
@@ -51,7 +52,8 @@
     private bool _iconMenuActive { get; set; }
     private string? IconMenuCssClass => _iconMenuActive ? "width: 80px;" : null;
 
-    public string BackgroundText { get; set; } = (SD.ShowBackgroundText == null || SD.ShowBackgroundText != 1) ? "" : string.Concat(Enumerable.Repeat(SD.AppFactoryMode + " ", 100));
+    public string BackgroundText { get; set; } = (SD.ShowBackgroundText == null || SD.ShowBackgroundText != 1) ? "" 
+        : (SD.AppFactoryMode.ToUpper().Contains("КАЗАНЬ") ? string.Concat(Enumerable.Repeat("КОС   ", 50)) : string.Concat(Enumerable.Repeat("НКНХ   ", 50)));
 
     protected void ToggleIconMenu(bool iconMenuActive)
     {
