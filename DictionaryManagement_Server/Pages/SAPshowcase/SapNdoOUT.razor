@@ -149,16 +149,8 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
-
     </div>
 }
 
@@ -180,7 +172,7 @@
 
     DateTime? startDate = DateTime.Today.AddDays(-7);
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    
+
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
@@ -398,7 +390,7 @@
                     , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             await this.OnAfterRenderAsync(true);
         }
-        IsLoading = false;        
+        IsLoading = false;
     }
 
 }

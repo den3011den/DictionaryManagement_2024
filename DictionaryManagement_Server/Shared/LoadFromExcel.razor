@@ -31,9 +31,7 @@
 
     @if (IsLoading)
     {
-        <div class="text-center">
-            <img src="/images/loading.gif">
-        </div>
+        <Loading IsLoading="@IsLoading" />
     }
     else
     {
@@ -570,6 +568,15 @@
 
     async Task LoadExcelFile()
     {
+
+        bool askSelectionResult = await _dialogs.ShowYesOrNoDialogBox("Загрузка из Excel", "Загрузить данные из Excel (это " + SD.AppFactoryModeShort + ") ?", "Загрузить", "Отмена");
+        if (askSelectionResult == false)
+        {
+            await Task.Delay(1);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
         ResultFileId = Guid.Empty;
 
         isClickedLoadExcelFile = true;

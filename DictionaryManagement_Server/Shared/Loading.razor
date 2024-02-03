@@ -1,0 +1,18 @@
+﻿@if (IsLoading == true)
+{
+    <div class="row">
+        <div class="text-center">
+            <img src="/images/loading.gif">
+            <div style="position: relative; top: -35%;left: 50%; transform: translate(-50%, -50%); font-size: 12px; font-weight:700; color:grey; ">
+                @SD.AppFactoryModeShort
+            </div>
+        </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public bool? IsLoading { get; set; }
+
+}

@@ -52,8 +52,7 @@
     private bool _iconMenuActive { get; set; }
     private string? IconMenuCssClass => _iconMenuActive ? "width: 80px;" : null;
 
-    public string BackgroundText { get; set; } = (SD.ShowBackgroundText == null || SD.ShowBackgroundText != 1) ? "" 
-        : (SD.AppFactoryMode.ToUpper().Contains("КАЗАНЬ") ? string.Concat(Enumerable.Repeat("КОС   ", 50)) : string.Concat(Enumerable.Repeat("НКНХ   ", 50)));
+    public string BackgroundText { get; set; } = (SD.ShowBackgroundText == null || SD.ShowBackgroundText != 1) ? "" : string.Concat(Enumerable.Repeat(SD.AppFactoryModeShort + "   ", 50));
 
     protected void ToggleIconMenu(bool iconMenuActive)
     {

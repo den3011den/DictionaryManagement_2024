@@ -130,8 +130,8 @@
 
                     <RadzenDataGridColumnApp TItem="LogEventDTO" Property="OldValue" Title="Старое значение" Width="60px" TextAlign="TextAlign.Center" Filterable="true" Sortable="true">
                         <Template Context="data1">
-                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">                                
-                                    @data1.OldValue                                
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.OldValue
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
@@ -185,13 +185,7 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-            }
+            <Loading IsLoading="@IsLoading" />
         }
     </div>
 }
@@ -315,7 +309,7 @@
 
 
     private async Task ChangeStartDate()
-    {        
+    {
         if (startDate == null)
         {
             await _jsRuntime.ToastrWarning("Пустая дата начала интервала");

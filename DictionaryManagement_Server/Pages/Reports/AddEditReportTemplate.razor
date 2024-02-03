@@ -19,9 +19,7 @@
 {
     @if (IsLoading)
     {
-        <div class="text-center">
-            <img src="/images/loading.gif">
-        </div>
+        <Loading IsLoading="@IsLoading" />
     }
     else
     {
@@ -393,7 +391,7 @@
         }
 
         ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + repTemplateTypeName + "\" c вых данными: \"" +
-                dataTypeName + "\" для производства: \"" + depName + "\"";        
+                dataTypeName + "\" для производства: \"" + depName + "\"";
     }
 
     private async Task OnClickCancel() => _dialogService.Close(null);
@@ -411,7 +409,7 @@
                 ActiveReportTemplateDTO.AddUserDTOFK = currentUserDTO;
                 // ActiveReportTemplateDTO.AddUserId = SD.CurrentUserDTO.Id;
                 // ActiveReportTemplateDTO.AddUserDTOFK = SD.CurrentUserDTO;
-            }            
+            }
             ActiveReportTemplateDTO.TemplateFileName = "sddsds";
         }
         IsSubmited = false;
@@ -437,7 +435,7 @@
     }
 
     void OnChange(UploadChangeEventArgs args)
-    {        
+    {
         uploadFileWarning = "";
         if (args.Files.Count() > 0)
         {

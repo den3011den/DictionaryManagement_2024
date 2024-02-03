@@ -49,6 +49,7 @@ namespace DictionaryManagement_Common
         public static string DictionaryManagementUserName = "DictionaryManagement";
         public static string AppVersion = "";
         public static string? AppFactoryMode = "КOC";
+        public static string? AppFactoryModeShort = "КOC";
         public static int? ShowBackgroundText = 0;
         public static string AdminRoleName = "Администратор";
         public static string SyncUserADGroupsIntervalInMinutesSettingName = "SyncUserADGroupsIntervalInMinutes";
