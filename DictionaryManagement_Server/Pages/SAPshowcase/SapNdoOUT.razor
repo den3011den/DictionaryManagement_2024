@@ -277,7 +277,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.TotalDays > 31)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -307,7 +307,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.TotalDays > 31)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }

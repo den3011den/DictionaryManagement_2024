@@ -327,7 +327,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.TotalDays > 14)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -358,7 +358,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.Days > 14)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минут.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
