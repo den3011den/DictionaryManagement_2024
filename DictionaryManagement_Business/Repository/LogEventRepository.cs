@@ -119,12 +119,18 @@ namespace DictionaryManagement_Business.Repository
                     if (oldValue.GetType() == typeof(string))
                         oldValueString = (string)oldValue;
                     else
+                        if (oldValue.GetType() == typeof(DateTime))
+                        oldValueString = ((DateTime)oldValue).ToString("dd.MM.yyyy HH:mm:ss.fff");
+                    else
                         oldValueString = oldValue.ToString();
                 }
                 if (newValue != null)
                 {
                     if (newValue.GetType() == typeof(string))
                         newValueString = (string)newValue;
+                    else
+                        if (newValue.GetType() == typeof(DateTime))
+                        newValueString = ((DateTime)newValue).ToString("dd.MM.yyyy HH:mm:ss.fff");
                     else
                         newValueString = newValue.ToString();
                 }

@@ -116,7 +116,7 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="DownloadTime" Title="Скачан из СИР" Width="150px" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="DownloadTime" Title="Скачан из СИР" Width="130px" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals" />
 
 
@@ -151,7 +151,7 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="UploadTime" Title="Загружен в СИР" Width="150px" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="UploadTime" Title="Загружен в СИР" Width="130px" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals">
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="ReportEntityDTO" Title="Кто загрузил" Property="UploadUserDTOFK.UserName" Type="typeof(IEnumerable<string>)" Width="160px"
@@ -178,7 +178,7 @@
                             </RadzenButton>
                         </Template>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="ResendMode" Title="Переотправка в SAP" Filterable="true" Width="80px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="ResendMode" Title="Переотправка в SAP" Filterable="true" Width="110px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             @if (data.ResendMode == true && data.ReportEntityResendDatesListDTO != null)
                             {
@@ -189,7 +189,6 @@
                             {
                                 <RadzenCheckBox @bind-Value=data.ResendMode ReadOnly="true" TriState="false" TValue="bool" />
                             }
-
                         </Template>
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="ReportEntityDTO" Context="reportEntityDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="50px">
