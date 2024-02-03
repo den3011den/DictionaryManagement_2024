@@ -58,7 +58,7 @@
                         <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
                     </Template>
                 </RadzenDataGridColumnApp>
-                <RadzenDataGridColumnApp Title="Действия" TItem="MesUnitOfMeasureDTO" Context="mesUnitOfMeasureDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                <RadzenDataGridColumnApp Title="Действия" TItem="MesUnitOfMeasureDTO" Context="mesUnitOfMeasureDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                     <Template Context="mesUnitOfMeasureDTO">
                         <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                       Click="@(args => EditRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">

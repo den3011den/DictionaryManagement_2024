@@ -50,7 +50,7 @@
                               Disabled="@(ExpandLevel <= 2 || CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
 
                 <div class="mt-1 mb-1 col-4" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
-                    <RadzenLabel Text="@("* фильтр только по \"развёрнутым\" записям")" />
+                    <RadzenLabel Text="@("* фильтр действует только по \"развёрнутым\" записям")" />
                     @*                     <RadzenButton Size=ButtonSize.Small Style="text-transform:none" ButtonStyle=ButtonStyle.Primary Variant=Variant.Text
             Text="@(String.Concat("Отображается ", mesDepartmentDTOGrid.View == null ? "0" : mesDepartmentDTOGrid.View.Count().ToString(),
             " из ", mesDepartmentFullListDTOs == null ? "0" : mesDepartmentFullListDTOs.Count().ToString(), " записей"))" />
@@ -137,8 +137,6 @@
 
     RadzenDataGrid<MesDepartmentDTO> mesDepartmentDTOGrid;
 
-
-
     public int ExpandLevel { get; set; } = 1;
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
@@ -146,7 +144,7 @@
     public bool CollapseInProgressFlag { get; set; } = false;
     public bool excelExportFlag { get; set; } = false;
     public int? mesDepartmentCount = 0;
-    
+
     // считаем что больше уровней производств вряд ли будет
     public int MaxExpandLevel { get; set; } = 5;
 
@@ -241,12 +239,18 @@
                     , new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
                 if (dialogResult != null)
                 {
+                    int currentExpandLevel = ExpandLevel;
                     await LoadStateAsync();
                     await Task.Delay(10);
-                    await InvokeAsync(StateHasChanged);
+                    await InvokeAsync(StateHasChanged);                    
+                    ExpandLevel = 1;
                     mesDepartmentFullListDTOs = await GetRecords();
                     mesDepartmentDTOs = await GetAllTopLevel();
-                    IsLoading = false;
+                    for (int i = 1; i < (currentExpandLevel - 1); i++)
+                    {
+                        await ToggleRowsExpand(true);
+                    }
+                    IsLoading = false;                    
                     await Task.Delay(10);
                     await InvokeAsync(StateHasChanged);
                 }
@@ -259,11 +263,17 @@
                 {
                     if (mesDepartmentDTO.ParentDepartmentId != dialogResult.ParentDepartmentId)
                     {
+                        int currentExpandLevel = ExpandLevel;
                         await LoadStateAsync();
                         await Task.Delay(10);
-                        await InvokeAsync(StateHasChanged);
+                        await InvokeAsync(StateHasChanged);                        
+                        ExpandLevel = 1;
                         mesDepartmentFullListDTOs = await GetRecords();
                         mesDepartmentDTOs = await GetAllTopLevel();
+                        for (int i = 1; i < (currentExpandLevel - 1); i++)
+                        {
+                            await ToggleRowsExpand(true);
+                        }
                         IsLoading = false;
                         await Task.Delay(10);
                         await InvokeAsync(StateHasChanged);
