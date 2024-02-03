@@ -26,7 +26,7 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
+                <RadzenButton title="Добавить новое производство" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
                               Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || ExpandInProgressFlag == true || CollapseInProgressFlag == true)" />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
                               IsBusy=@excelExportFlag BusyText="Выполняется ..."
@@ -94,19 +94,19 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="MesDepartmentDTO" Context="mesDepartmentDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="50px">
                         <Template Context="mesDepartmentDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
+                            <RadzenButton title="Редактировать производство" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
                                           Size="ButtonSize.Medium" Click="@(args => EditRow(mesDepartmentDTO))"
                                           @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag|| ExpandInProgressFlag)" />
                             @if (!mesDepartmentDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Удалить в архив производство" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true"
                                               Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag || ExpandInProgressFlag)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter"
+                                <RadzenButton title="Восстановить из архива производство" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter"
                                               Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true"
                                               Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag || ExpandInProgressFlag)">
                                 </RadzenButton>

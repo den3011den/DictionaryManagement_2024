@@ -37,7 +37,7 @@
 @code {
 
     public bool IsLoading { get; set; } = true;
-    public bool IsAdmin { get; set; }
+    public SD.AdminMode IsAdmin { get; set; }
 
     public string DBVersionLinkText { get; set; }
 
@@ -49,7 +49,8 @@
 
     async Task EditVersion()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On) == AdminMode.IsAdmin)
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
 
