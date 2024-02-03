@@ -24,8 +24,7 @@
 
 
         @if (IsLoading != true)
-        {
-
+        {            
             <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
@@ -505,7 +504,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-        {
+        {          
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {

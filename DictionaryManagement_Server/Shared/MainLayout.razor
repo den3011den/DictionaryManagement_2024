@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @using DictionaryManagement_Common;
+@inject NavigationManager _navigationManager
 
 <PageTitle>1 - Dictionary Management - @SD.AppVersion</PageTitle>
 
@@ -39,7 +40,7 @@
             font-size: 130px;
             font-weight: 900;
             position: fixed;
-            color: rgb(251,251,251);
+            color: @(_navigationManager.Uri.Count("/") > 3 ? "rgb(240, 240, 240)" : "rgb(252, 252, 252)");
             top: 0;
             text-align: center;
             z-index: -1;
@@ -52,10 +53,10 @@
     private bool _iconMenuActive { get; set; }
     private string? IconMenuCssClass => _iconMenuActive ? "width: 80px;" : null;
 
-    public string BackgroundText { get; set; } = (SD.ShowBackgroundText == null || SD.ShowBackgroundText != 1) ? "" : string.Concat(Enumerable.Repeat(SD.AppFactoryModeShort + "   ", 50));
-
+    public string BackgroundText { get; set; } = (SD.ShowBackgroundText == null || SD.ShowBackgroundText != 1) ? "" : string.Concat(Enumerable.Repeat(SD.AppFactoryModeShort + "      ", 50));
+    
     protected void ToggleIconMenu(bool iconMenuActive)
-    {
-        _iconMenuActive = iconMenuActive;
-    }
+    {               
+        _iconMenuActive = iconMenuActive;        
+    }        
 }
