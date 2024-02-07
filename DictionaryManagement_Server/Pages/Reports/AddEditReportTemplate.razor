@@ -345,8 +345,15 @@
 
                 //upload.Url = @"UploadFileController/UploadReportTemplateFile/" + createdTemplateDTO.Id;
                 //await upload.Upload();
-                File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
 
+                try
+                {
+                    File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                }
+                catch (Exception copyEx)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
+                }
                 await _jsRuntime.ToastrSuccess("Шаблон \"" + ActiveReportTemplateDTO.Description + "\" создан");
                 if (isUploadFileError == false)
                     _dialogService.Close(ActiveReportTemplateDTO);
@@ -376,8 +383,14 @@
                 {
                     //upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
                     //await upload.Upload();
-                    File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
-
+                    try
+                    {
+                        File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                    }
+                    catch(Exception copyEx)
+                    {
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
+                    }
                     Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
                     await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUserId, ActiveReportTemplateDTO.ToString(), ActiveReportTemplateDTO.ToString(), false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
                 }
