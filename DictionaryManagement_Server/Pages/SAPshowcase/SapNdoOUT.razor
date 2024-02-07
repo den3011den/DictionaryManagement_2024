@@ -170,7 +170,7 @@
 
     RadzenDataGrid<SapNdoOUTDTO> sapNdoOUTDTOGrid;
 
-    DateTime? startDate = DateTime.Today.AddDays(-7);
+    DateTime? startDate = DateTime.Today;
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
@@ -199,7 +199,7 @@
 
                 if (startDate == null || endDate == null)
                 {
-                    startDate = DateTime.Today.AddDays(-7);
+                    startDate = DateTime.Today;
                     endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
                 }
 

@@ -210,7 +210,7 @@
     List<string> distinctLogEventTypesInList = new List<string>();
     List<string> distinctUsersInList = new List<string>();
 
-    DateTime? startDate = DateTime.Today.AddDays(-1);
+    DateTime? startDate = DateTime.Today;
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
@@ -239,7 +239,7 @@
 
                 if (startDate == null || endDate == null)
                 {
-                    startDate = DateTime.Today.AddDays(-1);
+                    startDate = DateTime.Today;
                     endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
                 }
                 IsLoading = true;

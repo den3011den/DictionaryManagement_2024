@@ -235,7 +235,7 @@
     List<string> distinctUploadUsersInList = new List<string>();
 
     RadzenDataGrid<ReportEntityDTO> reportEntityDTOGrid;
-    DateTime? startDate = DateTime.Today.AddMonths(-1);
+    DateTime? startDate = DateTime.Today.AddDays(-6);
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
@@ -263,7 +263,7 @@
                 ApplyButtonDisabled = false;
                 if (startDate == null || endDate == null)
                 {
-                    startDate = DateTime.Today.AddMonths(-1);
+                    startDate = DateTime.Today.AddDays(-6);
                     endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
                 }
                 IsLoading = true;
