@@ -354,15 +354,7 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;                
-                await LoadStateAsync();
-                await Task.Delay(100);
-                await InvokeAsync(StateHasChanged);
-                mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
-                await GetDistincts();
-                IsLoading = false;
-                await Task.Delay(100);
-                await InvokeAsync(StateHasChanged);
+                await UpdateAsync();
             }
             else
                 _navigationManager.NavigateTo("/tags");
@@ -458,16 +450,7 @@
             {
                 if ((modePar == SD.EditMode.Create || modePar == SD.EditMode.CreateBasedOnRow) && (modePar != SD.EditMode.Edit))
                 {
-                    IsLoading = true;
-                    await LoadStateAsync();
-                    await Task.Delay(100);
-                    await InvokeAsync(StateHasChanged);
-                    mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
-                    await GetDistincts();
-                    IsLoading = false;
-                    await Task.Delay(100);
-                    await InvokeAsync(StateHasChanged);
-                    IsLoading = false;
+                    await UpdateAsync();
                 }
                 else
                 {
@@ -700,6 +683,19 @@
             distinctSapUnitOfMeasureInList = (List<string>)mesParamDTOs.Where(u => u.SapUnitOfMeasureDTOFK != null).OrderBy(u => u.SapUnitOfMeasureDTOFK.ShortName)
                 .Select(u => u.SapUnitOfMeasureDTOFK.ShortName).Distinct().ToList();
         }
+    }
+
+    public async Task UpdateAsync()
+    {
+        IsLoading = true;
+        await LoadStateAsync();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
+        mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
+        await GetDistincts();
+        IsLoading = false;
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task ExcelImport()
