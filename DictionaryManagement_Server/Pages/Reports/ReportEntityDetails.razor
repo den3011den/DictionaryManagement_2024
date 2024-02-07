@@ -61,7 +61,7 @@
                                 <RadzenFieldset Text="Информация о скачивании отчёта" Style="font-weight: bold;">
                                     <RadzenStack Gap="1rem">
                                         <RadzenFormField Text="Время скачивания файла" Variant="@variant" Style="width: 100%; max-width: 940px;">
-                                            <RadzenDatePicker ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy hh:mm:ss" @bind-Value="@ActiveReportEntityDTO.DownloadTime" ReadOnly="true" />
+                                            <RadzenDatePicker ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" @bind-Value="@ActiveReportEntityDTO.DownloadTime" ReadOnly="true" />
                                         </RadzenFormField>
 
                                         <RadzenFormField Text="Кто скачивал файл" Variant="@variant" Style="width: 100%; max-width: 940px;">
@@ -118,7 +118,7 @@
                                  <RadzenFieldset Text="Информация о загрузке отчёта" Style="font-weight: bold;">
                                      <RadzenStack Gap="1rem">
                                          <RadzenFormField Text="Время загрузки файла" Variant="@variant" Style="width: 100%; max-width: 940px;">
-                                             <RadzenDatePicker ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy hh:mm:ss" @bind-Value="@ActiveReportEntityDTO.UploadTime" ReadOnly="true" />
+                                             <RadzenDatePicker ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" @bind-Value="@ActiveReportEntityDTO.UploadTime" ReadOnly="true" />
                                          </RadzenFormField>
 
                                          @if (ActiveReportEntityDTO.UploadUserDTOFK != null)

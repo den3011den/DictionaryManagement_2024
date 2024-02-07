@@ -18,8 +18,9 @@ namespace DictionaryManagement_Server.Controllers
             _authorizationControllersRepository = authorizationControllersRepository;
         }
 
+        [DisableRequestSizeLimit]
         [HttpPost("UploadFileController/UploadReportTemplateFile/{reportTemplateId}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> UploadReportTemplateFile(IFormFile file, Guid reportTemplateId)
         {
             try
@@ -34,12 +35,19 @@ namespace DictionaryManagement_Server.Controllers
                 return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
             }
 
-            string pathVar = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
+            string pathVar = (await _settingsRepository.GetByName("TempFilePath")).Value;
             try
             {
 
-                await UploadTemplateFile(file, reportTemplateId, pathVar);
-                return StatusCode(200);
+                Exception? exReturn = await UploadTemplateFile(file, reportTemplateId, pathVar);
+                if (exReturn == null)
+                {
+                    return StatusCode(200);
+                }
+                else
+                {
+                    return StatusCode(500, exReturn.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -47,22 +55,31 @@ namespace DictionaryManagement_Server.Controllers
             }
         }
 
-        public async Task UploadTemplateFile(IFormFile file, Guid reportTemplateGuid, string reportTemplatePath)
+        public async Task<Exception?> UploadTemplateFile(IFormFile file, Guid reportTemplateGuid, string reportTemplatePath)
         {
-            if (file != null && file.Length > 0)
+            try
             {
-                var extension = Path.GetExtension(file.FileName);
-                var fullPath = Path.Combine(reportTemplatePath, reportTemplateGuid.ToString() + extension);
-                using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
+                if (file != null && file.Length > 0)
                 {
-                    file.CopyTo(fileStream);
+                    var extension = Path.GetExtension(file.FileName);
+                    var fullPath = Path.Combine(reportTemplatePath, reportTemplateGuid.ToString() + extension);
+                    using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
+                    {
+                        file.CopyTo(fileStream);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
 
-
+        [DisableRequestSizeLimit]
         [HttpPost("UploadFileController/UploadReportEntityFile/{reportEntityId}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(2147483648)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> UploadReportEntityFile(IFormFile file, Guid reportEntityId)
         {
             try

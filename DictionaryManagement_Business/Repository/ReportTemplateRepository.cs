@@ -22,11 +22,9 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<ReportTemplateDTO> Create(ReportTemplateDTO objectToAddDTO)
         {
-
-
             ReportTemplate objectToAdd = new ReportTemplate();
 
-            if (objectToAddDTO.Id != null && objectToAddDTO.Id != Guid.Empty)
+            if (objectToAddDTO.Id == null || objectToAddDTO.Id == Guid.Empty)
                 objectToAdd.Id = Guid.NewGuid();
             else
                 objectToAdd.Id = objectToAddDTO.Id;

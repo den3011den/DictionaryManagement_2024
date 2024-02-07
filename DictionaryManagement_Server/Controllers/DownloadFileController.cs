@@ -26,8 +26,9 @@ namespace DictionaryManagement_Server.Controllers
             _authorizationControllersRepository = authorizationControllersRepository;
         }
 
+        [DisableRequestSizeLimit]
         [HttpGet("DownloadFileController/DownloadReportTemplateFile/{reportTemplateId}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> DownloadReportTemplateFile(Guid reportTemplateId)
         {
 
@@ -78,8 +79,9 @@ namespace DictionaryManagement_Server.Controllers
             return StatusCode(500, "Файл " + file + " не найден");
         }
 
+        [DisableRequestSizeLimit]
         [HttpGet("DownloadFileController/DownloadReportEntityDownloadFile/{reportEntityId}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> DownloadReportEntityDownloadFile(Guid reportEntityId)
         {
 
@@ -132,8 +134,9 @@ namespace DictionaryManagement_Server.Controllers
             return StatusCode(500, "Файл " + file + " не найден");
         }
 
+        [DisableRequestSizeLimit]
         [HttpGet("DownloadFileController/DownloadReportEntityUploadFile/{reportEntityId}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> DownloadReportEntityUploadFile(Guid reportEntityId)
         {
 
@@ -191,8 +194,9 @@ namespace DictionaryManagement_Server.Controllers
             return StatusCode(500, "Файл " + file + " не найден");
         }
 
+        [DisableRequestSizeLimit]
         [HttpGet("DownloadFileController/SimpleExcelExport/{filename}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> SimpleExcelExport(string filename)
         {
 

@@ -389,7 +389,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
         }
 
 
-
         public async Task<string> MesMovementsReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MesMovementsDTO>? mesMovementsListDTO)
         {
             loadFromExcelPage.reportTemplateDownloadFileWithDataBusyText = "Выполняется ... (получение списка записей Архива данных)";
@@ -747,6 +746,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString) && String.IsNullOrEmpty(nameVarString)
                         && String.IsNullOrEmpty(shortNameVarString) && String.IsNullOrEmpty(isArchiveVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -1189,6 +1190,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(nameVarString)
                         && String.IsNullOrEmpty(isWarehouseVarString) && String.IsNullOrEmpty(isArchiveVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -1614,6 +1617,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                    && String.IsNullOrEmpty(needWriteToMesVarString)
                                    && String.IsNullOrEmpty(isNdoVarString) && String.IsNullOrEmpty(isArchiveVarString))
                                 {
+                                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                                    await loadFromExcelPage.RefreshSate();
                                     isEmptyString = true;
                                     continue;
                                 }
@@ -2206,7 +2211,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             if (isBad == true)
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ". Уже есть не архивный Тэг СИР с таким же маппингом \"Ресурс-источник SAP + Ресурс-приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + "). Изменения не применялись.";
+                                resultString = "! Строка " + rowNumber.ToString() + ". Уже есть не архивный Тэг СИР с таким же маппингом \"Ресурс-источник SAP + Ресурс-приёмник SAP + Материал SAP\" (ИД: " + foundBySapMapping.Id.ToString() + " КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + "). Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber,
                                     new int[12] { 2, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }, resultString);
                                 rowNumber++;
@@ -2520,6 +2525,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(valueTimeVarString) && String.IsNullOrEmpty(valueVarString)
                         && String.IsNullOrEmpty(sapGoneVarString) && String.IsNullOrEmpty(sapGoneTimeVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -3103,6 +3110,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(valueVarString) && String.IsNullOrEmpty(valueDifferenceVarString) && String.IsNullOrEmpty(reportGuidVarString)
                         && String.IsNullOrEmpty(sapNdoOutIdVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -3913,6 +3922,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(syncWithADGroupsLastTimeVarString) && String.IsNullOrEmpty(isServiceUserVarString)
                         && String.IsNullOrEmpty(isArchiveVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -4262,6 +4273,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(nameVarString) && String.IsNullOrEmpty(descriptionVarString)
                         && String.IsNullOrEmpty(isArchiveVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -4580,6 +4593,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(mesGoneVarString) && String.IsNullOrEmpty(mesGoneTimeVarString) && String.IsNullOrEmpty(needWriteToSapVarString)
                         && String.IsNullOrEmpty(previousRecordIdVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -5669,6 +5684,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(sapGoneVarString) && String.IsNullOrEmpty(sapGoneTimeVarString) && String.IsNullOrEmpty(sapErrorVarString) && String.IsNullOrEmpty(sapErrorMessageVarString)
                         && String.IsNullOrEmpty(mesMovementsIdVarString) && String.IsNullOrEmpty(previousRecordIdVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }
@@ -6618,6 +6635,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         && String.IsNullOrEmpty(mesErrorVarString) && String.IsNullOrEmpty(mesErrorMessageVarString) && String.IsNullOrEmpty(mesMovementsIdVarString) && String.IsNullOrEmpty(previousRecordIdVarString)
                         && String.IsNullOrEmpty(moveTypeVarString))
                 {
+                    loadFromExcelPage.console.Log($"Пустая стока номер " + rowNumber.ToString());
+                    await loadFromExcelPage.RefreshSate();
                     isEmptyString = true;
                     continue;
                 }

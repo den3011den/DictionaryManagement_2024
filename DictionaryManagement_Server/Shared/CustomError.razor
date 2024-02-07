@@ -1,0 +1,24 @@
+﻿@page "/CustomErrorPage/{ErrorString}"
+
+@inject DialogService _dialogService
+
+<RadzenCard Style="width: 100%;">
+    <RadzenText Style="color:red">
+        Произошла ошибка при загрузке файла шаблона отчёта.
+        @("Пожалуйста скопируйте текст ошибки или сделайте скриншот и отправьте по адресу bogomolovds@tnhk.sibur.ru")
+    </RadzenText>
+</RadzenCard>
+
+<RadzenCard Style="width: 100%;">
+    <RadzenText>
+        @((MarkupString)ErrorString)
+    </RadzenText>
+</RadzenCard>
+
+
+@code {
+
+    [Parameter]
+    public string? ErrorString { get; set; }
+
+}
