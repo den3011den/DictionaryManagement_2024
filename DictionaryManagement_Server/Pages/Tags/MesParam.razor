@@ -675,7 +675,6 @@
     {
         if (mesParamDTOs != null)
         {
-
             distinctMesParamSourceTypeInList = (List<string>)mesParamDTOs.Where(u => u.MesParamSourceTypeDTOFK != null).OrderBy(u => u.MesParamSourceTypeDTOFK.ToStringValue)
             .Select(u => u.MesParamSourceTypeDTOFK.ToStringValue).Distinct().ToList();
             distinctMesDepartmentInList = (List<string>)mesParamDTOs.Where(u => u.MesDepartmentDTOFK != null).OrderBy(u => u.MesDepartmentDTOFK.ToStringHierarchyShortName)
