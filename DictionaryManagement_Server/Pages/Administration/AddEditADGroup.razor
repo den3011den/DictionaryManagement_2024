@@ -1,26 +1,22 @@
 ﻿@page "/administration/ADGroup/AddEditADGroup/{ADGroupId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IADGroupRepository _adGroupRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
-    <div class="row my-2">        
+    <div class="row my-2">
 
         <div class="col-md-10">
             @if (IsLoading)
             {
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
+                <Loading IsLoading="@IsLoading" />
             }
             else
             {
@@ -50,9 +46,8 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-                    
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -72,11 +67,11 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     public ADGroupDTO ActiveADGroupDTO { get; set; }
-    
+
     public IEnumerable<object> CheckedValues { get; set; } = new List<object>();
 
     private string Title { get; set; } = "Создать группу AD";
@@ -86,55 +81,54 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (ADGroupId == Guid.Empty)
         {
-            ActiveADGroupDTO = new ADGroupDTO();            
+            ActiveADGroupDTO = new ADGroupDTO();
         }
         else
         {
             ActiveADGroupDTO = await _adGroupRepository.Get(ADGroupId);
             Title = "Изменить группу AD";
         }
-
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (ADGroupId == Guid.Empty)
                 {
-                    ActiveADGroupDTO = new ADGroupDTO();                    
+                    ActiveADGroupDTO = new ADGroupDTO();
                 }
                 else
                 {
                     ActiveADGroupDTO = await _adGroupRepository.Get(ADGroupId);
                     Title = "Изменить группу AD";
                 }
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration/ADGroup");
         }
-        else
-            _navigationManager.NavigateTo("/administration/ADGroup");
     }
 
     private async Task AddEditADGroupProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (ADGroupId == Guid.Empty)
             { // создание
@@ -142,13 +136,13 @@
                 if (foundByName != null)
                 {
                     await _jsRuntime.ToastrError("Уже есть группа AD с наименованием " + foundByName.Name + " (ИД: " + foundByName.Id.ToString() + ")");
-                    return;                    
+                    return;
                 }
 
                 ADGroupDTO addedDTO = await _adGroupRepository.Create(ActiveADGroupDTO);
                 await _logEventRepository.ToLog<ADGroupDTO>(oldObject: null, newObject: addedDTO, "Добавление группы AD", "Группа AD: ", _authorizationRepository);
                 await _jsRuntime.ToastrSuccess("Группа AD \"" + ActiveADGroupDTO.Name + "\" создана");
-         
+
                 _dialogService.Close(ActiveADGroupDTO);
 
             }
@@ -164,8 +158,8 @@
                 ADGroupDTO oldADGroupDTO = await _adGroupRepository.Get(ActiveADGroupDTO.Id);
                 ADGroupDTO newADGroupDTO = await _adGroupRepository.Update(ActiveADGroupDTO);
                 await _logEventRepository.ToLog<ADGroupDTO>(oldObject: oldADGroupDTO, newObject: newADGroupDTO, "Изменение группы AD", "Группа AD: ", _authorizationRepository);
-                await _jsRuntime.ToastrSuccess("Группа AD \"" + ActiveADGroupDTO.Name +  " \" изменена");
-                
+                await _jsRuntime.ToastrSuccess("Группа AD \"" + ActiveADGroupDTO.Name + " \" изменена");
+
                 _dialogService.Close(ActiveADGroupDTO);
             }
         }

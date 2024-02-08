@@ -6,18 +6,16 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
 
-
 @inject IJSRuntime _jsRuntime
 @inject ISapEquipmentRepository _sapEquipmentRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
     <div class="row">
-
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> - <a href="/dictionary/SapEquipment">Ресурсы SAP</a></h6>
         </div>
@@ -25,18 +23,19 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый ресурс" Click="@InsertRow" Disabled=@(sapEquipmentDTOToInsert != null || sapEquipmentDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton class="mt-2 mb-4" title="Загрузка данных из Excel в справочник Ресурсов SAP" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый ресурс"
+                              Click="@InsertRow" Disabled=@(sapEquipmentDTOToInsert != null || sapEquipmentDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Ресурсов SAP" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
 
             <RadzenDataGridApp @bind-Settings="@SapEquipmentGridSettings" SettingsName="SapEquipmentGridSettings" @ref="sapEquipmentDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@sapEquipmentDTOs" TItem="SapEquipmentDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                AllowColumnResize="false"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="ErpPlantId" Title="Код завода SAP" Width="130px">
@@ -80,28 +79,32 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="SapEquipmentDTO" Context="sapEquipmentDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="86px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SapEquipmentDTO" Context="sapEquipmentDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="86px">
                         <Template Context="sapEquipmentDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapEquipmentDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@(args => EditRow(sapEquipmentDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!sapEquipmentDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapEquipmentDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(sapEquipmentDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapEquipmentDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(sapEquipmentDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
-
                         </Template>
                         <EditTemplate Context="sapEquipmentDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(sapEquipmentDTO))">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@((args) => SaveRow(sapEquipmentDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapEquipmentDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapEquipmentDTO))">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(sapEquipmentDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
@@ -110,14 +113,7 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
     </div>
 }
@@ -135,9 +131,8 @@
     SapEquipmentDTO sapEquipmentDTOToUpdate;
     //    SapEquipmentDTO OldSapEquipmentDTOToUpdate;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
-
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     public bool excelExportFlag { get; set; } = false;
 
@@ -190,27 +185,29 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
+
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 sapEquipmentDTOs = _sapEquipmentRepository.GetAll(SD.SelectDictionaryScope.All).Result;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/dictionary");
         }
-        else
-            _navigationManager.NavigateTo("/dictionary");
     }
 
     async Task EditRow(SapEquipmentDTO sapEquipmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapEquipmentDTOToUpdate = sapEquipmentDTO;
             await sapEquipmentDTOGrid.EditRow(sapEquipmentDTO);
@@ -219,7 +216,7 @@
 
     async Task OnUpdateRow(SapEquipmentDTO sapEquipmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (sapEquipmentDTO == sapEquipmentDTOToInsert)
             {
@@ -280,7 +277,7 @@
 
     async Task SaveRow(SapEquipmentDTO sapEquipmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await sapEquipmentDTOGrid.UpdateRow(sapEquipmentDTO);
         }
@@ -320,7 +317,7 @@
 
     async Task DeleteRow(SapEquipmentDTO sapEquipmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -389,8 +386,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapEquipmentDTOToInsert = new SapEquipmentDTO();
             await sapEquipmentDTOGrid.InsertRow(sapEquipmentDTOToInsert);
@@ -400,11 +396,9 @@
 
     async Task OnCreateRow(SapEquipmentDTO sapEquipmentDTO)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapEquipmentDTOToInsert = null;
-
             var objectForCheckResource = await _sapEquipmentRepository.GetByResource(sapEquipmentDTO.ErpPlantId, sapEquipmentDTO.ErpId);
             if (objectForCheckResource != null)
             {
@@ -446,7 +440,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "SapEquipment_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -461,16 +455,19 @@
     async Task ExcelImport()
     {
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Ресурсы SAP)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{ "DataList", (IEnumerable<SapEquipmentDTO>)sapEquipmentDTOGrid.View } }
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             IsLoading = false;
             await this.OnAfterRenderAsync(true);
         }
+        IsLoading = false;
     }
 
 }

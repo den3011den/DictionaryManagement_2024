@@ -4,6 +4,7 @@ using DictionaryManagement_DataAccess.Data.IntDB;
 using DictionaryManagement_Models.IntDBModels;
 using DND.EFCoreWithNoLock.Extensions;
 using Microsoft.EntityFrameworkCore;
+using static DictionaryManagement_Common.SD;
 
 
 namespace DictionaryManagement_Business.Repository
@@ -119,29 +120,36 @@ namespace DictionaryManagement_Business.Repository
                 }
             }
             return 0;
-
         }
 
-        public async Task<bool> IsUserInRoleByUserLoginAndRoleName(string userLogin, string roleName)
+        public async Task<AdminMode> IsUserInAdminRoleByUserLogin(string userLogin)
         {
-            //var objToGet = await _db.UserToRole.Include("UserFK").Include("RoleFK").
-            //    Where(u => u.UserFK != null && u.RoleFK != null
-            //        && u.UserFK.Login.Trim().ToUpper() == userLogin.Trim().ToUpper()
-            //        && u.UserFK.IsArchive != true
-            //        && u.RoleFK.Name.Trim().ToUpper() == roleName.Trim().ToUpper()
-            //        && u.RoleFK.IsArchive != true).AsNoTracking().FirstOrDefaultAsync();                    
-
+            AdminMode ret_var = AdminMode.None;
             var objToGet = _db.UserToRole.Include("UserFK").Include("RoleFK").
                 Where(u => u.UserFK != null && u.RoleFK != null
                     && u.UserFK.Login.Trim().ToUpper() == userLogin.Trim().ToUpper()
                     && u.UserFK.IsArchive != true
-                    && u.RoleFK.Name.Trim().ToUpper() == roleName.Trim().ToUpper()
-                    && u.RoleFK.IsArchive != true).AsNoTracking().FirstOrDefaultWithNoLock();
+                    && (u.RoleFK.IsAdmin == true || u.RoleFK.IsAdminReadOnly == true)
+                    && u.RoleFK.IsArchive != true).AsNoTracking().ToListWithNoLock();
 
             if (objToGet == null)
-                return false;
+                ret_var = AdminMode.None;
             else
-                return true;
+            {
+                foreach (var item in objToGet)
+                {
+                    if (item.RoleFK.IsAdmin == true)
+                    {
+                        ret_var = AdminMode.IsAdmin;
+                        break;
+                    }
+                    if (item.RoleFK.IsAdminReadOnly == true)
+                    {
+                        ret_var = AdminMode.IsAdminReadOnly;
+                    }
+                }
+            }
+            return ret_var;
         }
     }
 }

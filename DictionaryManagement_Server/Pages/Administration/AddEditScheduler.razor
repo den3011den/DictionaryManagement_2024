@@ -5,28 +5,22 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject ISchedulerRepository _schedulerRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
-
     @if (IsLoading)
     {
-        <div class="text-center">
-            <img src="/images/loading.gif">
-        </div>
+        <Loading IsLoading="@IsLoading" />
     }
     else
     {
         <EditForm Model="ActiveSchedulerDTO" OnValidSubmit="AddEditSchedulerProcedure">
             <DataAnnotationsValidator />
-
             <RadzenRow Gap="1rem">
                 <RadzenColumn Size="12">
                     <RadzenStack>
@@ -37,12 +31,11 @@
                                 <RadzenNumeric @bind-Value="@ActiveSchedulerDTO.Id" ReadOnly="true" />
                             </RadzenFormField>
                         }
-
                         <RadzenFormField Text="Наименование модуля" Variant="@variant" Style="width: 100%; max-width: 700px;">
                             <RadzenTextBox @bind-Value="@ActiveSchedulerDTO.ModuleName" />
                         </RadzenFormField>
                         <ValidationMessage For="()=>ActiveSchedulerDTO.ModuleName"></ValidationMessage>
-                        
+
                         <RadzenFormField Text="Время старта задания" Variant="@variant" Style="width: 100%; max-width: 700px;">
                             <RadzenDatePicker TValue="DateTime" @bind-Value="@ActiveSchedulerDTO.StartTimeDateTime"
                                               ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Change=@(args => OnChangeStartTime()) />
@@ -55,17 +48,13 @@
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
-
-
-
             <div class="form-group py-2">
-                <button class="btn btn-primary">@Title</button>
+                <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
 }
-
 
 
 @code {
@@ -77,9 +66,9 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
-    
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+
     public SchedulerDTO ActiveSchedulerDTO { get; set; }
 
     private string Title { get; set; } = "Добавить задание ";
@@ -89,8 +78,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (SchedulerId == null || SchedulerId == 0)
         {
@@ -105,20 +94,21 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;            
-            if (firstRender)
+
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (SchedulerId == null || SchedulerId == 0)
                 {
                     ActiveSchedulerDTO = new SchedulerDTO();
@@ -130,20 +120,19 @@
                     ActiveSchedulerDTO.StartTimeDateTime = DateTime.MinValue + ActiveSchedulerDTO.StartTime;
                     Title = "Изменить задание";
                 }
-                
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration/Scheduler");
         }
-        else
-            _navigationManager.NavigateTo("/administration/Scheduler");
     }
 
 
     private async Task AddEditSchedulerProcedure()
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (SchedulerId == null || SchedulerId == 0)
             { // создание

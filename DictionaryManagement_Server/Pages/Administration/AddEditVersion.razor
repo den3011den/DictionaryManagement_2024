@@ -6,20 +6,17 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IVersionRepository _versionRepository
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
-    <div class="row my-2">        
+    <div class="row my-2">
 
         <div class="col-md-10">
             @if (IsLoading)
             {
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
+                <Loading IsLoading="@IsLoading" />
             }
             else
             {
@@ -38,9 +35,8 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-                    
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button title="Изменить версию БД" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -49,19 +45,15 @@
     </div>
 }
 
-
-
-
 @code {
 
     [Parameter]
     public string version { get; set; }
 
-
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     public VersionDTO ActiveVersionDTO { get; set; }
 
@@ -72,47 +64,42 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
         ActiveVersionDTO = await _versionRepository.Get();
-
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 ActiveVersionDTO = await _versionRepository.Get();
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration");
         }
-        else
-            _navigationManager.NavigateTo("/administration");
     }
 
     private async Task AddEditVersionProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await _versionRepository.Set(ActiveVersionDTO);
-
             await _jsRuntime.ToastrSuccess("Версия БД СИР изменена");
-                
-            _dialogService.Close(ActiveVersionDTO);            
+            _dialogService.Close(ActiveVersionDTO);
         }
-
     }
 
     private async Task OnClickCancel() => _dialogService.Close(null);

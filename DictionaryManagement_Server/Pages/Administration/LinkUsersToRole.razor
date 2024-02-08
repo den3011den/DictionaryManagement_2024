@@ -4,14 +4,12 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
-
 @inject IJSRuntime _jsRuntime
-
 @inject IRoleVMRepository _roleVMRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository;
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -20,9 +18,7 @@
         <div class="col-md-12">
             @if (IsLoading)
             {
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
+                <Loading IsLoading="@IsLoading" />
             }
             else
             {
@@ -33,16 +29,16 @@
                             <RadzenStack>
                                 <RadzenStack Gap="1rem">
                                     <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="15" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                                                    Data="UserDTOList" TItem="UserDTO"
-                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                    FilterMode="FilterMode.Simple"
-                                                    Density=Density.Compact
-                                                    ShowPagingSummary="true"
-                                                    EmptyText="Нет записей для отображения"
-                                                    AllowVirtualization="true"
-                                                    ShowCleanGridSettingsHeaderButton="false"
-                                                    ShowCleanGridFiltersHeaderButton="false"
-                                                    ShowCleanGridSortsHeaderButton="false">
+                                                       Data="UserDTOList" TItem="UserDTO"
+                                                       FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                       FilterMode="FilterMode.Simple"
+                                                       Density=Density.Compact
+                                                       ShowPagingSummary="true"
+                                                       EmptyText="Нет записей для отображения"
+                                                       AllowVirtualization="true"
+                                                       ShowCleanGridSettingsHeaderButton="false"
+                                                       ShowCleanGridFiltersHeaderButton="false"
+                                                       ShowCleanGridSortsHeaderButton="false">
                                         <Columns>
 
                                             <RadzenDataGridColumnApp TItem="UserDTO" Property="Checked" Title=" " Filterable="true" Width="15px">
@@ -70,7 +66,7 @@
                     </RadzenText>
 
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button title="Привязать отмеченных пользователей к роли" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -92,8 +88,8 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     RoleVMDTO ActiveRoleVMDTO { get; set; }
     IEnumerable<UserDTO> UserDTOList { get; set; } = new List<UserDTO>();
@@ -105,44 +101,41 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
-
-        // ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
-        // Title = "Добавить пользователй к роли " + ActiveRoleVMDTO.Name;
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+        ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+        Title = "Добавить пользователей к роли " + ActiveRoleVMDTO.Name;
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
-                ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
-                Title = "Добавить пользователей к роли";
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
+                // ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+                // Title = "Добавить пользователей к роли";
                 UserDTOList = await _roleVMRepository.GetAllNotArchiveAndNotAutomaticUsersExceptAlreadyInRole(ActiveRoleVMDTO.Id);
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration/Role");
         }
-        else
-            _navigationManager.NavigateTo("/administration/Role");
     }
 
     private async Task AddUsersToRoleProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             var checkedUserDTOList = UserDTOList.Where(u => u.Checked);
             if (checkedUserDTOList.Count() <= 0)
             {

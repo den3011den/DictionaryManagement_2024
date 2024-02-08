@@ -1,44 +1,38 @@
 ﻿@page "/administration/Role/AddEditRole/{RoleId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IRoleRepository _roleRepository
 @inject IRoleVMRepository _roleVMRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
-    <div class="row my-2">        
+    <div class="row my-2">
 
         <div class="col-md-10">
             @if (IsLoading)
             {
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
+                <Loading IsLoading="@IsLoading" />
             }
             else
             {
                 <EditForm Model="ActiveRoleDTO" OnValidSubmit="AddEditRoleProcedure">
                     <DataAnnotationsValidator />
-
                     <RadzenRow Gap="1rem">
                         <RadzenColumn Size="12">
                             <RadzenStack>
-
                                 @if (RoleId != Guid.Empty)
                                 {
                                     <RadzenFormField Text="ИД записи" Variant="@variant" Style="width: 100%; max-width: 600px;">
                                         <RadzenNumeric @bind-Value="@ActiveRoleDTO.Id" ReadOnly="true" />
                                     </RadzenFormField>
                                 }
-                                
+
                                 <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 600px;">
                                     <RadzenTextBox @bind-Value="@ActiveRoleDTO.Name" />
                                 </RadzenFormField>
@@ -49,12 +43,26 @@
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveRoleDTO.Description"></ValidationMessage>
 
+                                <RadzenLabel Text="Использование Админки чтение/запись:" Component="CheckBox1" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdmin" TValue="bool" class="mb-4" Name="CheckBox1">
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
+
+                                <RadzenLabel Text="Использование Админки только чтение:" Component="CheckBox2" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdminReadOnly" TValue="bool" class="mb-4" Name="CheckBox2">
+                                    <Items>
+                                        <RadzenSelectBarItem Text="Да" Value="true" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                    </Items>
+                                </RadzenSelectBar>
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-                    
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -74,8 +82,8 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     public RoleDTO ActiveRoleDTO { get; set; }
 
@@ -88,10 +96,9 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
         if (RoleId == Guid.Empty)
         {
             ActiveRoleDTO = new RoleDTO();
@@ -101,23 +108,22 @@
             ActiveRoleDTO = await _roleRepository.GetById(RoleId);
             Title = "Изменить роль СИР";
         }
-
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (RoleId == Guid.Empty)
                 {
                     ActiveRoleDTO = new RoleDTO();
@@ -130,16 +136,17 @@
                 RoleDTOList = await _roleRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration/Role");
         }
-        else
-            _navigationManager.NavigateTo("/administration/Role");        
     }
 
     private async Task AddEditRoleProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (RoleId == Guid.Empty)
             { // создание
@@ -147,13 +154,13 @@
                 if (foundByName != null)
                 {
                     await _jsRuntime.ToastrError("Уже есть роль с наименованием " + foundByName.Name + " (ИД: " + foundByName.Id.ToString() + ")");
-                    return;                    
+                    return;
                 }
 
-                RoleDTO addedDTO = await _roleRepository.Create(ActiveRoleDTO);                
+                RoleDTO addedDTO = await _roleRepository.Create(ActiveRoleDTO);
                 await _logEventRepository.ToLog<RoleDTO>(oldObject: null, newObject: addedDTO, "Добавление роли", "Роль: ", _authorizationRepository);
                 await _jsRuntime.ToastrSuccess("Роль \"" + ActiveRoleDTO.Name + "\" создана");
-         
+
                 _dialogService.Close(ActiveRoleDTO);
 
             }
@@ -174,7 +181,7 @@
                 await _logEventRepository.ToLog<RoleDTO>(oldObject: oldRoleDTO, newObject: newRoleDTO, "Изменение роли", "Роль: ", _authorizationRepository);
 
                 await _jsRuntime.ToastrSuccess("Роль \"" + ActiveRoleDTO.Name + "\" изменена");
-                
+
                 _dialogService.Close(ActiveRoleDTO);
             }
         }
@@ -182,6 +189,4 @@
     }
 
     private async Task OnClickCancel() => _dialogService.Close(null);
-
-
 }

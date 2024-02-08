@@ -300,7 +300,7 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<int> Delete(string id)
         {
-            if (id.Trim().IsNullOrEmpty())
+            if (!(id.Trim().IsNullOrEmpty()))
             {
                 var objectToDelete = _db.SapMovementsIN.FirstOrDefaultWithNoLock(u => u.ErpId.Trim().ToUpper() == id.Trim().ToUpper());
                 if (objectToDelete != null)
@@ -310,6 +310,64 @@ namespace DictionaryManagement_Business.Repository
                 }
             }
             return 0;
+        }
+
+        public async Task<IEnumerable<SapMovementsINDTO>?> GetListByMesMovementId(Guid? idPar)
+        {
+            if ((idPar != null) && (idPar != Guid.Empty))
+            {
+                var objectListToGet = _db.SapMovementsIN.Where(u => u.MesMovementId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<SapMovementsIN>, IEnumerable<SapMovementsINDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<SapMovementsINDTO?> CleanMesMovementId(SapMovementsINDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.SapMovementsIN
+               .FirstOrDefaultWithNoLock(u => u.ErpId == objectToUpdateDTO.ErpId);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.MesMovementId = null;
+                objectToUpdate.MesMovementFK = null;
+                _db.SapMovementsIN.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<SapMovementsIN, SapMovementsINDTO>(objectToUpdate);
+            }
+            return null;
+        }
+
+        public async Task<IEnumerable<SapMovementsINDTO>?> GetListByPreviousRecordId(string? idPar)
+        {
+            if (!String.IsNullOrEmpty(idPar))
+            {
+                var objectListToGet = _db.SapMovementsIN.Where(u => u.PreviousErpId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<SapMovementsIN>, IEnumerable<SapMovementsINDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<SapMovementsINDTO?> CleanPreviousRecordId(SapMovementsINDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.SapMovementsIN
+               .FirstOrDefaultWithNoLock(u => u.ErpId == objectToUpdateDTO.ErpId);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.PreviousErpId = null;
+                objectToUpdate.PreviousRecordFK = null;
+                _db.SapMovementsIN.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<SapMovementsIN, SapMovementsINDTO>(objectToUpdate);
+            }
+            return null;
         }
     }
 }

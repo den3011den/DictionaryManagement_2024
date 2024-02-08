@@ -46,12 +46,12 @@ namespace DictionaryManagement_Business.Repository
             {
                 LogEventTypeId = logEventTypeId,
                 UserId = userId,
-                Description = description,
+                Description = description.Length > (4000 - 1) ? description.Substring(0, 4000 - 1) : description,
                 IsError = isError,
                 IsCritical = false,
                 IsWarning = false,
-                OldValue = oldValue,
-                NewValue = newValue,
+                OldValue = oldValue.Length > (200 - 1) ? oldValue.Substring(0, 200 - 1) : oldValue,
+                NewValue = newValue.Length > (200 - 1) ? newValue.Substring(0, 200 - 1) : newValue,
                 EventTime = DateTime.Now
             };
 
@@ -119,12 +119,18 @@ namespace DictionaryManagement_Business.Repository
                     if (oldValue.GetType() == typeof(string))
                         oldValueString = (string)oldValue;
                     else
+                        if (oldValue.GetType() == typeof(DateTime))
+                        oldValueString = ((DateTime)oldValue).ToString("dd.MM.yyyy HH:mm:ss.fff");
+                    else
                         oldValueString = oldValue.ToString();
                 }
                 if (newValue != null)
                 {
                     if (newValue.GetType() == typeof(string))
                         newValueString = (string)newValue;
+                    else
+                        if (newValue.GetType() == typeof(DateTime))
+                        newValueString = ((DateTime)newValue).ToString("dd.MM.yyyy HH:mm:ss.fff");
                     else
                         newValueString = newValue.ToString();
                 }

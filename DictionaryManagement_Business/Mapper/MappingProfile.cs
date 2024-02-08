@@ -34,7 +34,15 @@ namespace DictionaryManagement_Business.Mapper
             CreateMap<Settings, SettingsDTO>().ReverseMap();
             CreateMap<User, UserDTO>().ReverseMap();
 
-            CreateMap<Role, RoleDTO>().ReverseMap();
+
+            //CreateMap<Role, RoleDTO>().ReverseMap();
+            CreateMap<Role, RoleDTO>()
+                .ForMember(dest => dest.IsAdmin, opt => opt.MapFrom(src => src.IsAdmin == null ? false : src.IsAdmin))
+                .ForMember(dest => dest.IsAdminReadOnly, opt => opt.MapFrom(src => src.IsAdminReadOnly == null ? false : src.IsAdminReadOnly));
+            CreateMap<RoleDTO, Role>()
+                .ForMember(dest => dest.IsAdmin, opt => opt.MapFrom(src => src.IsAdmin == null ? false : src.IsAdmin))
+                .ForMember(dest => dest.IsAdminReadOnly, opt => opt.MapFrom(src => src.IsAdminReadOnly == null ? false : src.IsAdminReadOnly));
+
 
             CreateMap<UnitOfMeasureSapToMesMapping, UnitOfMeasureSapToMesMappingDTO>().ReverseMap();
 
@@ -125,13 +133,15 @@ namespace DictionaryManagement_Business.Mapper
                     .ForMember(dest => dest.ReportTemplateDTOFK, opt => opt.MapFrom(src => src.ReportTemplateFK))
                     .ForMember(dest => dest.ReportDepartmentDTOFK, opt => opt.MapFrom(src => src.ReportDepartmentFK))
                     .ForMember(dest => dest.UploadUserDTOFK, opt => opt.MapFrom(src => src.UploadUserFK))
-                    .ForMember(dest => dest.DownloadUserDTOFK, opt => opt.MapFrom(src => src.DownloadUserFK));
+                    .ForMember(dest => dest.DownloadUserDTOFK, opt => opt.MapFrom(src => src.DownloadUserFK))
+                    .ForMember(dest => dest.ReportEntityResendDatesListDTO, opt => opt.MapFrom(src => src.ReportEntityResendDatesList));
 
             CreateMap<ReportEntityDTO, ReportEntity>()
                     .ForMember(dest => dest.ReportTemplateFK, opt => opt.MapFrom(src => src.ReportTemplateDTOFK))
                     .ForMember(dest => dest.ReportDepartmentFK, opt => opt.MapFrom(src => src.ReportDepartmentDTOFK))
                     .ForMember(dest => dest.UploadUserFK, opt => opt.MapFrom(src => src.UploadUserDTOFK))
-                    .ForMember(dest => dest.DownloadUserFK, opt => opt.MapFrom(src => src.DownloadUserDTOFK));
+                    .ForMember(dest => dest.DownloadUserFK, opt => opt.MapFrom(src => src.DownloadUserDTOFK))
+                    .ForMember(dest => dest.ReportEntityResendDatesList, opt => opt.MapFrom(src => src.ReportEntityResendDatesListDTO));
 
             CreateMap<ReportEntityLog, ReportEntityLogDTO>()
                     .ForMember(dest => dest.ReportEntityDTOFK, opt => opt.MapFrom(src => src.ReportEntityFK));
@@ -147,6 +157,7 @@ namespace DictionaryManagement_Business.Mapper
 
             CreateMap<RoleVMDTO, Role>().ReverseMap();
             CreateMap<ADGroupDTO, ADGroup>().ReverseMap();
+
             CreateMap<RoleVMDTO, RoleDTO>().ReverseMap();
 
             CreateMap<RoleToADGroup, RoleToADGroupDTO>()
@@ -258,6 +269,12 @@ namespace DictionaryManagement_Business.Mapper
             CreateMap<MesMovementsCommentDTO, MesMovementsComment>()
                 .ForMember(dest => dest.MesMovementsFK, opt => opt.MapFrom(src => src.MesMovementsDTOFK))
                 .ForMember(dest => dest.CorrectionReasonFK, opt => opt.MapFrom(src => src.CorrectionReasonDTOFK));
+
+            CreateMap<ReportEntityResendDates, ReportEntityResendDatesDTO>()
+                .ForMember(dest => dest.ReportEntityDTOFK, opt => opt.MapFrom(src => src.ReportEntityFK));
+
+            CreateMap<ReportEntityResendDatesDTO, ReportEntityResendDates>()
+                .ForMember(dest => dest.ReportEntityFK, opt => opt.MapFrom(src => src.ReportEntityDTOFK));
         }
     }
 }

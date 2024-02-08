@@ -14,6 +14,6 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<MesParamDTO> GetByName(string name = "");
         public Task<MesParamDTO> GetByMesParamSourceLink(string mesParamSourceLink = "");
         public Task<MesParamDTO> GetBySapMappingNotInArchive(int? sapEquipmentIdSource, int? sapEquipmentIdDest, int? sapMaterialId, int idForExclude);
-
+        public Task<IEnumerable<MesParamDTO>?> GetListByName(string name);
     }
 }

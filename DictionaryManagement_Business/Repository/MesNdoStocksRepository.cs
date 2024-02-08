@@ -59,7 +59,6 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-
         public async Task<IEnumerable<MesNdoStocksDTO>> GetAllByTimeInterval(DateTime? startTime, DateTime? endTime, string intervalMode)
         {
 
@@ -95,7 +94,6 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<IEnumerable<MesNdoStocksDTO>> GetAllByReportEntityId(Guid? reportEntityId)
         {
-
             if (reportEntityId != null && reportEntityId != Guid.Empty)
             {
                 var hhh1 = _db.MesNdoStocks
@@ -110,7 +108,6 @@ namespace DictionaryManagement_Business.Repository
             {
                 return new List<MesNdoStocksDTO>();
             }
-
         }
 
 
@@ -157,9 +154,9 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.ReportGuid == null)
+                if (objectToUpdateDTO.ReportGuid == null || objectToUpdateDTO.ReportGuid == Guid.Empty)
                 {
-                    objectToUpdate.ReportGuid = Guid.Empty;
+                    objectToUpdate.ReportGuid = null;
                     objectToUpdate.ReportEntityFK = null;
                 }
                 else
@@ -221,6 +218,40 @@ namespace DictionaryManagement_Business.Repository
                 }
             }
             return 0;
+        }
+
+        public async Task<IEnumerable<MesNdoStocksDTO>?> GetBySapNdoOutIdList(Int64 id)
+        {
+            if (id > 0)
+            {
+                var hhh1 = _db.MesNdoStocks
+                    .Include("MesParamFK")
+                    .Include("AddUserFK")
+                    .Include("ReportEntityFK")
+                    .Include("SapNdoOUTFK")
+                    .Where(u => u.SapNdoOutId == id).ToListWithNoLock();
+                return _mapper.Map<IEnumerable<MesNdoStocks>, IEnumerable<MesNdoStocksDTO>>(hhh1);
+            }
+            else
+            {
+                return new List<MesNdoStocksDTO>();
+            }
+        }
+
+        public async Task<MesNdoStocksDTO?> CleanSapNdoOutId(MesNdoStocksDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesNdoStocks
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.SapNdoOutId = null;
+                objectToUpdate.SapNdoOUTFK = null;
+                _db.MesNdoStocks.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesNdoStocks, MesNdoStocksDTO>(objectToUpdate);
+            }
+            return null;
         }
     }
 }

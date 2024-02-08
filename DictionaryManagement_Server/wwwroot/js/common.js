@@ -8,6 +8,9 @@
     if (type === "warning") {
         toastr.warning(message, "Выполнено с ошибками", { timeOut: 10000 });
     }
+    if (type === "warning_light") {
+        toastr.warning(message, "Предупреждение", { timeOut: 10000 });
+    }
 }
 
 window.ShowSwal = (type, message) => {

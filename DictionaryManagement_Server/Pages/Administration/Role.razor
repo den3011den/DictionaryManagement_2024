@@ -8,9 +8,6 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json;
 
-
-
-
 @inject IJSRuntime _jsRuntime
 @inject IRoleVMRepository _roleVMRepository
 @inject IUserToRoleRepository _userToRoleRepository
@@ -24,7 +21,7 @@
 @inject DialogService _dialogService
 
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -38,8 +35,9 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую роль" Click="@(args => EditRow(null))" />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton title="Добавить новую роль" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую роль"
+                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             </RadzenRow>
 
             <RadzenDataGridApp @bind-Settings="@RoleGridSettings" SettingsName="RoleGridSettings" @ref="roleVMDTOGrid" AllowAlternatingRows="true"
@@ -52,7 +50,7 @@
                                ShowPagingSummary="true"
                                EmptyText="Нет записей для отображения"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 170px)">
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="ToStringId" Title="Ид роли" Width="10px"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
@@ -63,11 +61,12 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="Name" Title="Наименование" Width="33px" FilterProperty="Name" SortProperty="Name" FilterOperator="FilterOperator.Contains">
+                    <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="NameWithAdminString" Title="Наименование" Width="33px" FilterProperty="NameWithAdminString" SortProperty="NameWithAdminString" FilterOperator="FilterOperator.Contains">
                         <Template Context="data2">
                             <div style="white-space:pre-wrap; font-size: 12px">
                                 <strong>
                                     @data2.Name
+                                    <div style="color:red">@data2.AdminString</div>
                                 </strong>
                             </div>
                         </Template>
@@ -82,7 +81,6 @@
                     </RadzenDataGridColumnApp>
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="UserToRoleDTOs" FilterProperty="UsersLoginAndNameString" Title="Пользователи роли" Sortable="false" Filterable="true" Width="42px" FilterOperator="FilterOperator.Contains">
-
                         <Template Context="data">
                             <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
                                 <div class="text-center" style="width: 100%;font-size: 10px">
@@ -100,7 +98,22 @@
                                             @if (@user.UserDTOFK?.IsSyncWithAD != true)
                                             {
                                                 <div class="col-md-1 col-lg-0" style="width: 10%; font-size: 10px;">
-                                                    <b><a href="" title=@($"Отвязать пользователя {user.UserDTOFK?.UserName} от роли {data.Name}") @onclick="@(()=>DeleteUser(data, user.UserDTOFK))" style="text-decoration: none !important; color:#DC143C;  text-align: right !important" @onclick:preventDefault>X</a></b>
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
+                                                        <b>
+                                                            <a href="" title=@($"Отвязать пользователя {user.UserDTOFK?.UserName} от роли {data.Name}")
+                                                               @onclick="@(()=>DeleteUser(data, user.UserDTOFK))" style="text-decoration: none !important; color:#DC143C;  text-align: right !important"
+                                                            @onclick:preventDefault>X</a>
+                                                        </b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b>
+                                                            <a href="" title=@($"Отвязать пользователя {user.UserDTOFK?.UserName} от роли {data.Name}")
+                                                               style="text-decoration: none !important; color:#DC143C;  text-align: right !important;"
+                                                            @onclick:preventDefault>X</a>
+                                                        </b>
+                                                    }
                                                 </div>
                                             }
                                             else
@@ -108,7 +121,6 @@
                                                 <div class="col-md-1 col-lg-0" style="width: 10%; font-size: 10px;">
                                                     <b><a href="" title=@($"Принадлежность пользователя {user.UserDTOFK?.UserName} к роли синхронизируется с AD (пользователь \"автоматический\")") style="text-decoration: none !important; color:#ebc0a7;  text-align: right !important" @onclick:preventDefault>Авто</a></b>
                                                 </div>
-
                                             }
                                         </div>
                                     </RadzenCard>
@@ -118,14 +130,12 @@
                     </RadzenDataGridColumnApp>
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="ReportTemplateTypeTоRoleDTOs" FilterProperty="ReportTemplateTypeString" Title="Шаблоны отчётов" Sortable="false" Filterable="true" Width="44px" FilterOperator="FilterOperator.Contains">
-
                         <Template Context="data">
                             <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
                                 <div class="text-center" style="width: 100%; font-size: 10px">
                                     <button title=@($"Добавить шаблон отчёта к роли {data.Name}") class="btn btn-link" style="width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkReportTemplateTypeToRole(data)"> + Добавить шаблон отчёта + </button>
                                 </div>
                             </div>
-
                             <RadzenDataList WrapItems="true" Density=Density.Compact AllowPaging="true" Data="data.ReportTemplateTypeTоRoleDTOs" PagerHorizontalAlign="HorizontalAlign.Left" TItem="ReportTemplateTypeTоRoleDTO" PageSize="4" ShowPagingSummary="false">
                                 <Template Context="reportTemplate">
                                     <RadzenCard Style="white-space:pre-wrap; width: 100%; padding: 1px 1px 1px 1px; overflow: hidden; font-size: 10px">
@@ -136,22 +146,57 @@
                                             <div class="col-md-1 col-lg-0" style="width: 48%; font-size: 10px;">
                                                 @if (@reportTemplate.CanDownload == true)
                                                 {
-                                                    <b><a href="" title=@($"Есть право на чтение") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "READ"))" @onclick:preventDefault>Чтение </a></b>
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
+                                                        <b><a href="" title=@($"Есть право на чтение") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "READ"))" @onclick:preventDefault>Чтение </a></b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b><a href="" title=@($"Есть право на чтение") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick:preventDefault>Чтение </a></b>
+                                                    }
                                                 }
                                                 else
                                                 {
-                                                    <b><a href="" title=@($"Нет права на чтение") style="text-decoration: none !important; color:#CACFD2 ; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "READ"))" @onclick:preventDefault>Чтение </a></b>
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
+                                                        <b><a href="" title=@($"Нет права на чтение") style="text-decoration: none !important; color:#CACFD2 ; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "READ"))" @onclick:preventDefault>Чтение </a></b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b><a href="" title=@($"Нет права на чтение") style="text-decoration: none !important; color:#CACFD2 ; font-size: 9px !important;" @onclick:preventDefault>Чтение </a></b>
+                                                    }
                                                 }
                                                 @if (@reportTemplate.CanUpload == true)
                                                 {
-                                                    <b><a href="" title=@($"Есть право на запись") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "WRITE"))" @onclick:preventDefault>Запись  </a></b>
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
+                                                        <b><a href="" title=@($"Есть право на запись") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "WRITE"))" @onclick:preventDefault>Запись  </a></b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b><a href="" title=@($"Есть право на запись") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick:preventDefault>Запись  </a></b>
+                                                    }
                                                 }
                                                 else
                                                 {
-                                                    <b><a href="" title=@($"Нет права на запись") style="text-decoration: none !important; color:#CACFD2; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "WRITE"))" @onclick:preventDefault>Запись  </a></b>
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
+                                                        <b><a href="" title=@($"Нет права на запись") style="text-decoration: none !important; color:#CACFD2; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "WRITE"))" @onclick:preventDefault>Запись  </a></b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b><a href="" title=@($"Нет права на запись") style="text-decoration: none !important; color:#CACFD2; font-size: 9px !important;" @onclick:preventDefault>Запись  </a></b>
+                                                    }
                                                 }
+                                                @if (IsAdmin == AdminMode.IsAdmin)
+                                                {
 
-                                                <b><a href="" title=@($"Отвязать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteReportTemplateType(data, reportTemplate.ReportTemplateTypeDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    <b><a href="" title=@($"Отвязать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteReportTemplateType(data, reportTemplate.ReportTemplateTypeDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                }
+                                                else
+                                                {
+                                                    <b><a href="" title=@($"Отвязать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                }
                                             </div>
                                         </div>
                                     </RadzenCard>
@@ -159,8 +204,6 @@
                             </RadzenDataList>
                         </Template>
                     </RadzenDataGridColumnApp>
-
-
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="RoleToADGroupDTOs" FilterProperty="RoleToADGroupString" Title="Группы AD" Sortable="false" Filterable="true" Width="42px" FilterOperator="FilterOperator.Contains">
 
@@ -179,7 +222,14 @@
                                                 <b><a href="" title=@($"Редактировать группу AD {@adGroup.ADGroupDTOFK?.Name}") @onclick="@(()=>EditADGroup(data, adGroup.ADGroupDTOFK.Id))" @onclick:preventDefault>@adGroup.ADGroupDTOFK?.Name</a></b>
                                             </div>
                                             <div class="col-md-1 col-lg-0" style="width: 10%; font-size: 10px;">
-                                                <b><a href="" title=@($"Отвязать группу AD {adGroup.ADGroupDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteADGroup(data, adGroup.ADGroupDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                @if (IsAdmin == AdminMode.IsAdmin)
+                                                {
+                                                    <b><a href="" title=@($"Отвязать группу AD {adGroup.ADGroupDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteADGroup(data, adGroup.ADGroupDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                }
+                                                else
+                                                {
+                                                    <b><a href="" title=@($"Отвязать группу AD {adGroup.ADGroupDTOFK?.Name} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                }
                                             </div>
                                         </div>
                                     </RadzenCard>
@@ -204,7 +254,14 @@
                                                 <b><a href="" title=@($"Редактировать производство {@department.DepartmentDTOFK?.ShortName}") @onclick="@(()=>EditDepartment(data, department.DepartmentDTOFK.Id))" @onclick:preventDefault>@department.DepartmentDTOFK?.ShortName</a></b>
                                             </div>
                                             <div class="col-md-1 col-lg-0" style="width: 10%; font-size: 10px;">
-                                                <b><a href="" title=@($"Отвязать производство {department.DepartmentDTOFK?.ShortName} от роли {data.Name}") @onclick="@(()=>DeleteDepartment(data, department.DepartmentDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                @if (IsAdmin == AdminMode.IsAdmin)
+                                                {
+                                                    <b><a href="" title=@($"Отвязать производство {department.DepartmentDTOFK?.ShortName} от роли {data.Name}") @onclick="@(()=>DeleteDepartment(data, department.DepartmentDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                }
+                                                else
+                                                {
+                                                    <b><a href="" title=@($"Отвязать производство {department.DepartmentDTOFK?.ShortName} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                }
                                             </div>
                                         </div>
                                     </RadzenCard>
@@ -225,12 +282,15 @@
                             </RadzenButton>
                             @if (!roleVMDTO.IsArchive)
                             {
-                                <RadzenButton title="Удалить роль в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Удалить роль в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium"
+                                              class="my-1 ms-1" Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить роль из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Восстановить роль из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat"
+                                              Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
@@ -244,16 +304,8 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
-
     </div>
 }
 
@@ -267,8 +319,8 @@
 
     public string? usersFilter = "";
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
     Guid userDictionaryManagementGuid { get; set; }
 
@@ -279,25 +331,24 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;
-                //StateHasChanged();
+                IsLoading = true;                
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 roleVMDTOs = await _roleVMRepository.GetAll(SD.SelectDictionaryScope.All);
                 userDictionaryManagementGuid = (await _authorizationRepository.GetCurrentUserDTO()).Id;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration");
         }
-        else
-            _navigationManager.NavigateTo("/administration");
-
     }
 
 
@@ -339,57 +390,51 @@
         await SD.SetPageSettingsVersion("RoleGridSettings", _jsRuntime);
     }
 
-
-
     async Task EditRow(RoleVMDTO roleVMDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
-
             RoleDTO dialogResult;
-
             if (roleVMDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{700}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
-
-
             if (dialogResult != null)
             {
                 if (roleVMDTO == null)
                 {
                     IsLoading = true;
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     roleVMDTOs = await _roleVMRepository.GetAll(SD.SelectDictionaryScope.All);
                     IsLoading = false;
-                    StateHasChanged();
-                    IsLoading = false;
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);                    
                 }
                 else
                 {
                     roleVMDTO.Name = dialogResult.Name;
                     roleVMDTO.Description = dialogResult.Description;
-
+                    roleVMDTO.IsAdmin = dialogResult.IsAdmin;
+                    roleVMDTO.IsAdminReadOnly = dialogResult.IsAdminReadOnly;
                     await roleVMDTOGrid.UpdateRow(roleVMDTO);
                 }
             }
         }
-
     }
 
 
     async Task DeleteRow(RoleVMDTO roleVMDTO)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -414,7 +459,6 @@
             }
 
             RoleDTO oldRoleDTO = await _roleRepository.GetById(roleVMDTO.Id);
-
             if (roleVMDTO.IsArchive)
             {
                 await _roleVMRepository.Update(roleVMDTO, SD.UpdateMode.RestoreFromArchive);
@@ -437,7 +481,7 @@
 
     async Task LinkUserToRole(RoleVMDTO roleVMDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
 
@@ -452,20 +496,18 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkUsersToRole>("Привязка пользователей к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"{200}px" });
+                dialogResult = await _dialogService.OpenAsync<LinkUsersToRole>("Привязка пользователей к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
 
                 roleVMDTO.UserToRoleDTOs = await _roleVMRepository.GetUsersLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
-
             IsLoading = false;
         }
     }
 
-
     async Task LinkDepartmentToRole(RoleVMDTO roleVMDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
             RoleVMDTO dialogResult = null;
@@ -479,7 +521,7 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkDepartmentToRole>("Привязка производств к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"{200}px" });
+                dialogResult = await _dialogService.OpenAsync<LinkDepartmentToRole>("Привязка производств к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
 
                 roleVMDTO.RoleToDepartmentDTOs = await _roleVMRepository.GetDepartmentsLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
@@ -488,10 +530,9 @@
         }
     }
 
-
     async Task DeleteUser(RoleVMDTO roleVMDTO, UserDTO userDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -526,17 +567,14 @@
         roleVMDTO.UserToRoleDTOs = modifiedNewUserToRoleDTOs;
 
         await roleVMDTOGrid.UpdateRow(roleVMDTO);
-
     }
 
     async Task LinkReportTemplateTypeToRole(RoleVMDTO roleVMDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
-
             RoleVMDTO dialogResult = null;
-
             if (roleVMDTO == null)
             {
                 await _jsRuntime.ToastrError("Пустой объект роли для привязки типов шаблонов отчётов");
@@ -546,12 +584,10 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkReportTemplateTypeToRole>("Привязка типов шаблонов отчётов к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1200}px", Left = $"{100}px" });
-
+                dialogResult = await _dialogService.OpenAsync<LinkReportTemplateTypeToRole>("Привязка типов шаблонов отчётов к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1200}px", Left = $"calc(50vw - 750px)" });
                 roleVMDTO.ReportTemplateTypeTоRoleDTOs = await _roleVMRepository.GetReportTemplateTypesLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
-
             IsLoading = false;
         }
     }
@@ -559,7 +595,7 @@
 
     async Task DeleteReportTemplateType(RoleVMDTO roleVMDTO, ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -571,38 +607,36 @@
                     return;
                 }
             }
+            var reportTemplateTypeTоRoleDTO = await _reportTemplateTypeToRoleRepository.Get(reportTemplateTypeDTO.Id, roleVMDTO.Id);
+
+            if (reportTemplateTypeTоRoleDTO != null)
+            {
+                await _roleVMRepository.DeleteReportTemplateTypeToRole(reportTemplateTypeTоRoleDTO.Id);
+                await _logEventRepository.AddRecord("Удаление связки типа шаблона отчёта с ролью", userDictionaryManagementGuid,
+                        roleVMDTO.Name + " --> " + reportTemplateTypeTоRoleDTO.ToString(), "<Пусто>", false,
+                        "Роль: " + roleVMDTO.Name + " Тип шаблона отчёта: " + reportTemplateTypeTоRoleDTO.ToString());
+
+                await _jsRuntime.ToastrSuccess("Тип шаблона отчёта \"" + reportTemplateTypeDTO.Name + "\" удалён из роли \"" + roleVMDTO.Name + "\"");
+            }
+            else
+            {
+                await _jsRuntime.ToastrError("Тип шаблона отчёта \"" + reportTemplateTypeDTO.Name + "\" не найден в роли \"" + roleVMDTO.Name + "\"!");
+            }
+
+            List<ReportTemplateTypeTоRoleDTO> newReportTemplateTypeToRoleDTOs = roleVMDTO.ReportTemplateTypeTоRoleDTOs.ToList();
+            var modifiedNewReportTemplateTypeTоRoleDTOs = newReportTemplateTypeToRoleDTOs.Where(u => !(u.ReportTemplateTypeId == reportTemplateTypeDTO.Id && u.RoleId == roleVMDTO.Id));
+            roleVMDTO.ReportTemplateTypeTоRoleDTOs = modifiedNewReportTemplateTypeTоRoleDTOs;
+
+            await roleVMDTOGrid.UpdateRow(roleVMDTO);
         }
-
-        var reportTemplateTypeTоRoleDTO = await _reportTemplateTypeToRoleRepository.Get(reportTemplateTypeDTO.Id, roleVMDTO.Id);
-
-        if (reportTemplateTypeTоRoleDTO != null)
-        {
-            await _roleVMRepository.DeleteReportTemplateTypeToRole(reportTemplateTypeTоRoleDTO.Id);
-            await _logEventRepository.AddRecord("Удаление связки типа шаблона отчёта с ролью", userDictionaryManagementGuid,
-                    roleVMDTO.Name + " --> " + reportTemplateTypeTоRoleDTO.ToString(), "<Пусто>", false,
-                    "Роль: " + roleVMDTO.Name + " Тип шаблона отчёта: " + reportTemplateTypeTоRoleDTO.ToString());
-
-            await _jsRuntime.ToastrSuccess("Тип шаблона отчёта \"" + reportTemplateTypeDTO.Name + "\" удалён из роли \"" + roleVMDTO.Name + "\"");
-        }
-        else
-        {
-            await _jsRuntime.ToastrError("Тип шаблона отчёта \"" + reportTemplateTypeDTO.Name + "\" не найден в роли \"" + roleVMDTO.Name + "\"!");
-        }
-
-        List<ReportTemplateTypeTоRoleDTO> newReportTemplateTypeToRoleDTOs = roleVMDTO.ReportTemplateTypeTоRoleDTOs.ToList();
-        var modifiedNewReportTemplateTypeTоRoleDTOs = newReportTemplateTypeToRoleDTOs.Where(u => !(u.ReportTemplateTypeId == reportTemplateTypeDTO.Id && u.RoleId == roleVMDTO.Id));
-        roleVMDTO.ReportTemplateTypeTоRoleDTOs = modifiedNewReportTemplateTypeTоRoleDTOs;
-
-        await roleVMDTOGrid.UpdateRow(roleVMDTO);
 
     }
 
     async Task LinkADGroupToRole(RoleVMDTO roleVMDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
-
             RoleVMDTO dialogResult = null;
 
             if (roleVMDTO == null)
@@ -614,8 +648,7 @@
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<LinkADGroupToRole>("Привязка групп AD к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1500}px", Left = $"{100}px" });
-
+                dialogResult = await _dialogService.OpenAsync<LinkADGroupToRole>("Привязка групп AD к роли " + roleVMDTO.Name, new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{1500}px", Left = $"calc(50vw - 950px)" });
                 roleVMDTO.RoleToADGroupDTOs = await _roleVMRepository.GetADGroupsLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
@@ -625,7 +658,7 @@
 
     async Task DeleteADGroup(RoleVMDTO roleVMDTO, ADGroupDTO adGroupDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -637,35 +670,33 @@
                     return;
                 }
             }
+            var roleToADGroupDTO = await _roleToADGroupRepository.Get(adGroupDTO.Id, roleVMDTO.Id);
+
+            if (roleToADGroupDTO != null)
+            {
+                await _roleVMRepository.DeleteRoleToADGroup(roleToADGroupDTO.Id);
+                await _logEventRepository.AddRecord("Удаление связки группы AD с ролью", userDictionaryManagementGuid,
+                    roleVMDTO.Name + " --> " + adGroupDTO.ToString(), "<Пусто>", false,
+                    "Роль: " + roleVMDTO.Name + " Тип шаблона отчёта: " + adGroupDTO.ToString());
+
+                await _jsRuntime.ToastrSuccess("Группа AD \"" + adGroupDTO.Name + "\" удалёна из роли \"" + roleVMDTO.Name + "\"");
+            }
+            else
+            {
+                await _jsRuntime.ToastrError("Группа AD \"" + adGroupDTO.Name + "\" не найдена в роли \"" + roleVMDTO.Name + "\"!");
+            }
+
+            List<RoleToADGroupDTO> newRoleToADGroupDTOs = roleVMDTO.RoleToADGroupDTOs.ToList();
+            var modifiedNewRoleToADGroupDTOs = newRoleToADGroupDTOs.Where(u => !(u.ADGroupId == adGroupDTO.Id && u.RoleId == roleVMDTO.Id));
+            roleVMDTO.RoleToADGroupDTOs = modifiedNewRoleToADGroupDTOs;
+
+            await roleVMDTOGrid.UpdateRow(roleVMDTO);
         }
-
-        var roleToADGroupDTO = await _roleToADGroupRepository.Get(adGroupDTO.Id, roleVMDTO.Id);
-
-        if (roleToADGroupDTO != null)
-        {
-            await _roleVMRepository.DeleteRoleToADGroup(roleToADGroupDTO.Id);
-            await _logEventRepository.AddRecord("Удаление связки группы AD с ролью", userDictionaryManagementGuid,
-                roleVMDTO.Name + " --> " + adGroupDTO.ToString(), "<Пусто>", false,
-                "Роль: " + roleVMDTO.Name + " Тип шаблона отчёта: " + adGroupDTO.ToString());
-
-            await _jsRuntime.ToastrSuccess("Группа AD \"" + adGroupDTO.Name + "\" удалёна из роли \"" + roleVMDTO.Name + "\"");
-        }
-        else
-        {
-            await _jsRuntime.ToastrError("Группа AD \"" + adGroupDTO.Name + "\" не найдена в роли \"" + roleVMDTO.Name + "\"!");
-        }
-
-        List<RoleToADGroupDTO> newRoleToADGroupDTOs = roleVMDTO.RoleToADGroupDTOs.ToList();
-        var modifiedNewRoleToADGroupDTOs = newRoleToADGroupDTOs.Where(u => !(u.ADGroupId == adGroupDTO.Id && u.RoleId == roleVMDTO.Id));
-        roleVMDTO.RoleToADGroupDTOs = modifiedNewRoleToADGroupDTOs;
-
-        await roleVMDTOGrid.UpdateRow(roleVMDTO);
-
     }
 
     async Task DeleteDepartment(RoleVMDTO roleVMDTO, MesDepartmentDTO mesDepartmentDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -676,26 +707,25 @@
                     return;
                 }
             }
+            var roleToDepartmentDTO = await _roleToToDepartmentRepository.Get(roleVMDTO.Id, mesDepartmentDTO.Id);
+
+            if (roleToDepartmentDTO != null)
+            {
+                await _roleVMRepository.DeleteRoleToDepartment(roleToDepartmentDTO.Id);
+                await _logEventRepository.AddRecord("Удаление связки производства с ролью", userDictionaryManagementGuid,
+                    roleVMDTO.Name + " --> " + mesDepartmentDTO.ShortName, "<Пусто>", false,
+                    "Роль: " + roleVMDTO.Name + " Производство: " + mesDepartmentDTO.ToStringHierarchyShortName);
+                await _jsRuntime.ToastrSuccess("Производство \"" + mesDepartmentDTO.ShortName + "\" удалено из роли \"" + roleVMDTO.Name + "\"");
+            }
+            else
+            {
+                await _jsRuntime.ToastrError("Производство \"" + mesDepartmentDTO.ShortName + "\" не найдено в роли \"" + roleVMDTO.Name + "\"!");
+            }
+
+            roleVMDTO.RoleToDepartmentDTOs = await _roleVMRepository.GetDepartmentsLinkedToRoleByRoleId(roleVMDTO.Id);
+
+            await roleVMDTOGrid.UpdateRow(roleVMDTO);
         }
-
-        var roleToDepartmentDTO = await _roleToToDepartmentRepository.Get(roleVMDTO.Id, mesDepartmentDTO.Id);
-
-        if (roleToDepartmentDTO != null)
-        {
-            await _roleVMRepository.DeleteRoleToDepartment(roleToDepartmentDTO.Id);
-            await _logEventRepository.AddRecord("Удаление связки производства с ролью", userDictionaryManagementGuid,
-                roleVMDTO.Name + " --> " + mesDepartmentDTO.ShortName, "<Пусто>", false,
-                "Роль: " + roleVMDTO.Name + " Производство: " + mesDepartmentDTO.ToStringHierarchyShortName);
-            await _jsRuntime.ToastrSuccess("Производство \"" + mesDepartmentDTO.ShortName + "\" удалено из роли \"" + roleVMDTO.Name + "\"");
-        }
-        else
-        {
-            await _jsRuntime.ToastrError("Производство \"" + mesDepartmentDTO.ShortName + "\" не найдено в роли \"" + roleVMDTO.Name + "\"!");
-        }
-
-        roleVMDTO.RoleToDepartmentDTOs = await _roleVMRepository.GetDepartmentsLinkedToRoleByRoleId(roleVMDTO.Id);
-
-        await roleVMDTOGrid.UpdateRow(roleVMDTO);
 
     }
 
@@ -713,7 +743,7 @@
             return;
         }
 
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             var roleToReportTemplateTypeDTO = await _reportTemplateTypeToRoleRepository.GetById(reportTemplateTypeToRoleId);
             ReportTemplateTypeTоRoleDTO oldRoleToReportTemplateTypeDTO = new ReportTemplateTypeTоRoleDTO();
@@ -721,7 +751,7 @@
             oldRoleToReportTemplateTypeDTO.RoleId = roleToReportTemplateTypeDTO.RoleId;
             oldRoleToReportTemplateTypeDTO.ReportTemplateTypeId = roleToReportTemplateTypeDTO.ReportTemplateTypeId;
             oldRoleToReportTemplateTypeDTO.CanDownload = roleToReportTemplateTypeDTO.CanDownload;
-            oldRoleToReportTemplateTypeDTO.CanUpload = roleToReportTemplateTypeDTO.CanUpload;                
+            oldRoleToReportTemplateTypeDTO.CanUpload = roleToReportTemplateTypeDTO.CanUpload;
 
             if (roleToReportTemplateTypeDTO == null)
             {
@@ -754,9 +784,9 @@
                 await DeleteReportTemplateType(roleVMDTO, roleToReportTemplateTypeDTO.ReportTemplateTypeDTOFK);
                 await _logEventRepository.AddRecord("Удаление связки типа шаблона отчёта с ролью", userDictionaryManagementGuid,
                     roleVMDTO.Name + " --> " + roleToReportTemplateTypeDTO.ToString()
-                    ,"<Пусто>"    
-                    ,false
-                    ,"Роль: " + roleVMDTO.Name + " Тип шаблона отчёта: " + roleToReportTemplateTypeDTO.ToString());
+                    , "<Пусто>"
+                    , false
+                    , "Роль: " + roleVMDTO.Name + " Тип шаблона отчёта: " + roleToReportTemplateTypeDTO.ToString());
 
             }
             else
@@ -784,35 +814,29 @@
                         " Право на запись: " + (oldRoleToReportTemplateTypeDTO.CanUpload == true ? "Да  -->" : "Нет  -->  ") +
                         (roleToReportTemplateTypeDTO.CanUpload == true ? "Да" : "Нет"));
                 }
-
-
                 await _jsRuntime.ToastrSuccess(messageString);
             }
-
             roleVMDTO.ReportTemplateTypeTоRoleDTOs = (await _roleVMRepository.GetReportTemplateTypesLinkedToRoleByRoleId(roleVMDTO.Id));
-
             await roleVMDTOGrid.UpdateRow(roleVMDTO);
         }
-
     }
 
     async Task EditUser(RoleVMDTO roleVMDTO, Guid userId)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
 
             UserDTO dialogResult;
 
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId } }, new DialogOptions() { Width = $"{900}px", Left = $"{300}px" });
+            dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
                 roleVMDTO.UserToRoleDTOs = await _roleVMRepository.GetUsersLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
-
             IsLoading = false;
         }
     }
@@ -820,21 +844,18 @@
 
     async Task EditADGroup(RoleVMDTO roleVMDTO, Guid adGroupId)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
-
             ADGroupDTO dialogResult;
-
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId } }, new DialogOptions() { Width = $"{900}px", Left = $"{300}px" });
+            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
                 roleVMDTO.RoleToADGroupDTOs = await _roleVMRepository.GetADGroupsLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
-
             IsLoading = false;
         }
     }
@@ -842,13 +863,12 @@
 
     async Task EditDepartment(RoleVMDTO roleVMDTO, int departmentId)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
             MesDepartmentDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", departmentId } }, new DialogOptions() { Width = $"{1100}px", Left = $"{300}px" });
-
+            dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", departmentId } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
             if (dialogResult != null)
             {
                 roleVMDTO.RoleToDepartmentDTOs = await _roleVMRepository.GetDepartmentsLinkedToRoleByRoleId(roleVMDTO.Id);
@@ -861,21 +881,17 @@
 
     async Task EditReportTemplateType(RoleVMDTO roleVMDTO, int reportTemplateTypeId)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
-
             ReportTemplateTypeDTO dialogResult;
-
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditReportTemplateType>("Изменить тип шаблона отчёта", new Dictionary<string, object>() { { "ReportTemplateTypeId", reportTemplateTypeId } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
-
+            dialogResult = await _dialogService.OpenAsync<AddEditReportTemplateType>("Изменить тип шаблона отчёта", new Dictionary<string, object>() { { "ReportTemplateTypeId", reportTemplateTypeId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 500px)" });
             if (dialogResult != null)
             {
                 roleVMDTO.ReportTemplateTypeTоRoleDTOs = await _roleVMRepository.GetReportTemplateTypesLinkedToRoleByRoleId(roleVMDTO.Id);
                 await roleVMDTOGrid.UpdateRow(roleVMDTO);
             }
-
             IsLoading = false;
         }
     }
@@ -885,7 +901,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "Roles_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -896,5 +912,4 @@
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
     }
-
 }

@@ -18,8 +18,9 @@ namespace DictionaryManagement_Server.Controllers
             _authorizationControllersRepository = authorizationControllersRepository;
         }
 
+        [DisableRequestSizeLimit]
         [HttpPost("UploadFileController/UploadReportTemplateFile/{reportTemplateId}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> UploadReportTemplateFile(IFormFile file, Guid reportTemplateId)
         {
             try
@@ -28,26 +29,25 @@ namespace DictionaryManagement_Server.Controllers
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
                 }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
-                }
             }
             catch
             {
                 return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
             }
 
-
-            string pathVar = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
+            string pathVar = (await _settingsRepository.GetByName("TempFilePath")).Value;
             try
             {
 
-                await UploadTemplateFile(file, reportTemplateId, pathVar);
-                return StatusCode(200);
+                Exception? exReturn = await UploadTemplateFile(file, reportTemplateId, pathVar);
+                if (exReturn == null)
+                {
+                    return StatusCode(200);
+                }
+                else
+                {
+                    return StatusCode(500, exReturn.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -55,44 +55,31 @@ namespace DictionaryManagement_Server.Controllers
             }
         }
 
-        public async Task UploadTemplateFile(IFormFile file, Guid reportTemplateGuid, string reportTemplatePath)
+        public async Task<Exception?> UploadTemplateFile(IFormFile file, Guid reportTemplateGuid, string reportTemplatePath)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (file != null && file.Length > 0)
                 {
-                    return;
-                }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
+                    var extension = Path.GetExtension(file.FileName);
+                    var fullPath = Path.Combine(reportTemplatePath, reportTemplateGuid.ToString() + extension);
+                    using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
                     {
-                        return;
+                        file.CopyTo(fileStream);
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return;
+                return ex;
             }
-
-
-
-            if (file != null && file.Length > 0)
-            {
-                var extension = Path.GetExtension(file.FileName);
-                var fullPath = Path.Combine(reportTemplatePath, reportTemplateGuid.ToString() + extension);
-                using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
-                {
-                    await file.CopyToAsync(fileStream);
-
-                }
-            }
+            return null;
         }
 
-
+        [DisableRequestSizeLimit]
         [HttpPost("UploadFileController/UploadReportEntityFile/{reportEntityId}")]
-        [RequestSizeLimit(60000000)]
+        //[RequestSizeLimit(2147483648)]
+        //[RequestSizeLimit(60000000)]
         public async Task<IActionResult> UploadReportEntityFile(IFormFile file, Guid reportEntityId)
         {
             try
@@ -100,13 +87,6 @@ namespace DictionaryManagement_Server.Controllers
                 if (!User.Identity.IsAuthenticated)
                 {
                     return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
-                }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return StatusCode(401, "Вы не входите в группу " + SD.AdminRoleName + ". Доступ запрещён");
-                    }
                 }
             }
             catch
@@ -130,33 +110,13 @@ namespace DictionaryManagement_Server.Controllers
 
         public async Task UploadEntityFile(IFormFile file, Guid reportEntityGuid, string reportEntityPath)
         {
-            try
-            {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return;
-                }
-                else
-                {
-                    if (!(await _authorizationControllersRepository.CurrentUserIsInAdminRoleByLogin(User.Identity.Name, SD.MessageBoxMode.Off)))
-                    {
-                        return;
-                    }
-                }
-            }
-            catch
-            {
-                return;
-            }
-
-
             if (file != null && file.Length > 0)
             {
                 var extension = Path.GetExtension(file.FileName);
                 var fullPath = Path.Combine(reportEntityPath, reportEntityGuid.ToString() + extension);
                 using (FileStream fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite/*, FileShare.ReadWrite, 800000000*/))
                 {
-                    await file.CopyToAsync(fileStream);
+                    file.CopyTo(fileStream);
                     //fileStream.Close();
                     if (fileStream != null)
                         await fileStream.DisposeAsync();

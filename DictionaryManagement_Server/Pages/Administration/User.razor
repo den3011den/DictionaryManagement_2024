@@ -7,17 +7,13 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json;
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject IUserRepository _userRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
 
-
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -27,27 +23,26 @@
             <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/User">Пользователи</a></h6>
         </div>
 
-
         @if (IsLoading != true)
         {
-
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить нового пользователя" Click="@(args => EditRow(null))" />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton title="Добавить нового пользователя"  Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить нового пользователя" Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@UserGridSettings" SettingsName="UserGridSettings" @ref="userDTOGrid" AllowAlternatingRows="true"
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
                                Data="@userDTOs" TItem="UserDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                Density=Density.Compact
-                               ShowPagingSummary="true"                               
+                               ShowPagingSummary="true"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="ToStringId" Title="Ид пользователя" Width="30px"
-                                          FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
+                                             FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 10px">
                                 @data1.ToStringId
@@ -83,13 +78,13 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsSyncWithAD" Title="Автомат" Filterable="true" Width="13px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsSyncWithAD" Title="Автомат" Filterable="true" Width="30px" TextAlign="TextAlign.Center">
                         <Template Context="data4">
                             <RadzenCheckBox @bind-Value=data4.IsSyncWithAD ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsServiceUser" Title="Сервис" Filterable="true" Width="15px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsServiceUser" Title="Сервис" Filterable="true" Width="30px" TextAlign="TextAlign.Center">
                         <Template Context="data4">
                             <RadzenCheckBox @bind-Value=data4.IsServiceUser ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
@@ -99,7 +94,7 @@
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="SyncWithADGroupsLastTime" Title="Время посл. синх. AD" Width="40px" TextAlign="TextAlign.Center">
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsArchive" Title="Арх" Filterable="true" Width="8px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="UserDTO" Property="IsArchive" Title="Арх" Filterable="true" Width="20px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
@@ -111,12 +106,14 @@
                             </RadzenButton>
                             @if (!userDTO.IsArchive)
                             {
-                                <RadzenButton title="Удалить пользователя в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Удалить пользователя в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить пользователя из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Восстановить пользователя из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
@@ -128,16 +125,8 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
-
     </div>
 }
 
@@ -149,8 +138,8 @@
 
     RadzenDataGrid<UserDTO> userDTOGrid;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
@@ -160,24 +149,24 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;
-                //StateHasChanged();
+
+                IsLoading = true;                
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 userDTOs = await _userRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration");
         }
-        else
-            _navigationManager.NavigateTo("/administration");
-
     }
 
     DataGridSettings _userGridSettings;
@@ -220,7 +209,7 @@
 
     async Task EditRow(UserDTO userDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
 
@@ -229,14 +218,13 @@
             if (userDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Создать пользователя", new Dictionary<string, object>() { { "UserId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Создать пользователя", new Dictionary<string, object>() { { "UserId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
-
 
             if (dialogResult != null)
             {
@@ -244,10 +232,12 @@
                 {
                     IsLoading = true;
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     userDTOs = await _userRepository.GetAll(SD.SelectDictionaryScope.All);
                     IsLoading = false;
-                    StateHasChanged();
+                    await Task.Delay(100);
+                    await InvokeAsync(StateHasChanged);
                     IsLoading = false;
                 }
                 else
@@ -269,10 +259,10 @@
 
     async Task DeleteRow(UserDTO userDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
-            {                
+            {
                 if (userDTO.IsArchive != true)
                 {
                     bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление пользователя", "Удалить пользователя \"" + userDTO.UserName
@@ -318,7 +308,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "Users_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -328,6 +318,24 @@
         excelExportFlag = false;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
+    }
+
+    async Task ExcelImport()
+    {
+        IsLoading = true;
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            SapMaterialDTO dialogResult = null;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Пользователи)", new Dictionary
+                    <string, object>
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.UsersLoadFromExcelReportTemplateTypeNameSettingName }
+                        ,{"DataList", (IEnumerable<UserDTO>)userDTOGrid.View }}
+                        , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
+            IsLoading = false;
+            await this.OnAfterRenderAsync(true);
+        }
+        IsLoading = false;
     }
 
 }

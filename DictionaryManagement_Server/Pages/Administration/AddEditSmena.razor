@@ -5,23 +5,19 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject ISmenaRepository _smenaRepository
 @inject IMesDepartmentRepository _mesDepartmentRepository
 @inject ILogEventRepository _logEventRepository
 
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
-
     @if (IsLoading)
     {
-        <div class="text-center">
-            <img src="/images/loading.gif">
-        </div>
+        <Loading IsLoading="@IsLoading" />
     }
     else
     {
@@ -67,17 +63,13 @@
                 </RadzenColumn>
             </RadzenRow>
 
-
-
             <div class="form-group py-2">
-                <button class="btn btn-primary">@Title</button>
+                <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
 }
-
-
 
 @code {
 
@@ -88,8 +80,8 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     IEnumerable<MesDepartmentDTO>? MesDepartmentDTOList { get; set; } = new List<MesDepartmentDTO>();
 
@@ -104,8 +96,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (SmenaId == null || SmenaId == 0)
         {
@@ -118,22 +110,22 @@
             ActiveSmenaDTO.StartTimeDateTime = DateTime.MinValue + ActiveSmenaDTO.StartTime;
             Title = "Изменить смену";
         }
-
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;            
-            if (firstRender)
+
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (SmenaId == null || SmenaId == 0)
                 {
                     ActiveSmenaDTO = new SmenaDTO();
@@ -149,18 +141,17 @@
                 MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration/Smena");
         }
-        else
-            _navigationManager.NavigateTo("/administration/Smena");
     }
-
 
     private async Task AddEditSmenaProcedure()
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (SmenaId == null || SmenaId == 0)
             { // создание

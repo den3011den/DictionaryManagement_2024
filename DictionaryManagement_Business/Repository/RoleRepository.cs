@@ -74,6 +74,11 @@ namespace DictionaryManagement_Business.Repository
                         objectToUpdate.Name = objectToUpdateDTO.Name;
                     if (objectToUpdate.Description != objectToUpdateDTO.Description)
                         objectToUpdate.Description = objectToUpdateDTO.Description;
+                    if (objectToUpdate.IsAdmin != objectToUpdateDTO.IsAdmin)
+                        objectToUpdate.IsAdmin = objectToUpdateDTO.IsAdmin;
+                    if (objectToUpdate.IsAdminReadOnly != objectToUpdateDTO.IsAdminReadOnly)
+                        objectToUpdate.IsAdminReadOnly = objectToUpdateDTO.IsAdminReadOnly;
+
                 }
                 if (updateMode == SD.UpdateMode.MoveToArchive)
                 {

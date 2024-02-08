@@ -4,14 +4,13 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels;
 
-
 @inject IJSRuntime _jsRuntime
 @inject IReportEntityRepository _reportEntityRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
-
 @inject DialogService _dialogService
+@inject TooltipService _tooltipService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -21,14 +20,12 @@
             <h6 class="card-title text-primary"><a href="/reports">Отчёты</a> - <a href="/reports/ReportEntity">Журнал экземпляров отчётов</a></h6>
         </div>
 
-
         @if (IsLoading != true)
         {
-
-            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
-                        <RadzenStack Gap="1rem">
+                        <RadzenStack Gap="0.5rem">
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
                                     <Items>
@@ -37,25 +34,25 @@
                                     </Items>
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                @* <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
 
-
             <RadzenDataGridApp @bind-Settings="@ReportEntityGridSettings" SettingsName="ReportEntityGridSettings" @ref="reportEntityDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@reportEntityDTOs" TItem="ReportEntityDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                GridLines="DataGridGridLines.Both"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 190px)"
+                               Style="height:calc(100vh - 160px)"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false">
@@ -69,6 +66,9 @@
 
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
+                    </RadzenButton>
+                    <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @reportEntityDTOGrid.View.Count().ToString()+" из "+(reportEntityDTOs == null ? "0" : reportEntityDTOs.Count().ToString())+" в выборке")
+                                  ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
                     </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
@@ -89,7 +89,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedDepartments
                                             Change=OnSelectedDepartmentsChange Data="@(distinctDepartmentsInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -104,7 +104,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedReportTemplateTypes
                                             Change=OnSelectedReportTemplateTypesChange Data="@(distinctReportTemplateTypesInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -116,16 +116,24 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="DownloadTime" Title="Скачан из СИР" Width="150px" TextAlign="TextAlign.Center"
-                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals">
-                    </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="DownloadTime" Title="Скачан из СИР" Width="130px" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals" />
+
+
+                    @*                     <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="DownloadTime" Title="Скачан из СИР" Width="150px" TextAlign="TextAlign.Center"
+            Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals" FilterValue="@downloadTimeFilterValue">
+            <FilterTemplate>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value=@downloadTimeFilterValue ShowTime="true"
+            ShowSeconds="true" HourFormat="24" DateFormat="dd.MM.yyyy hh:mm:ss" Style="width:100%;" AllowClear="true"/>
+            </FilterTemplate>
+            </RadzenDataGridColumnApp>  *@
 
                     <RadzenDataGridColumnApp TItem="ReportEntityDTO" Title="Кто скачал" Property="DownloadUserDTOFK.UserName" Type="typeof(IEnumerable<string>)" Width="160px"
                                              FilterValue="@selectedDownloadUsers" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedDownloadUsers
                                             Change=OnSelectedDownloadUsersChange Data="@(distinctDownloadUsersInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw;; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
 
@@ -143,7 +151,7 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="UploadTime" Title="Загружен в СИР" Width="150px" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="UploadTime" Title="Загружен в СИР" Width="130px" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals">
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="ReportEntityDTO" Title="Кто загрузил" Property="UploadUserDTOFK.UserName" Type="typeof(IEnumerable<string>)" Width="160px"
@@ -151,7 +159,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedUploadUsers
                                             Change=OnSelectedUploadUsersChange Data="@(distinctUploadUsersInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 300px; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
 
@@ -170,6 +178,19 @@
                             </RadzenButton>
                         </Template>
                     </RadzenDataGridColumnApp>
+                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="ResendMode" Title="Переотправка в SAP" Filterable="true" Width="110px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            @if (data.ResendMode == true && data.ReportEntityResendDatesListDTO != null)
+                            {
+                                <RadzenCheckBox @bind-Value=data.ResendMode ReadOnly="true" TriState="false" TValue="bool"
+                                                MouseEnter="@(args => ShowTooltip(data.ReportEntityResendDatesListDTO.OrderBy(u=>u.ResendDate), args, new TooltipOptions() { Position = TooltipPosition.Left, Style = "width: 130px; background: var(--rz-warning-lighter); color: var(--rz-text-color)", Duration = null }))" />
+                            }
+                            else
+                            {
+                                <RadzenCheckBox @bind-Value=data.ResendMode ReadOnly="true" TriState="false" TValue="bool" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="ReportEntityDTO" Context="reportEntityDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="50px">
                         <Template Context="reportEntityDTO">
                             <RadzenButton title="Детали" ButtonStyle="ButtonStyle.Info" Icon="info" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => ShowReportEntityDetails(reportEntityDTO))" @onclick:stopPropagation="true">
@@ -181,16 +202,8 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
-
     </div>
 }
 
@@ -209,6 +222,8 @@
 
     IEnumerable<ReportEntityDTO>? reportEntityDTOs;
 
+    DateTime? downloadTimeFilterValue;
+
     IEnumerable<string> selectedDepartments;
     IEnumerable<string> selectedReportTemplateTypes;
     IEnumerable<string> selectedDownloadUsers;
@@ -220,19 +235,17 @@
     List<string> distinctUploadUsersInList = new List<string>();
 
     RadzenDataGrid<ReportEntityDTO> reportEntityDTOGrid;
-    DateTime startDate = DateTime.Today.AddMonths(-1);
-    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+    DateTime? startDate = DateTime.Today.AddDays(-6);
+    DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
 
-    bool ApplyButtonDisabled = true;
+    bool ApplyButtonDisabled = false;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -241,32 +254,31 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
-
-                //await GetRows();
-
-                startDate = DateTime.Today.AddMonths(-1);
-                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
-
+                if (startDate == null || endDate == null)
+                {
+                    startDate = DateTime.Today.AddDays(-6);
+                    endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                }
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 await GetRows();
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/reports");
         }
-        else
-            _navigationManager.NavigateTo("/reports");
     }
 
 
@@ -333,7 +345,7 @@
 
     async Task DownloadReportEntityDownloadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             //_navigationManager.NavigateTo("/DownloadFileController/DownloadReportTemplateFile/" + id.ToString());
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityDownloadFile/" + id.ToString(), "_blank");
@@ -342,7 +354,7 @@
 
     async Task DownloadReportEntityUploadFile(Guid id)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             //_navigationManager.NavigateTo("/DownloadFileController/DownloadReportTemplateFile/" + id.ToString());
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportEntityUploadFile/" + id.ToString(), "_blank");
@@ -351,18 +363,59 @@
 
     private async Task ChangeStartDate()
     {
-        ApplyButtonDisabled = false;
-        maxEndDate = startDate.AddMonths(1).AddSeconds(-1);
-        minEndDate = startDate.AddDays(-1);
-        if (endDate > maxEndDate)
-            endDate = maxEndDate;
+        if (startDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (endDate != null && startDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+            }
+            ApplyButtonDisabled = false;
+        }
+        // ApplyButtonDisabled = false;
+        // maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
+        // minEndDate = ((DateTime)startDate).AddDays(-1);
+        // if (endDate > maxEndDate)
+        //     endDate = maxEndDate;
 
     }
 
     private async Task ChangeEndDate()
     {
-
-        ApplyButtonDisabled = false;
+        if (endDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (endDate != null && startDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+            }
+            ApplyButtonDisabled = false;
+        }
+        // ApplyButtonDisabled = false;
     }
 
 
@@ -370,7 +423,8 @@
     {
         IsLoading = true;
         await LoadStateAsync();
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
         if (applyRadioGroupValue == 1)
             reportEntityDTOs = await _reportEntityRepository.GetAllByDownloadTimeInterval(startDate, endDate);
         else
@@ -383,20 +437,18 @@
 
         await GetDistincts();
 
-        ApplyButtonDisabled = true;
+        ApplyButtonDisabled = false;
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
 
     }
 
-
-
     async Task ShowReportEntityDetails(ReportEntityDTO reportEntityDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
-
             ReportEntityDTO dialogResult = null;
 
             if (reportEntityDTO == null)
@@ -409,10 +461,12 @@
             {
                 IsLoading = false;
                 dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
-                    <string, object>
-                    () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"{20}px" });
+        <string, object>
+    () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"calc(50vw - 950px)" });
+                //             dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
+                // <string, object>
+                // () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"{20}px" });
             }
-
             IsLoading = false;
         }
     }
@@ -423,7 +477,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "ReportEntity_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -473,7 +527,7 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -503,7 +557,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -541,7 +595,7 @@
     {
 
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-            new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -566,15 +620,41 @@
         if (reportEntityDTOs != null)
         {
             distinctDepartmentsInList = (List<string>)reportEntityDTOs.Where(u => u.ReportDepartmentDTOFK != null).OrderBy(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName)
-                .Select(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
+    .Select(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
             distinctReportTemplateTypesInList = (List<string>)reportEntityDTOs.OrderBy(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name)
-                .Select(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name).Distinct().ToList();
+    .Select(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name).Distinct().ToList();
             distinctDownloadUsersInList = (List<string>)reportEntityDTOs.Where(u => u.DownloadUserDTOFK != null).OrderBy(u => u.DownloadUserDTOFK.UserName)
-                .Select(u => u.DownloadUserDTOFK.UserName).Distinct().ToList();
+    .Select(u => u.DownloadUserDTOFK.UserName).Distinct().ToList();
             distinctUploadUsersInList = (List<string>)reportEntityDTOs.Where(u => u.UploadUserDTOFK != null).OrderBy(u => u.UploadUserDTOFK.UserName)
-                .Select(u => u.UploadUserDTOFK.UserName).Distinct().ToList();
+    .Select(u => u.UploadUserDTOFK.UserName).Distinct().ToList();
         }
     }
+
+    void ShowTooltip(IEnumerable<ReportEntityResendDatesDTO>? reportEntityResendDatesListDTO, ElementReference elementReference, TooltipOptions options = null
+        ) => _tooltipService.Open(elementReference, ds =>
+    @<div>
+        <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="false" AllowPaging="false" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                           Data="@reportEntityResendDatesListDTO" TItem="ReportEntityResendDatesDTO"
+                           ShowPagingSummary="false"
+                           GridLines="DataGridGridLines.Both"
+                           Style="height:190px"
+                           AllowVirtualization="false"
+                           ShowCleanGridSettingsHeaderButton="false"
+                           ShowCleanGridFiltersHeaderButton="false"
+                           ShowCleanGridSortsHeaderButton="false">
+            <Columns>
+                <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDate" Title="Даты переотправки в SAP" Width="100px" TextAlign="TextAlign.Left"
+                                         SortProperty="ResendDate">
+                    <Template Context="data1">
+                        <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                            @data1.ResendDate.ToString("dd.MM.yyyy")
+                        </div>
+                    </Template>
+                </RadzenDataGridColumnApp>
+            </Columns>
+        </RadzenDataGridApp>
+    </div>
+    , options);
 
 }
 

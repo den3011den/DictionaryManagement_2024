@@ -5,25 +5,21 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IRoleVMRepository _roleVMRepository
 @inject IMesDepartmentRepository _mesDepartmentRepository
 @inject IRoleToDepartmentRepository _roleToDepartmentRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository;
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row my-2">
-
         <div class="col-md-12">
             @if (IsLoading)
             {
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
+                <Loading IsLoading="@IsLoading" />
             }
             else
             {
@@ -64,9 +60,8 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button title="Привязать отмеченные производства к роли" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -80,16 +75,15 @@
 
 @code {
 
-        _Dialogs? _dialogs { get; set; }
+    _Dialogs? _dialogs { get; set; }
 
-        [Parameter]
-        public Guid RoleId { get; set; }
+    [Parameter]
+    public Guid RoleId { get; set; }
 
+    Variant variant = Variant.Outlined;
 
-        Variant variant = Variant.Outlined;
-
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     RoleVMDTO ActiveRoleVMDTO { get; set; }
     IEnumerable<MesDepartmentDTO> MesDepartmentList { get; set; } = new List<MesDepartmentDTO>();
@@ -101,41 +95,39 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+        ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
+        Title = "Добавить производства к роли";
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
-                ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
-                Title = "Добавить производства к роли";
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 MesDepartmentList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
-                                        
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration/Role");
         }
-        else
-            _navigationManager.NavigateTo("/administration/Role");
     }
 
     private async Task AddMesDepartmentToRoleProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             var checkedMesDepartmentDTOList = MesDepartmentList.Where(u => u.Checked);
             if (checkedMesDepartmentDTOList.Count() <= 0)
             {

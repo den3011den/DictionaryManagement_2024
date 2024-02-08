@@ -5,7 +5,6 @@
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IMesParamRepository _mesParamRepository
 @inject IMesParamSourceTypeRepository _mesParamSourceTypeRepository
 @inject IMesDepartmentRepository _mesDepartmentRepository
@@ -15,35 +14,22 @@
 @inject ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository
 @inject IMesUnitOfMeasureRepository _mesUnitOfMeasureRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
 
-
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
-
-    @*<div class="row my-10">
-
-
-    <div class="col-md-12">*@
     @if (IsLoading)
     {
-        <div class="text-center">
-            <img src="/images/loading.gif">
-        </div>
+        <Loading IsLoading="@IsLoading" />
     }
     else
     {
         <EditForm Model="ActiveMesParamDTO" OnValidSubmit="AddEditMesParamProcedure">
             <DataAnnotationsValidator />
-            @*                <RadzenRow Gap="1rem">
-    <RadzenColumn Size="12">
-    <RadzenStack>*@
-
             <RadzenRow Gap="1rem">
-                <RadzenColumn Size="12" SizeMD="5">
+                <RadzenColumn Size="7">
                     <RadzenStack>
                         <RadzenFieldset Text="Карточка тэга СИР">
                             <RadzenStack Gap="1rem">
@@ -51,8 +37,8 @@
                                 @if (@ActiveMesParamDTO.Id != null && @ActiveMesParamDTO.Id != 0)
                                 {
                                     <RadzenFormField Text="ИД тэга СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                                        <RadzenNumeric @bind-Value="@ActiveMesParamDTO.Id" Disabled/>
-                                    </RadzenFormField>
+                                        <RadzenNumeric @bind-Value="@ActiveMesParamDTO.Id" Disabled />
+                                     </RadzenFormField>
                                 }
                                 <RadzenFormField Text="Код тэга СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
                                     <RadzenTextBox @bind-Value="@ActiveMesParamDTO.Code" />
@@ -132,9 +118,9 @@
                     </RadzenStack>
                 </RadzenColumn>
 
-                <RadzenColumn Size="12" SizeMD="5">
+                <RadzenColumn Size="3">
                     <RadzenStack>
-                        <RadzenFieldset Text="Карточка тэга СИР - дополнительные параметры">
+                        <RadzenFieldset Text="Доп. параметры">
 
                             <RadzenStack Gap="1rem">
                                 <RadzenFormField Text="Глубина опроса (в днях)" Variant="@variant" Style="width: 100%; max-width: 900px;">
@@ -161,7 +147,7 @@
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveMesParamDTO.NameTM"></ValidationMessage>
 
-                                <RadzenFormField Text="Коэффициент пересчёта данных по тэгу из ед. изм. MES в ед. изм. СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
+                                <RadzenFormField Text="Коэф. пересчёта из ед.изм. MES в СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
                                     <RadzenNumeric @bind-Value="@ActiveMesParamDTO.MesToSirUnitOfMeasureKoef" />
                                 </RadzenFormField>
 
@@ -171,11 +157,9 @@
                 </RadzenColumn>
 
 
-
-
-                <RadzenColumn Size="12" SizeMD="2">
+                <RadzenColumn Size="2">
                     <RadzenStack>
-                        <RadzenFieldset Text="Cмежные системы">
+                        <RadzenFieldset Text="Смежные системы">
                             <RadzenStack Gap="1rem">
                                 <RadzenLabel Text="Передавать в SAP:" Component="CheckBox1" Style="margin-left: 8px; margin-top: 8px;" />
                                 <RadzenSelectBar @bind-Value="@ActiveMesParamDTO.NeedWriteToSap" TValue="bool?" class="mb-4" Name="CheckBox1"
@@ -215,7 +199,6 @@
                                     </Items>
                                 </RadzenSelectBar>
 
-
                                 <RadzenLabel Text="Параметр НДО:" Component="CheckBox5" Style="margin-left: 8px; margin-top: 8px;" />
                                 <RadzenSelectBar @bind-Value="@ActiveMesParamDTO.IsNdo" TValue="bool?" class="mb-4" Name="CheckBox5"
                                                  Disabled="@IsNdoDiasabled" Change=@(() => OnChangeIsNdo())>
@@ -232,15 +215,12 @@
             </RadzenRow>
 
             <div class="form-group py-2">
-                <button class="btn btn-primary">@Title</button>
+                <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
-    @*    </div>
-</div>*@
 }
-
 
 @code {
 
@@ -253,8 +233,8 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     public bool IsNdoDiasabled { get; set; } = false;
     public bool NeedReadFromSapDisabled { get; set; } = false;
@@ -289,7 +269,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
 
 
         switch (Mode)
@@ -312,19 +293,20 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 switch (Mode)
                 {
                     case SD.EditMode.Create:
@@ -366,21 +348,20 @@
                     NeedReadFromMesDisabled = false;
                     NeedWriteToMesDisabled = true;
                 }
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
-
+            else
+                _navigationManager.NavigateTo("/tags/MesParam");
             //base.OnAfterRender(firstRender);
         }
-        else
-            _navigationManager.NavigateTo("/tags/MesParam");
     }
 
 
     private async Task AddEditMesParamProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if ((Mode == SD.EditMode.Create) || (Mode == SD.EditMode.CreateBasedOnRow))
             { // создание
@@ -430,7 +411,7 @@
                     return;
                 }
 
-                var addedDTO = await _mesParamRepository.Create(ActiveMesParamDTO);                
+                var addedDTO = await _mesParamRepository.Create(ActiveMesParamDTO);
 
                 await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: addedDTO, "Добавление тэга СИР", "Тэг: ", _authorizationRepository);
 
@@ -447,41 +428,41 @@
                     await _jsRuntime.ToastrError("Уже есть тэг СИР с кодом ( КОД: " + foundByCode.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundByCode.Name + " ИД: " + foundByCode.Id.ToString() + ")");
                     return;
                 }
-                
+
                 // if (ActiveMesParamDTO.MesParamSourceLink != null) //!!! Не понятно зачем это условие. Или вспомнить, или убрать
                 // {
 
-                    if ((ActiveMesParamDTO.SapEquipmentIdSource != null) || (ActiveMesParamDTO.SapEquipmentIdDest != null) || (ActiveMesParamDTO.SapMaterialId != null))
+                if ((ActiveMesParamDTO.SapEquipmentIdSource != null) || (ActiveMesParamDTO.SapEquipmentIdDest != null) || (ActiveMesParamDTO.SapMaterialId != null))
+                {
+                    if ((ActiveMesParamDTO.SapEquipmentIdSource != null) && (ActiveMesParamDTO.SapEquipmentIdDest != null) && (ActiveMesParamDTO.SapMaterialId != null))
                     {
-                        if ((ActiveMesParamDTO.SapEquipmentIdSource != null) && (ActiveMesParamDTO.SapEquipmentIdDest != null) && (ActiveMesParamDTO.SapMaterialId != null))
+                        var foundBySapMapping = await _mesParamRepository.GetBySapMappingNotInArchive(ActiveMesParamDTO.SapEquipmentIdSource, ActiveMesParamDTO.SapEquipmentIdDest, ActiveMesParamDTO.SapMaterialId, ActiveMesParamDTO.Id);
+                        if (foundBySapMapping != null)
                         {
-                            var foundBySapMapping = await _mesParamRepository.GetBySapMappingNotInArchive(ActiveMesParamDTO.SapEquipmentIdSource, ActiveMesParamDTO.SapEquipmentIdDest, ActiveMesParamDTO.SapMaterialId, ActiveMesParamDTO.Id);
-                            if (foundBySapMapping != null)
-                            {
-                                await _jsRuntime.ToastrError("Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + ")");
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            await _jsRuntime.ToastrError("Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
+                            await _jsRuntime.ToastrError("Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + ")");
                             return;
                         }
                     }
-
-                    if (ActiveMesParamDTO.MesParamSourceLink != null && ActiveMesParamDTO.MesParamSourceLink.Trim().ToUpper() != "NULL")
+                    else
                     {
-                        var foundByMesParamSourceLink = await _mesParamRepository.GetByMesParamSourceLink(ActiveMesParamDTO.MesParamSourceLink);
-                        if ((foundByMesParamSourceLink != null) && (foundByMesParamSourceLink.Id != ActiveMesParamDTO.Id))
+                        await _jsRuntime.ToastrError("Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
+                        return;
+                    }
+                }
+
+                if (ActiveMesParamDTO.MesParamSourceLink != null && ActiveMesParamDTO.MesParamSourceLink.Trim().ToUpper() != "NULL")
+                {
+                    var foundByMesParamSourceLink = await _mesParamRepository.GetByMesParamSourceLink(ActiveMesParamDTO.MesParamSourceLink);
+                    if ((foundByMesParamSourceLink != null) && (foundByMesParamSourceLink.Id != ActiveMesParamDTO.Id))
+                    {
+                        bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение тэга СИР", "Уже есть тэг СИР с тэгом источника " + foundByMesParamSourceLink.MesParamSourceLink + " (Код: " + foundByMesParamSourceLink.Code.ToString() + " ИД: " + foundByMesParamSourceLink.Id.ToString() + ")" +
+                                    "    Всё равно сохранить ?", "Сохранить", "Отмена");
+                        if (selectionResult == false)
                         {
-                            bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение тэга СИР", "Уже есть тэг СИР с тэгом источника " + foundByMesParamSourceLink.MesParamSourceLink + " (Код: " + foundByMesParamSourceLink.Code.ToString() + " ИД: " + foundByMesParamSourceLink.Id.ToString() + ")" +
-                                        "    Всё равно сохранить ?", "Сохранить", "Отмена");
-                            if (selectionResult == false)
-                            {
-                                return;
-                            }
+                            return;
                         }
                     }
+                }
                 // }
 
                 if (ActiveMesParamDTO.MesParamSourceType != null && (ActiveMesParamDTO.MesParamSourceLink == null || ActiveMesParamDTO.MesParamSourceLink.Trim() == ""))
@@ -557,7 +538,7 @@
 
     private async Task OnClickCancel()
     {
-        _dialogService.Close(null);        
+        _dialogService.Close(null);
     }
 
     private async Task OnChangeIsNdo()

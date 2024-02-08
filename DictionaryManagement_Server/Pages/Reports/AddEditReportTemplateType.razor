@@ -1,25 +1,20 @@
 ﻿@page "/reports/ReportTemplateType/AddEditReportTemplateType/{ReportTemplateTypeId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <div class="row my-2">
-
         <div class="col-md-10">
             @if (IsLoading)
             {
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
+                <Loading IsLoading="@IsLoading" />
             }
             else
             {
@@ -45,9 +40,8 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -67,8 +61,8 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     public ReportTemplateTypeDTO ActiveReportTemplateTypeDTO { get; set; }
 
@@ -79,7 +73,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
 
         if (ReportTemplateTypeId == 0)
         {
@@ -92,21 +87,20 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 if (ReportTemplateTypeId == 0)
                 {
                     ActiveReportTemplateTypeDTO = new ReportTemplateTypeDTO();
@@ -118,16 +112,17 @@
                 }
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/reports/ReportTemplateType");
         }
-        else
-            _navigationManager.NavigateTo("/reports/ReportTemplateType");
     }
 
     private async Task AddEditReportTemplateTypeProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (ReportTemplateTypeId == 0)
             { // создание

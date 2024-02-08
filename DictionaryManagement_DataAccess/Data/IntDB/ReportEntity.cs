@@ -43,5 +43,8 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public string? UploadReportFileName { get; set; }
 
         public bool? UploadSuccessFlag { get; set; }
+        public bool? ResendMode { get; set; }
+
+        public virtual ICollection<ReportEntityResendDates>? ReportEntityResendDatesList { get; set; }
     }
 }

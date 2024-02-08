@@ -4,6 +4,6 @@ namespace DictionaryManagement_Business.Repository
 {
     public interface IAuthorizationControllersRepository
     {
-        public Task<bool> CurrentUserIsInAdminRoleByLogin(string userLogin, MessageBoxMode messageBoxModePar = MessageBoxMode.Off);
+        public Task<AdminMode> CurrentUserIsInAdminRoleByLogin(string userLogin, MessageBoxMode messageBoxModePar = MessageBoxMode.Off);
     }
 }

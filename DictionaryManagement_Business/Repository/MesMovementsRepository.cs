@@ -33,6 +33,7 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.AddUserId = objectToAddDTO.AddUserId;
             objectToAdd.MesParamId = objectToAddDTO.MesParamId;
             objectToAdd.ValueTime = objectToAddDTO.ValueTime;
+            objectToAdd.Value = objectToAddDTO.Value;
             objectToAdd.SapMovementOutId = objectToAddDTO.SapMovementOutId;
             objectToAdd.SapMovementInId = objectToAddDTO.SapMovementInId;
             objectToAdd.DataSourceId = objectToAddDTO.DataSourceId;
@@ -152,7 +153,7 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.AddUserId == null)
+                if (objectToUpdateDTO.AddUserId == null || objectToUpdateDTO.AddUserId == Guid.Empty)
                 {
                     objectToUpdate.AddUserId = Guid.Empty;
                     objectToUpdate.AddUserFK = null;
@@ -168,9 +169,9 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.ReportGuid == null)
+                if (objectToUpdateDTO.ReportGuid == null || objectToUpdateDTO.ReportGuid == Guid.Empty)
                 {
-                    objectToUpdate.ReportGuid = Guid.Empty;
+                    objectToUpdate.ReportGuid = null;
                     objectToUpdate.ReportEntityFK = null;
                 }
                 else
@@ -188,7 +189,7 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.SapMovementOutId == null)
+                if (objectToUpdateDTO.SapMovementOutId == null || objectToUpdateDTO.SapMovementOutId == Guid.Empty)
                 {
                     objectToUpdate.SapMovementOutId = null;
                     objectToUpdate.SapMovementsOUTFK = null;
@@ -259,7 +260,7 @@ namespace DictionaryManagement_Business.Repository
                     }
                 }
 
-                if (objectToUpdateDTO.PreviousRecordId == null)
+                if (objectToUpdateDTO.PreviousRecordId == null || objectToUpdateDTO.PreviousRecordId == Guid.Empty)
                 {
                     objectToUpdate.PreviousRecordId = null;
                     objectToUpdate.MesMovementsFK = null;
@@ -324,7 +325,6 @@ namespace DictionaryManagement_Business.Repository
             return 0;
         }
 
-
         public async Task<IEnumerable<MesMovementsDTO>> GetAllByReportEntityId(Guid? reportEntityId)
         {
             if (reportEntityId != null && reportEntityId != Guid.Empty)
@@ -346,5 +346,111 @@ namespace DictionaryManagement_Business.Repository
                 return new List<MesMovementsDTO>();
         }
 
+        public async Task<IEnumerable<MesMovementsDTO>?> GetListByPreviousRecordId(Guid? idPar)
+        {
+            if ((idPar != null) && (idPar != Guid.Empty))
+            {
+                var objectListToGet = _db.MesMovements.Where(u => u.PreviousRecordId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<MesMovements>, IEnumerable<MesMovementsDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<MesMovementsDTO?> CleanPreviousRecordId(MesMovementsDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesMovements
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.PreviousRecordId = null;
+                _db.MesMovements.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesMovements, MesMovementsDTO>(objectToUpdate);
+            }
+            return null;
+        }
+
+        public async Task<int> DeleteMesMovementsCommentByMesMovementsId(Guid objectId)
+        {
+            int retVar = 0;
+            var objectToUpdate = _db.MesMovementsComment.Where(u => u.MesMovementsId == objectId).ToListWithNoLock();
+
+            if (objectToUpdate != null)
+            {
+                retVar = objectToUpdate.Count();
+                if (retVar > 0)
+                {
+                    foreach (var item in objectToUpdate)
+                    {
+                        _db.MesMovementsComment.Remove(item);
+                    }
+                }
+                _db.SaveChanges();
+            }
+            return retVar;
+        }
+
+        public async Task<IEnumerable<MesMovementsDTO>?> GetListBySapMovementOutId(Guid? idPar)
+        {
+            if ((idPar != null) && (idPar != Guid.Empty))
+            {
+                var objectListToGet = _db.MesMovements.Where(u => u.SapMovementOutId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<MesMovements>, IEnumerable<MesMovementsDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<IEnumerable<MesMovementsDTO>?> GetListBySapMovementInId(string? idPar)
+        {
+            if (!String.IsNullOrEmpty(idPar))
+            {
+                var objectListToGet = _db.MesMovements.Where(u => u.SapMovementInId == idPar).ToListWithNoLock();
+                if (objectListToGet != null)
+                {
+                    return _mapper.Map<IEnumerable<MesMovements>, IEnumerable<MesMovementsDTO>>(objectListToGet);
+                }
+            }
+            return null;
+        }
+
+        public async Task<MesMovementsDTO?> CleanSapMovementInId(MesMovementsDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesMovements
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.SapMovementInId = null;
+                objectToUpdate.SapMovementsINFK = null;
+                _db.MesMovements.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesMovements, MesMovementsDTO>(objectToUpdate);
+            }
+            return null;
+        }
+
+
+        public async Task<MesMovementsDTO?> CleanSapMovementOutId(MesMovementsDTO objectToUpdateDTO)
+        {
+            var objectToUpdate = _db.MesMovements
+               .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
+
+            if (objectToUpdate != null)
+            {
+                objectToUpdate.SapMovementOutId = null;
+                objectToUpdate.SapMovementsOUTFK = null;
+                _db.MesMovements.Update(objectToUpdate);
+                _db.SaveChanges();
+                return _mapper.Map<MesMovements, MesMovementsDTO>(objectToUpdate);
+            }
+            return null;
+        }
     }
 }

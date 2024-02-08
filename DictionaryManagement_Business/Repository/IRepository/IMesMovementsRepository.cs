@@ -10,5 +10,13 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<MesMovementsDTO> Create(MesMovementsDTO objectToAddDTO);
         public Task<int> Delete(Guid id);
         public Task<IEnumerable<MesMovementsDTO>> GetAllByReportEntityId(Guid? reportEntityId);
+        public Task<IEnumerable<MesMovementsDTO>?> GetListByPreviousRecordId(Guid? idPar);
+        public Task<MesMovementsDTO?> CleanPreviousRecordId(MesMovementsDTO objectToUpdateDTO);
+        public Task<int> DeleteMesMovementsCommentByMesMovementsId(Guid objectId);
+        public Task<IEnumerable<MesMovementsDTO>?> GetListBySapMovementOutId(Guid? idPar);
+        public Task<IEnumerable<MesMovementsDTO>?> GetListBySapMovementInId(string? idPar);
+        public Task<MesMovementsDTO?> CleanSapMovementInId(MesMovementsDTO objectToUpdateDTO);
+        public Task<MesMovementsDTO?> CleanSapMovementOutId(MesMovementsDTO objectToUpdateDTO);
+
     }
 }

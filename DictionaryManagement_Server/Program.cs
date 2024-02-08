@@ -38,10 +38,34 @@ builder.WebHost.UseUrls("http://+:5555");
 //    SD.AppFactoryMode = SD.FactoryMode.NKNH;
 
 SD.AppFactoryMode = builder.Configuration.GetValue<string>("FactoryMode");
+if (SD.AppFactoryMode != null)
+{
+    if (SD.AppFactoryMode.ToUpper().Contains(" ¿«¿Õ‹") || SD.AppFactoryMode.ToUpper().Equals(" Œ—"))
+    {
+        SD.AppFactoryModeShort = " Œ—";
+    }
+    else
+    {
+        if (SD.AppFactoryMode.ToUpper().Contains("Õ»∆Õ≈ ¿Ã— ") || SD.AppFactoryMode.ToUpper().Equals("Õ Õ’"))
+        {
+            SD.AppFactoryModeShort = "Õ Õ’";
+        }
+        else
+            SD.AppFactoryModeShort = "";
+    }
+}
+else
+{
+    SD.AppFactoryMode = "";
+    SD.AppFactoryModeShort = "";
+}
+
+SD.ShowBackgroundText = builder.Configuration.GetValue<int>("ShowBackgroundText");
 
 builder.Services.AddDbContext<IntDBApplicationDbContext>(options =>
-options.UseSqlServer(
-    builder.Configuration.GetConnectionString("IntDBConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("IntDBConnection"),
+    u => u.CommandTimeout(SD.SqlCommandConnectionTimeout))
+);
 
 
 builder.Services.AddScoped<ISapEquipmentRepository, SapEquipmentRepository>();
@@ -87,6 +111,7 @@ builder.Services.AddScoped<ISapMovementsINRepository, SapMovementsINRepository>(
 builder.Services.AddScoped<ISapMovementsOUTRepository, SapMovementsOUTRepository>();
 builder.Services.AddScoped<ILogEventRepository, LogEventRepository>();
 builder.Services.AddScoped<ILoadFromExcelRepository, LoadFromExcelRepository>();
+builder.Services.AddScoped<IReportEntityResendDatesRepository, ReportEntityResendDatesRepository>();
 
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

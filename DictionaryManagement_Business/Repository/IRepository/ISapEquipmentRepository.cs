@@ -11,6 +11,7 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<SapEquipmentDTO> Create(SapEquipmentDTO objectToAddDTO);
         public Task<SapEquipmentDTO> GetByResource(string erpPlantId = "", string erpId = "");
         public Task<SapEquipmentDTO> GetByName(string name = "");
+        public Task<IEnumerable<SapEquipmentDTO>?> GetListByName(string name = "");
 
     }
 }

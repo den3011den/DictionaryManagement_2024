@@ -6,18 +6,15 @@
 @using DictionaryManagement_Models.IntDBModels
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json;
-
-
+@using static DictionaryManagement_Common.SD
 
 @inject IJSRuntime _jsRuntime
 @inject IADGroupRepository _adGroupRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
-
 @inject DialogService _dialogService
 
-
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -31,21 +28,22 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить группу AD" Click="@(args => EditRow(null))" />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton title="Добавить новую группу AD" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить группу AD" Click="@(args => EditRow(null))" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Группы AD" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@ADGroupGridSettings" SettingsName="ADGroupGridSettings" @ref="adGroupDTOGrid" AllowAlternatingRows="true"
-                            AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
-                            Data="@adGroupDTOs" TItem="ADGroupDTO"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
-                            Density=Density.Compact
-                            ShowPagingSummary="true"                                                        
-                            AllowVirtualization="true"
-                            Style="height:calc(100vh - 190px)">
+                               AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
+                               Data="@adGroupDTOs" TItem="ADGroupDTO"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.Advanced"
+                               Density=Density.Compact
+                               ShowPagingSummary="true"
+                               AllowVirtualization="true"
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="ADGroupDTO" Property="ToStringId" Title="Ид группы" Width="40px"
-                                          FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
+                                             FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 10px">
                                 @data1.ToStringId
@@ -83,12 +81,12 @@
                             </RadzenButton>
                             @if (!adGroupDTO.IsArchive)
                             {
-                                <RadzenButton title="Удалить группу AD в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Удалить группу AD в архив" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить группу AD из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Восстановить группу AD из архива" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
                             }
                         </Template>
@@ -100,14 +98,7 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
 
     </div>
@@ -121,8 +112,8 @@
 
     RadzenDataGrid<ADGroupDTO> adGroupDTOGrid;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
@@ -132,24 +123,23 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;
-                //StateHasChanged();
+                IsLoading = true;                
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 adGroupDTOs = await _adGroupRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration");
         }
-        else
-            _navigationManager.NavigateTo("/administration");
-
     }
 
     DataGridSettings _adGroupGridSettings;
@@ -192,10 +182,9 @@
     }
 
 
-
     async Task EditRow(ADGroupDTO adGroupDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
 
@@ -204,14 +193,13 @@
             if (adGroupDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Создать группу AD", new Dictionary<string, object>() { { "ADGroupId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Создать группу AD", new Dictionary<string, object>() { { "ADGroupId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"{300}px" });
+                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
-
 
             if (dialogResult != null)
             {
@@ -219,29 +207,27 @@
                 {
                     IsLoading = true;
                     await LoadStateAsync();
-                    StateHasChanged();
+                    await Task.Delay(10);
+                    await InvokeAsync(StateHasChanged);
                     adGroupDTOs = await _adGroupRepository.GetAll(SD.SelectDictionaryScope.All);
                     IsLoading = false;
-                    StateHasChanged();
+                    await Task.Delay(10);
+                    await InvokeAsync(StateHasChanged);
                     IsLoading = false;
                 }
                 else
                 {
                     adGroupDTO.Name = dialogResult.Name;
                     adGroupDTO.Description = dialogResult.Description;
-
                     await adGroupDTOGrid.UpdateRow(adGroupDTO);
                 }
             }
         }
-
     }
-
 
     async Task DeleteRow(ADGroupDTO adGroupDTO)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -250,7 +236,7 @@
                     bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление группы AD", "Удалить группу AD \"" + adGroupDTO.Name
                          + ")\" в архив ?", "Удалить", "Отмена");
                     if (selectionResult == false)
-                    {                        
+                    {
                         return;
                     }
                 }
@@ -259,7 +245,7 @@
                     bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Восстановление группы AD", "Восстановить группу AD \"" + adGroupDTO.Name
                         + "\" из архива ?", "Восстановить", "Отмена");
                     if (selectionResult == false)
-                    {                        
+                    {
                         return;
                     }
                 }
@@ -290,7 +276,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "ADGroups_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -300,5 +286,23 @@
         excelExportFlag = false;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
+    }
+
+    async Task ExcelImport()
+    {
+        IsLoading = true;
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            SapMaterialDTO dialogResult = null;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Тэги СИР)", new Dictionary
+                    <string, object>
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.ADGroupsLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{"DataList", (IEnumerable<ADGroupDTO>)adGroupDTOGrid.View }}
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
+            IsLoading = false;
+            await this.OnAfterRenderAsync(true);
+        }
+        IsLoading = false;
     }
 }

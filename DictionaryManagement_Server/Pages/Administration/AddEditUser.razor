@@ -1,26 +1,22 @@
 ﻿@page "/administration/User/AddEditUser/{UserId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 
 @inject IJSRuntime _jsRuntime
-
 @inject IUserRepository _userRepository
 @inject DialogService _dialogService
 @inject ILogEventRepository _logEventRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
-    <div class="row my-2">        
+    <div class="row my-2">
 
         <div class="col-md-10">
             @if (IsLoading)
             {
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
+                <Loading IsLoading="@IsLoading" />
             }
             else
             {
@@ -70,15 +66,15 @@
                                     </Items>
                                 </RadzenSelectBar>
 
-                                <RadzenLabel Text="Время последней синхронизации ролей с группами AD:"Style="margin-left: 8px; margin-top: 8px;" />
-                                <RadzenDatePicker TValue = "DateTime" @bind-Value=@ActiveUserDTO.SyncWithADGroupsLastTime ShowSeconds="true" ShowTime="true" HourFormat="24" DateFormat="dd.MM.yyyy hh:mm:ss" />
+                                <RadzenLabel Text="Время последней синхронизации ролей с группами AD:" Style="margin-left: 8px; margin-top: 8px;" />
+                                <RadzenDatePicker TValue="DateTime" @bind-Value=@ActiveUserDTO.SyncWithADGroupsLastTime ShowSeconds="true" ShowTime="true" HourFormat="24" DateFormat="dd.MM.yyyy hh:mm:ss" />
 
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
-                    
+
                     <div class="form-group py-2">
-                        <button class="btn btn-primary">@Title</button>
+                        <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -98,11 +94,11 @@
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     public UserDTO ActiveUserDTO { get; set; }
-    
+
     public IEnumerable<object> CheckedValues { get; set; } = new List<object>();
 
     private string Title { get; set; } = "Создать пользователя";
@@ -112,7 +108,8 @@
         await base.OnInitializedAsync();
 
         IsLoading = true;
-        StateHasChanged();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
 
         if (UserId == Guid.Empty)
         {
@@ -127,23 +124,21 @@
 
             Title = "Изменить пользователя";
         }
-
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
                 IsLoading = true;
-                StateHasChanged();
-
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
                 if (UserId == Guid.Empty)
                 {
                     ActiveUserDTO = new UserDTO();
@@ -158,16 +153,17 @@
                 }
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/administration/User");
         }
-        else
-            _navigationManager.NavigateTo("/administration/User");
     }
 
     private async Task AddEditUserProcedure()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (UserId == Guid.Empty)
             { // создание
@@ -175,7 +171,7 @@
                 if (foundByUserName != null)
                 {
                     await _jsRuntime.ToastrError("Уже есть пользователь с наименованием " + foundByUserName.UserName + " (ИД: " + foundByUserName.Id.ToString() + ")");
-                    return;                    
+                    return;
                 }
 
                 var foundByLogin = await _userRepository.GetByLogin(ActiveUserDTO.Login);
@@ -191,8 +187,8 @@
                 UserDTO addedDTO = await _userRepository.Create(ActiveUserDTO);
                 await _logEventRepository.ToLog<UserDTO>(oldObject: null, newObject: addedDTO, "Добавление пользователя", "Пользователь: ", _authorizationRepository);
 
-                await _jsRuntime.ToastrSuccess("Пользователь \"" + ActiveUserDTO.UserName + " (" + ActiveUserDTO.Login +")\" создан");
-         
+                await _jsRuntime.ToastrSuccess("Пользователь \"" + ActiveUserDTO.UserName + " (" + ActiveUserDTO.Login + ")\" создан");
+
                 _dialogService.Close(ActiveUserDTO);
 
             }
@@ -218,7 +214,7 @@
                 UserDTO newUserDTO = await _userRepository.Update(ActiveUserDTO);
                 await _logEventRepository.ToLog<UserDTO>(oldObject: oldUserDTO, newObject: newUserDTO, "Изменение пользователя", "Пользователь: ", _authorizationRepository);
                 await _jsRuntime.ToastrSuccess("Пользователь \"" + ActiveUserDTO.UserName + " (" + ActiveUserDTO.Login + ") \" изменен");
-                
+
                 _dialogService.Close(ActiveUserDTO);
             }
         }

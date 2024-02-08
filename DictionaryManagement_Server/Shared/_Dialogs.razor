@@ -12,7 +12,7 @@
     public async Task<dynamic> ShowYesOrNoDialogBox(string windowTitle, string windowMessage, string actionButtonText, string cancelButtonText)
     {
         var result = await DialogService.OpenAsync(windowTitle, ds =>
-    @<RadzenStack Gap="1.5rem">
+    @<RadzenStack Gap="1.5rem" Style="justify-content: center; align-items: center;">
         <p>@windowMessage</p>
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
             <RadzenStack Orientation="Orientation.Horizontal">
@@ -21,7 +21,7 @@
             </RadzenStack>
         </RadzenStack>
     </RadzenStack>
-    , new DialogOptions() { Left = $"{400}px" });
+    , null);
 
         if (result != null)
             return result;

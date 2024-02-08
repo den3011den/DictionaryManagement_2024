@@ -13,7 +13,7 @@
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -26,20 +26,21 @@
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новый тип шаблонов отчётов" Click="@InsertRow" Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
-                <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тип шаблонов отчётов"
+                              Click="@InsertRow" Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
             </RadzenRow>
 
 
             <RadzenDataGridApp @ref="reportTemplateTypeDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@ReportTemplateTypeGridSettings" SettingsName="ReportTemplateTypeGridSettings"
                                Data="@reportTemplateTypeDTOs" TItem="ReportTemplateTypeDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
-                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                               
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 190px)">
+                               Style="height:calc(100vh - 155px)">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Name" Title="Наименование" Width="250px">
@@ -50,7 +51,6 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="CanAutoCalc" Title="Доступен для настройки авторасчёта" Width="150px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.CanAutoCalc ReadOnly="true" TriState="false" TValue="bool?" />
@@ -58,39 +58,43 @@
                         <EditTemplate Context="data">
                             <strong>
                                 |
-                                <RadzenCheckBox @bind-Value=data.CanAutoCalc TriState="false" TValue="bool?" Change="@(args => CanAutoCalcWarning(data.CanAutoCalc))"/>
+                                <RadzenCheckBox @bind-Value=data.CanAutoCalc TriState="false" TValue="bool?" Change="@(args => CanAutoCalcWarning(data.CanAutoCalc))" />
                                 |
                             </strong>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="80px" TextAlign="TextAlign.Center">
                         <Template Context="data">
-                            <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="true" TValue="bool"/>
+                            <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="true" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Context="reportTemplateTypeDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Title="Действия" Context="reportTemplateTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="reportTemplateTypeDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@(args => EditRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!reportTemplateTypeDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
                         <EditTemplate Context="reportTemplateTypeDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(reportTemplateTypeDTO))">
+                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@((args) => SaveRow(reportTemplateTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(reportTemplateTypeDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(reportTemplateTypeDTO))">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(reportTemplateTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
@@ -99,14 +103,7 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
     </div>
 }
@@ -124,8 +121,8 @@
     ReportTemplateTypeDTO reportTemplateTypeDTOToInsert;
     ReportTemplateTypeDTO reportTemplateTypeDTOToUpdate;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
 
     DataGridSettings _reportTemplateTypeGridSettings;
@@ -173,31 +170,32 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 reportTemplateTypeDTOs = _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/reports");
         }
-        else
-            _navigationManager.NavigateTo("/reports");
     }
 
     async Task EditRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             reportTemplateTypeDTOToUpdate = reportTemplateTypeDTO;
             await reportTemplateTypeDTOGrid.EditRow(reportTemplateTypeDTO);
@@ -206,7 +204,7 @@
 
     async Task OnUpdateRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (reportTemplateTypeDTO == reportTemplateTypeDTOToInsert)
             {
@@ -225,7 +223,7 @@
 
                     reportTemplateTypeDTO.Name = objectForRestore.Name;
                     reportTemplateTypeDTO.NeedAutoCalc = objectForRestore.NeedAutoCalc;
-                    reportTemplateTypeDTO.CanAutoCalc = objectForRestore.CanAutoCalc;                   
+                    reportTemplateTypeDTO.CanAutoCalc = objectForRestore.CanAutoCalc;
                     await reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTO);
                     await reportTemplateTypeDTOGrid.Reload();
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись типа шаблона отчётов с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
@@ -245,10 +243,10 @@
                         bool needChangeReportTemplates = false;
                         if (reportTemplateTypeDTO.CanAutoCalc == true)
                         {
-                            bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение доступности для авторасчёта", 
-                                "Вы устанавливаете доступность авторасчёта для типа шаблона отчёта \""+reportTemplateTypeDTO.Name+
-                                "\". Есть шаблоны отчётов, для которых не включен признак необходимости авторасчётов в количестве " + 
-                                reportTemplateListForCheck.Count().ToString() +". Включить для них необходимость авторасчётов ?" ,
+                            bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение доступности для авторасчёта",
+                                "Вы устанавливаете доступность авторасчёта для типа шаблона отчёта \"" + reportTemplateTypeDTO.Name +
+                                "\". Есть шаблоны отчётов, для которых не включен признак необходимости авторасчётов в количестве " +
+                                reportTemplateListForCheck.Count().ToString() + ". Включить для них необходимость авторасчётов ?",
                                 "Включить", "Не включать");
                             if (selectionResult == true)
                             {
@@ -290,8 +288,8 @@
                         }
                     }
                 }
-            }           
-            ReportTemplateTypeDTO oldReportTemplateTypeDTO = await _reportTemplateTypeRepository.Get(reportTemplateTypeDTO.Id);            
+            }
+            ReportTemplateTypeDTO oldReportTemplateTypeDTO = await _reportTemplateTypeRepository.Get(reportTemplateTypeDTO.Id);
             ReportTemplateTypeDTO newReportTemplateTypeDTO = await _reportTemplateTypeRepository.Update(reportTemplateTypeDTO, SD.UpdateMode.Update);
             await _logEventRepository.ToLog<ReportTemplateTypeDTO>(oldObject: oldReportTemplateTypeDTO, newObject: newReportTemplateTypeDTO, "Изменение типа шаблона отчёта", "Тип шаблона отчёта: ", _authorizationRepository);
         }
@@ -299,10 +297,8 @@
 
     async Task SaveRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-        {
+        if (IsAdmin == AdminMode.IsAdmin)
             await reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTO);
-        }
     }
 
     void CancelEdit(ReportTemplateTypeDTO reportTemplateTypeDTO)
@@ -328,7 +324,7 @@
 
     async Task DeleteRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -395,7 +391,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             reportTemplateTypeDTOToInsert = new ReportTemplateTypeDTO();
             reportTemplateTypeDTOToInsert.NeedAutoCalc = false;
@@ -406,10 +402,9 @@
 
     async Task OnCreateRow(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             reportTemplateTypeDTOToInsert = null;
-
             var objectForCheckName = await _reportTemplateTypeRepository.GetByName(reportTemplateTypeDTO.Name);
             if (objectForCheckName != null)
             {
@@ -433,7 +428,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "ReportTemplateType_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -449,7 +444,7 @@
     {
         if (CanAutoCalcVar == true)
         {
-            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Данная настройка не будет иметь эффекта, если в AutoCalc не предусмотрен авторасчёт "+
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Данная настройка не будет иметь эффекта, если в AutoCalc не предусмотрен авторасчёт " +
                 "для данного типа шаблона отчёта, а так же если в \"Отчёты - Шаблоны отчётов\" не включен авторасчёт для конкретных шаблонов отчётов.");
         }
     }

@@ -111,7 +111,20 @@ namespace DictionaryManagement_Business.Repository
                 return _mapper.Map<SapMaterial, SapMaterialDTO>(objectToUpdate);
             }
             return objectToUpdateDTO;
-
         }
+
+        public async Task<IEnumerable<SapMaterialDTO>> GetListByName(string name)
+        {
+            return _mapper.Map<IEnumerable<SapMaterial>, IEnumerable<SapMaterialDTO>>(
+                _db.SapMaterial.Where(u => !String.IsNullOrEmpty(u.Name.Trim()) && u.Name.Trim().ToUpper().Equals(name.Trim().ToUpper())).ToListWithNoLock()
+                );
+        }
+        public async Task<IEnumerable<SapMaterialDTO>> GetListByShortName(string shortName)
+        {
+            return _mapper.Map<IEnumerable<SapMaterial>, IEnumerable<SapMaterialDTO>>(
+                _db.SapMaterial.Where(u => !String.IsNullOrEmpty(u.ShortName.Trim()) && u.ShortName.Trim().ToUpper().Equals(shortName.Trim().ToUpper())).ToListWithNoLock()
+                );
+        }
+
     }
 }

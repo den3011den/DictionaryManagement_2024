@@ -35,12 +35,22 @@ namespace DictionaryManagement_Common
         {
             LoginOnly,
             NameOnly,
-            LoginAndName
+            LoginAndName,
+            LoginAndNameAndAccessMode
+        }
+
+        public enum AdminMode
+        {
+            IsAdmin,
+            IsAdminReadOnly,
+            None
         }
 
         public static string DictionaryManagementUserName = "DictionaryManagement";
         public static string AppVersion = "";
         public static string? AppFactoryMode = "КOC";
+        public static string? AppFactoryModeShort = "КOC";
+        public static int? ShowBackgroundText = 0;
         public static string AdminRoleName = "Администратор";
         public static string SyncUserADGroupsIntervalInMinutesSettingName = "SyncUserADGroupsIntervalInMinutes";
 
@@ -69,10 +79,13 @@ namespace DictionaryManagement_Common
         public static string SapEquipmentLoadFromExcelReportTemplateTypeNameSettingName = "SapEquipmentLoadFromExcelReportTemplateTypeName";
         public static string MesParamLoadFromExcelReportTemplateTypeNameSettingName = "MesParamLoadFromExcelReportTemplateTypeName";
         public static string MesMovementsLoadFromExcelReportTemplateTypeNameSettingName = "MesMovementsLoadFromExcelReportTemplateTypeName";
-        public static string MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName = "MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName";
-        public static string SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName";
-        public static string SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName";
-        public static string SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName";
+        public static string MesNdoStocksLoadFromExcelReportTemplateTypeNameSettingName = "MesNdoStocksLoadFromExcelReportTemplateTypeName";
+        public static string SapMovementsINLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsINLoadFromExcelReportTemplateTypeName";
+        public static string SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapMovementsOUTLoadFromExcelReportTemplateTypeName";
+        public static string SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName = "SapNdoOUTLoadFromExcelReportTemplateTypeName";
+        public static string UsersLoadFromExcelReportTemplateTypeNameSettingName = "UsersLoadFromExcelReportTemplateTypeName";
+        public static string ADGroupsLoadFromExcelReportTemplateTypeNameSettingName = "ADGroupsLoadFromExcelReportTemplateTypeName";
+        public static int SqlCommandConnectionTimeout = 180;
 
         public static String RemoveInvalidCharsFromFilename(this String file_name, int? maxFileNameLength = 200)
         {
@@ -86,7 +99,6 @@ namespace DictionaryManagement_Common
                 if ((file_name.Length - (int)maxFileNameLength) > 0)
                     file_name = file_name.Substring(file_name.Length - (int)maxFileNameLength);
             }
-
             return file_name;
         }
 

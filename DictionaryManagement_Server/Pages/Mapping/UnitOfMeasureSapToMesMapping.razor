@@ -6,13 +6,12 @@
 @using DictionaryManagement_Models.IntDBModels
 @using Microsoft.EntityFrameworkCore;
 
-
 @inject IJSRuntime _jsRuntime
 @inject IUnitOfMeasureSapToMesMappingRepository _unitOfMeasureSapToMesMappingRepository
 @inject ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository
 @inject IMesUnitOfMeasureRepository _mesUnitOfMeasureRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -30,20 +29,20 @@
 
         @if (IsLoading != true)
         {
-            @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку ед. изм." Click="@InsertRow" Disabled=@(unitOfMeasureSapToMesMappingDTOToInsert != null || unitOfMeasureSapToMesMappingDTOToUpdate != null) /> *@
+            @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку ед. изм." Click="@InsertRow" Disabled=@(unitOfMeasureSapToMesMappingDTOToInsert != null || unitOfMeasureSapToMesMappingDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) /> *@
             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку ед. изм." Click="@InsertRow" Disabled=true />
             <RadzenDataGridApp @ref="unitOfMeasureSapToMesMappingDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                            Data="@unitOfMeasureSapToMesMappingDTOs" TItem="UnitOfMeasureSapToMesMappingDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            EmptyText="Нет записей для отображения"
-                            FilterMode="FilterMode.Simple"
-                            AllowColumnResize="false"
-                            AllowVirtualization="true"
-                            GridLines="DataGridGridLines.Both"
-                            Style="height:calc(100vh - 170px)"
-                            ShowCleanGridSettingsHeaderButton="false"
-                            ShowCleanGridFiltersHeaderButton="false"
-                            ShowCleanGridSortsHeaderButton="false">
+                               Data="@unitOfMeasureSapToMesMappingDTOs" TItem="UnitOfMeasureSapToMesMappingDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               EmptyText="Нет записей для отображения"
+                               FilterMode="FilterMode.Simple"
+                               AllowColumnResize="false"
+                               AllowVirtualization="true"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 155px)"
+                               ShowCleanGridSettingsHeaderButton="false"
+                               ShowCleanGridFiltersHeaderButton="false"
+                               ShowCleanGridSortsHeaderButton="false">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="UnitOfMeasureSapToMesMappingDTO" Property="SapUnitOfMeasureDTO" FilterProperty="SapUnitOfMeasureDTO.ShortName" Title="Ед. изм. SAP" Width="280px" Filterable="true">
                         <EditTemplate Context="unitOfMeasureSapToMesMappingDTO">
@@ -71,21 +70,21 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="UnitOfMeasureSapToMesMappingDTO" Context="UnitOfMeasureSapToMesMappingDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="UnitOfMeasureSapToMesMappingDTO">
-                            @* <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(UnitOfMeasureSapToMesMappingDTO))" @onclick:stopPropagation="true"> *@
+                            @* <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(UnitOfMeasureSapToMesMappingDTO))" @onclick:stopPropagation="true" Disabled = "@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton Icon="edit" Disabled=true ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(UnitOfMeasureSapToMesMappingDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
-@*                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(UnitOfMeasureSapToMesMappingDTO))" @onclick:stopPropagation="true"> *@
+                            @*                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(UnitOfMeasureSapToMesMappingDTO))" @onclick:stopPropagation="true" Disabled = "@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton Disabled=true ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(UnitOfMeasureSapToMesMappingDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
                         </Template>
                         <EditTemplate Context="UnitOfMeasureSapToMesMappingDTO">
- @*                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(UnitOfMeasureSapToMesMappingDTO))"> *@
+                            @*                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(UnitOfMeasureSapToMesMappingDTO))" Disabled = "@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton Disabled=true Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(UnitOfMeasureSapToMesMappingDTO))">
                             </RadzenButton>
                             @* <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(UnitOfMeasureSapToMesMappingDTO))"> *@
                             <RadzenButton Disabled=true Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(UnitOfMeasureSapToMesMappingDTO))">
                             </RadzenButton>
-                            @* <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(UnitOfMeasureSapToMesMappingDTO))"> *@
+                            @* <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(UnitOfMeasureSapToMesMappingDTO))"Disabled = "@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton Disabled=true ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(UnitOfMeasureSapToMesMappingDTO))">
                             </RadzenButton>
                         </EditTemplate>
@@ -96,15 +95,8 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-            }
+            <Loading IsLoading="@IsLoading" />
         }
-
     </div>
 }
 
@@ -123,9 +115,8 @@
 
     //int oldSapUnitIdBeforeUpdate, oldMesUnitIdBeforeUpdate;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
-
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     void Reset()
     {
@@ -143,27 +134,29 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 unitOfMeasureSapToMesMappingDTOs = _unitOfMeasureSapToMesMappingRepository.GetAll().Result;
                 sapUnitOfMeasureDTOs = _sapUnitOfMeasureRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
                 mesUnitOfMeasureDTOs = _mesUnitOfMeasureRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/mapping");
         }
-        else
-            _navigationManager.NavigateTo("/mapping");
     }
 
     async Task EditRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             unitOfMeasureSapToMesMappingDTOToUpdate = unitOfMeasureSapToMesMappingDTO;
             //oldSapUnitIdBeforeUpdate = unitOfMeasureSapToMesMappingDTO.SapUnitId;
@@ -176,7 +169,7 @@
 
     async Task OnUpdateRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if ((unitOfMeasureSapToMesMappingDTO.SapUnitId != unitOfMeasureSapToMesMappingDTO.SapUnitOfMeasureDTO.Id) || (unitOfMeasureSapToMesMappingDTO.MesUnitId != unitOfMeasureSapToMesMappingDTO.MesUnitOfMeasureDTO.Id))
             {
@@ -211,7 +204,7 @@
 
     async Task SaveRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await unitOfMeasureSapToMesMappingDTOGrid.UpdateRow(unitOfMeasureSapToMesMappingDTO);
         }
@@ -232,7 +225,7 @@
 
     async Task DeleteRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -273,7 +266,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             unitOfMeasureSapToMesMappingDTOToInsert = new UnitOfMeasureSapToMesMappingDTO();
             await unitOfMeasureSapToMesMappingDTOGrid.InsertRow(unitOfMeasureSapToMesMappingDTOToInsert);
@@ -282,13 +275,12 @@
 
     async Task OnCreateRow(UnitOfMeasureSapToMesMappingDTO unitOfMeasureSapToMesMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             var forCheck = _unitOfMeasureSapToMesMappingRepository.Get(unitOfMeasureSapToMesMappingDTO.SapUnitOfMeasureDTO.Id, unitOfMeasureSapToMesMappingDTO.MesUnitOfMeasureDTO.Id).Result;
 
             if (forCheck != null)
             {
-
                 unitOfMeasureSapToMesMappingDTOToInsert = null;
                 await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть маппинг ед. изм. SAP: \"" + unitOfMeasureSapToMesMappingDTO.SapUnitOfMeasureDTO.ShortName
                             + "\" и MES: " + unitOfMeasureSapToMesMappingDTO.MesUnitOfMeasureDTO.ShortName);
@@ -309,6 +301,4 @@
             await OnAfterRenderAsync(true);
         }
     }
-
-
 }

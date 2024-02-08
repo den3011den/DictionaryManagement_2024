@@ -1,5 +1,4 @@
-﻿using DictionaryManagement_Common;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
@@ -13,6 +12,7 @@ namespace DictionaryManagement_Server.Extensions
         [Parameter] public bool? ShowCleanGridFiltersHeaderButton { get; set; } = true;
         [Parameter] public bool? ShowCleanGridSortsHeaderButton { get; set; } = true;
         [Parameter] public string? SettingsName { get; set; } = "";
+        [Parameter] public int? MesDepartmentCount { get; set; } = 0;
 
         [Inject]
         IJSRuntime? JS { get; set; }
@@ -48,6 +48,7 @@ namespace DictionaryManagement_Server.Extensions
             base.Density = Density.Compact;
             base.EmptyTemplate = EmptyTemplateRender;
             base.HeaderTemplate = HeaderTemplateRender;
+            this.VirtualizationOverscanCount = 40;
         }
 
 
@@ -63,7 +64,6 @@ namespace DictionaryManagement_Server.Extensions
         {
             if (ShowCleanGridSettingsHeaderButton == true || ShowCleanGridFiltersHeaderButton == true || ShowCleanGridSortsHeaderButton == true)
             {
-
                 if (ShowCleanGridSettingsHeaderButton == true)
                 {
                     builder.OpenComponent<RadzenButton>(1);
@@ -105,6 +105,29 @@ namespace DictionaryManagement_Server.Extensions
 
                     builder.CloseComponent();
                 }
+
+                bool addRecordCountSign = true;
+                if (this.Data != null)
+                    if (this.Data.GetType().ToString().ToUpper().Contains("MESDEPARTMENTDTO"))
+                    {
+                        addRecordCountSign = false;
+                    }
+                builder.OpenComponent<RadzenButton>(22);
+                builder.AddAttribute(23, "Size", ButtonSize.Small);
+                builder.AddAttribute(24, "Style", "text-transform:none;");
+                if (addRecordCountSign)
+                {
+                    builder.AddAttribute(25, "Text", String.Concat("Записей с учётом фильтров ", this.View == null ? "0" : this.View.Count().ToString(),
+                        " из ", this.Data == null ? "0" : this.Data.Count().ToString(), " в выборке"));
+                }
+                else
+                {
+                    builder.AddAttribute(25, "Text", String.Concat("Отображается ", this.View == null ? "0" : this.View.Count().ToString(),
+                        " из ", this.Data == null ? "0" : MesDepartmentCount.ToString(), " записей"));
+                }
+                builder.AddAttribute(26, "ButtonStyle", ButtonStyle.Primary);
+                builder.AddAttribute(27, "Variant", Variant.Text);
+                builder.CloseComponent();
             }
             else
             {
@@ -116,7 +139,7 @@ namespace DictionaryManagement_Server.Extensions
         {
             await Task.CompletedTask;
             var selectionResult = await _dialogs.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
             if (selectionResult != true)
             {
@@ -136,7 +159,7 @@ namespace DictionaryManagement_Server.Extensions
         async Task CleanAllFilters()
         {
             var selectionResult = await _dialogs.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
             if (selectionResult != true)
             {
@@ -163,10 +186,8 @@ namespace DictionaryManagement_Server.Extensions
 
         async Task CleanAllOrders()
         {
-
             var selectionResult = await _dialogs.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
-
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
             if (selectionResult != true)
             {
                 await InvokeAsync(SaveStateAsync);

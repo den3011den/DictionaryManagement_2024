@@ -9,27 +9,23 @@
 @inject IJSRuntime _jsRuntime
 @inject IMesMovementsRepository _mesMovementsRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
-
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/MesMovements">Архив данных</a></h6>
         </div>
 
-
         @if (IsLoading != true)
         {
-
-            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
-                        <RadzenStack Gap="1rem">
+                        <RadzenStack Gap="0.5rem">
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
                                     <Items>
@@ -38,10 +34,11 @@
                                     </Items>
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                <RadzenButton title="Загрузка данных из Excel Архив данных СИР" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                                @* <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton Size="ButtonSize.Small" title="Загрузка данных из Excel Архив данных СИР" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
                                 @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
                             </RadzenRow>
                         </RadzenStack>
@@ -52,14 +49,14 @@
             <RadzenDataGridApp @bind-Settings="@MesMovementsGridSettings" SettingsName="MesMovementsGridSettings" @ref="mesMovementsDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@mesMovementsDTOs" TItem="MesMovementsDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                EmptyText="Нет записей для отображения"
                                AllowVirtualization="true"
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
-                               Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px")
+                               Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
                                ColumnWidth="200px"
                                AllowColumnPicking="true"
                                GridLines="DataGridGridLines.Both"
@@ -76,6 +73,9 @@
 
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
+                    </RadzenButton>
+                    <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @mesMovementsDTOGrid.View.Count().ToString()+" из "+(mesMovementsDTOs == null ? "0" : mesMovementsDTOs.Count().ToString())+" в выборке")
+                                  ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
                     </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
@@ -108,7 +108,7 @@
                             <RadzenDropDown @bind-Value=@selectedAddUsers
                                             Change=OnSelectedAddUsersChange Data="@(distinctAddUsersInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 100%;"
+                                            Style="font-size:0.75rem;width: 30vw;"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -127,7 +127,7 @@
                             <RadzenDropDown @bind-Value=@selectedDataSources
                                             Change=OnSelectedDataSourcesChange Data="@(distinctDataSourcesInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 100%;"
+                                            Style="font-size:0.75rem;width: 30vw;"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -149,7 +149,7 @@
                             <RadzenDropDown @bind-Value=@selectedDataTypes
                                             Change=OnSelectedDataTypesChange Data="@(distinctDataTypesInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 100%;"
+                                            Style="font-size:0.75rem;width: 30vw;"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -245,6 +245,28 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapMovementInId" Title="ИД записи в витрине SAP (вход)" FilterProperty="SapMovementInId" SortProperty="SapMovementInId" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (data1.SapMovementInId != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.SapMovementInId
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="ToStringSapMovementOutId" Title="ИД записи в витрине SAP (выход)" FilterProperty="ToStringSapMovementOutId" SortProperty="ToStringSapMovementOutId" TextAlign="TextAlign.Center" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (data1.ToStringSapMovementOutId != null)
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.ToStringSapMovementOutId
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
                     <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapGoneBool" Title="Sap забрал" Filterable="true" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.SapGoneBool ReadOnly="true" TriState="false" TValue="bool" />
@@ -277,7 +299,7 @@
                             <RadzenDropDown @bind-Value=@selectedCorrectionReasons
                                             Change=OnSelectedCorrectionReasonsChange Data="@(distinctCorrectionReasonsInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 100%;"
+                                            Style="font-size:0.75rem;width: 30vw;"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -303,29 +325,21 @@
                     </RadzenDataGridColumnApp>
 
 
-@*                     <RadzenDataGridColumnApp Title="Действия" TItem="MesMovementsDTO" Context="mesMovementsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-                        <Template Context="mesMovementsDTO">
-                            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesMovementsDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesMovementsDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                        </Template>
-                    </RadzenDataGridColumnApp> *@
+                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="MesMovementsDTO" Context="mesMovementsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+            <Template Context="mesMovementsDTO">
+            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesMovementsDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesMovementsDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            </Template>
+            </RadzenDataGridColumnApp> *@
                 </Columns>
             </RadzenDataGridApp>
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
-
     </div>
 }
 
@@ -357,19 +371,17 @@
 
     RadzenDataGrid<MesMovementsDTO> mesMovementsDTOGrid;
 
-    DateTime startDate = DateTime.Today.AddDays(-7);
-    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+    DateTime? startDate = DateTime.Today;
+    DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
 
-    bool ApplyButtonDisabled = true;
+    bool ApplyButtonDisabled = false;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -378,31 +390,32 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
+
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                startDate = DateTime.Today.AddDays(-7);
-                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
-
+                if (startDate == null || endDate == null)
+                {
+                    startDate = DateTime.Today;
+                    endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                }
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
-
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 await GetRows();
-
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/dataarchive");
         }
-        else
-            _navigationManager.NavigateTo("/dataarchive");
     }
 
 
@@ -469,18 +482,58 @@
 
     private async Task ChangeStartDate()
     {
-        ApplyButtonDisabled = false;
-        maxEndDate = startDate.AddMonths(1).AddSeconds(-1);
-        minEndDate = startDate.AddDays(-1);
-        if (endDate > maxEndDate)
-            endDate = maxEndDate;
-
+        if (startDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (endDate != null && startDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+            }
+            ApplyButtonDisabled = false;
+        }
+        // ApplyButtonDisabled = false;
+        // maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
+        // minEndDate = ((DateTime)startDate).AddDays(-1);
+        // if (endDate > maxEndDate)
+        //     endDate = maxEndDate;
     }
 
     private async Task ChangeEndDate()
     {
 
-        ApplyButtonDisabled = false;
+        if (endDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (endDate != null && startDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+            }
+            ApplyButtonDisabled = false;
+        }
     }
 
 
@@ -488,7 +541,8 @@
     {
         IsLoading = true;
         await LoadStateAsync();
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
         if (applyRadioGroupValue == 1)
             mesMovementsDTOs = await _mesMovementsRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
         else
@@ -499,10 +553,10 @@
         List<string> distinctDataTypesInList = new List<string>();
         List<string> distinctCorrectionReasonsInList = new List<string>();
         await GetDistincts();
-        ApplyButtonDisabled = true;
+        ApplyButtonDisabled = false;
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
 
@@ -536,7 +590,7 @@
         else
         {
 
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "MesMovements_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
@@ -601,7 +655,7 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -632,7 +686,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -659,18 +713,15 @@
         {
             await GetDistincts();
         }
-
         await InvokeAsync(SaveStateAsync);
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-
     }
 
     async Task CleanAllOrdersCustom()
     {
-
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "300px" });
+        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -692,19 +743,19 @@
 
     async Task ExcelImport()
     {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-        return;
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Архив данных)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.MesMovementsLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{"DataList", (IEnumerable<MesMovementsDTO>)mesMovementsDTOGrid.View } }
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
             await this.OnAfterRenderAsync(true);
-            IsLoading = false;
         }
+        IsLoading = false;
     }
 
 }

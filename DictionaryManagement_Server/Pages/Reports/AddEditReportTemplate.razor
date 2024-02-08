@@ -1,10 +1,8 @@
 ﻿@page "/reports/ReportTemplate/AddEditReportTemplate/{ReportTemplateId}"
 @attribute [Authorize]
 
-
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
-
 @inject IReportTemplateRepository _reportTemplateRepository
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
 @inject IDataTypeRepository _dataTypeRepository
@@ -13,24 +11,21 @@
 @inject IWebHostEnvironment _environment
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 @inject ILogEventRepository _logEventRepository
-
-
 @inject DialogService _dialogService
 
 <_Dialogs @ref="_dialogs"></_Dialogs>
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     @if (IsLoading)
     {
-        <div class="text-center">
-            <img src="/images/loading.gif">
-        </div>
+        <Loading IsLoading="@IsLoading" />
     }
     else
     {
         @*OnSubmit = "AddEditReportTemplateProcedure2"*@
         @*OnValidSubmit="AddEditReportTemplateProcedure*@
+
         <EditForm Model="ActiveReportTemplateDTO" OnValidSubmit="AddEditReportTemplateProcedure">
             <DataAnnotationsValidator />
 
@@ -39,8 +34,6 @@
                     <RadzenStack>
                         <RadzenFieldset Text="Шаблон отчёта" Style="font-weight: bold;">
                             <RadzenStack Gap="1rem">
-
-
                                 @if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
                                 {
                                     <RadzenFormField Text="ИД шаблона" Variant="@variant" Style="width: 100%;">
@@ -55,7 +48,6 @@
                                     <RadzenFormField Text="Кто добавил" Variant="@variant" Style="width: 100%;">
                                         <RadzenTextBox @bind-Value="@ActiveReportTemplateDTO.AddUserDTOFK.UserName" ReadOnly="true" />
                                     </RadzenFormField>
-
                                 }
 
                                 <RadzenFormField Text="Тип шаблона отчёта" Variant="@variant" Style="width: 100%;">
@@ -92,13 +84,23 @@
 
                                 <RadzenCard Style="width: 100%;">
                                     <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать файл шаблона отчёта</RadzenText>
-                                    <RadzenUpload @ref="upload" Auto="false" ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                                  Url="UploadFileController/UploadReportTemplateFile/{customParameter}"
-                                                  Change=@(args => OnChange(args)) Progress=@(args => OnProgress(args)) />
+@*                                     <RadzenUpload @ref="upload" Auto="true" ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                  Url="@("UploadFileController/UploadReportTemplateFile/"+ActiveReportTemplateDTO.Id)"
+                                                  Change=@(args => OnChange(args)) Progress=@(args => OnProgress(args)) Error=@(args => UploadError(args)) /> *@
+                                    <RadzenUpload @ref="upload" Auto="true" ChooseText="Выбрать" Multiple="false" Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                  Url="@("UploadFileController/UploadReportTemplateFile/"+ActiveReportTemplateDTO.Id)"
+                                                  Progress=@(args => OnProgress(args)) Error=@(args => UploadError(args)) />
                                     @if (!String.IsNullOrEmpty(uploadFileWarning))
                                     {
                                         <br />
-                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                        @if (showProgress)
+                                        {
+                                            <RadzenProgressBar Value=@progress class="mt-4" Visible=@showProgress />
+                                        }
+                                        else
+                                        {
+                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                        }
                                     }
                                 </RadzenCard>
                             </RadzenStack>
@@ -110,12 +112,12 @@
                     <RadzenStack>
                         <RadzenFieldset Text="Авторасчёт шаблона отчёта" Style="font-weight: bold;">
                             <RadzenStack Gap="1rem">
-                                @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK !=null && ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.CanAutoCalc == true)
-                                {       
+                                @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK != null && ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.CanAutoCalc == true)
+                                {
                                     <div class="rz-p-12 rz-text-align-center">
-                                    <RadzenCheckBox @bind-Value="@ActiveReportTemplateDTO.NeedAutoCalc" Name="CheckBoxNeedAutoCalc" />
-                                    <RadzenLabel Text="Включить авторасчёт шаблона отчёта" Component="CheckBoxNeedAutoCalc" Style="margin-left: 8px; vertical-align: middle; font-size: 14px" />
-                                    <ValidationMessage For="()=>ActiveReportTemplateDTO.NeedAutoCalc"></ValidationMessage>
+                                        <RadzenCheckBox @bind-Value="@ActiveReportTemplateDTO.NeedAutoCalc" Name="CheckBoxNeedAutoCalc" />
+                                        <RadzenLabel Text="Включить авторасчёт шаблона отчёта" Component="CheckBoxNeedAutoCalc" Style="margin-left: 8px; vertical-align: middle; font-size: 14px" />
+                                        <ValidationMessage For="()=>ActiveReportTemplateDTO.NeedAutoCalc"></ValidationMessage>
                                     </div>
                                     <RadzenFormField Text="Порядок авторасчёта" Variant="@variant" Style="width: 100%; max-width: 700px;">
                                         <RadzenNumeric @bind-Value="@ActiveReportTemplateDTO.AutoCalcOrder" Disabled="@(ActiveReportTemplateDTO.NeedAutoCalc == true ? false : true)" />
@@ -129,7 +131,7 @@
                                 else
                                 {
                                     <p style="color: lightgrey; font-size: 14px; text-align: center; margin: 2rem;">
-                                        @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK==null)
+                                        @if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK == null)
                                         {
                                             @("Тип шаблона отчёта не выбран")
                                         }
@@ -144,21 +146,24 @@
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
-
-
-
             <div class="form-group py-2">
-                <button class="btn btn-primary" @onclick="(() => OnClickSave().GetAwaiter().GetResult())" disabled=@IsSubmited>@Title</button>
+                <button class="btn btn-primary" @onclick="(() => OnClickSave().GetAwaiter().GetResult())"
+                        disabled=@(IsSubmited || (IsAdmin != AdminMode.IsAdmin) || (isUploadFileError == true) || (showProgress == true))>
+                    @Title
+                </button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
 }
 
-
 @code {
 
     _Dialogs? _dialogs { get; set; }
+
+    bool showProgress = false;
+    int progress;
+    bool checkFile = true;
 
     Guid customParameter;
 
@@ -168,13 +173,16 @@
     bool IsSubmited = false;
 
     public string ReportTemplatePath;
+    public string TempFilePath;
 
     RadzenUpload upload;
 
     Variant variant = Variant.Outlined;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+    public bool isUploadFileError { get; set; }  = false;
+    public string uploadFileErrorString { get; set; } = "";
 
     string uploadFileWarning = "";
 
@@ -201,17 +209,18 @@
 
         bool IsSubmited = false;
         IsLoading = true;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
 
         if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
         {
             ActiveReportTemplateDTO = new ReportTemplateDTO
-            {
-                NeedAutoCalc = false,
-                AutoCalcOrder = 1,
-                AutoCalcNumber = 1
-            };
+                {
+                    Id = customParameter,
+                    NeedAutoCalc = false,
+                    AutoCalcOrder = 1,
+                    AutoCalcNumber = 1
+                };
         }
         else
         {
@@ -221,54 +230,54 @@
         }
 
         IsLoading = false;
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
-            // {
-            IsAdmin = true;
-
-            IsLoading = true;
-            StateHasChanged();
-
-            if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                ActiveReportTemplateDTO = new ReportTemplateDTO
-                    {
-                        NeedAutoCalc = false,
-                        AutoCalcOrder = 1,
-                        AutoCalcNumber = 1
-                    };
+                IsLoading = true;
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
+
+                if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
+                {
+                    ActiveReportTemplateDTO = new ReportTemplateDTO
+                        {
+                            Id = customParameter,
+                            NeedAutoCalc = false,
+                            AutoCalcOrder = 1,
+                            AutoCalcNumber = 1
+                        };
+                }
+                else
+                {
+                    ActiveReportTemplateDTO = await _reportTemplateRepository.GetById(ReportTemplateId);
+                    Title = "Изменить шаблон отчёта";
+                }
+
+                MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
+                ReportTemplateTypeDTOList = await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                DataTypeDTOList = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+
+                IsLoading = false;
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
             else
-            {
-                ActiveReportTemplateDTO = await _reportTemplateRepository.GetById(ReportTemplateId);
-                Title = "Изменить шаблон отчёта";
-            }
-
-            MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
-            ReportTemplateTypeDTOList = await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
-            DataTypeDTOList = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
-
-            IsLoading = false;
-            StateHasChanged();
-            // }
-            // else
-            //     _navigationManager.NavigateTo("/reports/ReportTemplate");
-
-
+                _navigationManager.NavigateTo("/reports/ReportTemplate");
         }
-
     }
-    
+
     private async Task AddEditReportTemplateProcedure()
     {
         IsSubmited = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             ReportTemplatePath = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
 
@@ -286,6 +295,21 @@
                 return;
             }
 
+            TempFilePath = (await _settingsRepository.GetByName("TempFilePath")).Value;
+
+            if (String.IsNullOrEmpty(TempFilePath))
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найдена настройка с наименованием \"TempFilePath\" либо значение настройки пусто");
+                IsSubmited = false;
+                return;
+            }
+
+            if (!Directory.Exists(TempFilePath))
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Путь \"" + TempFilePath + "\", указанный в качестве значения настройки \"TempFilePath\", не существует или не доступен!");
+                IsSubmited = false;
+                return;
+            }
             if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
             { // создание
 
@@ -309,19 +333,30 @@
                 ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "\" c вых данными: \"" +
                     ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "\" для производства: \"" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "\"";
 
+                ActiveReportTemplateDTO.Id = customParameter;
+                ActiveReportTemplateDTO.TemplateFileName = customParameter + ".xlsx";
                 ReportTemplateDTO createdTemplateDTO = await _reportTemplateRepository.Create(ActiveReportTemplateDTO);
 
-                createdTemplateDTO.TemplateFileName = createdTemplateDTO.Id + ".xlsx";
+                // createdTemplateDTO.TemplateFileName = createdTemplateDTO.Id + ".xlsx";
 
-                var addedDTO =  await _reportTemplateRepository.Update(createdTemplateDTO);
+                // var addedDTO = await _reportTemplateRepository.Update(createdTemplateDTO);
 
-                await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: null, newObject: addedDTO, "Добавление шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
+                await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: null, newObject: createdTemplateDTO, "Добавление шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
 
-                upload.Url = @"UploadFileController/UploadReportTemplateFile/" + createdTemplateDTO.Id;
-                await upload.Upload();
+                //upload.Url = @"UploadFileController/UploadReportTemplateFile/" + createdTemplateDTO.Id;
+                //await upload.Upload();
 
+                try
+                {
+                    File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                }
+                catch (Exception copyEx)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
+                }
                 await _jsRuntime.ToastrSuccess("Шаблон \"" + ActiveReportTemplateDTO.Description + "\" создан");
-                _dialogService.Close(ActiveReportTemplateDTO);
+                if (isUploadFileError == false)
+                    _dialogService.Close(ActiveReportTemplateDTO);
             }
             else
             { // изменение
@@ -342,13 +377,22 @@
 
                 ActiveReportTemplateDTO.TemplateFileName = ActiveReportTemplateDTO.Id + ".xlsx";
 
+                //!!!
+
                 if (!String.IsNullOrEmpty(uploadFileWarning))
                 {
-                    upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
-                    await upload.Upload();
-
+                    //upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
+                    //await upload.Upload();
+                    try
+                    {
+                        File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                    }
+                    catch(Exception copyEx)
+                    {
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
+                    }
                     Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
-                    await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUserId, "", "", false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
+                    await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUserId, ActiveReportTemplateDTO.ToString(), ActiveReportTemplateDTO.ToString(), false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
                 }
 
                 ReportTemplateDTO oldReportTemplateDTO = await _reportTemplateRepository.GetById(ActiveReportTemplateDTO.Id);
@@ -358,13 +402,11 @@
                 await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: oldReportTemplateDTO, newObject: newReportTemplateDTO, "Изменение шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
 
                 await _jsRuntime.ToastrSuccess("Шаблон отчёта \"" + ActiveReportTemplateDTO.Id.ToString() + "\" изменён");
-
-                _dialogService.Close(ActiveReportTemplateDTO);
+                if(isUploadFileError == false)
+                    _dialogService.Close(ActiveReportTemplateDTO);
             }
         }
-
         IsSubmited = false;
-
     }
 
     private async Task FillDescription()
@@ -403,16 +445,17 @@
 
         ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + repTemplateTypeName + "\" c вых данными: \"" +
                 dataTypeName + "\" для производства: \"" + depName + "\"";
-
-        // StateHasChanged();
     }
 
-    private async Task OnClickCancel() => _dialogService.Close(null);
+    private async Task OnClickCancel() {
+        upload.Dispose();
+        _dialogService.Close(null);
+    }
 
     private async Task OnClickSave()
     {
         IsSubmited = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             UserDTO? currentUserDTO = await _authorizationRepository.GetCurrentUserDTO(SD.MessageBoxMode.Off);
             ActiveReportTemplateDTO.AddTime = DateTime.Now;
@@ -428,11 +471,42 @@
         IsSubmited = false;
     }
 
-    
-    void OnProgress(UploadProgressArgs args)
+
+    private async Task OnProgress(UploadProgressArgs args)
     {
 
+        if (checkFile)
+        {
+            checkFile = false;
+            uploadFileWarning = "";
+            if (args.Files.Count() > 0)
+            {
+                if (args.Files.ToList()[0].Size > 31457280)
+                {
+                    uploadFileWarning = "";
+                    await upload.ClearFiles();
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл не может быть больше 30 МБ");
+                    checkFile = true;
+                    return;
+                }
+                else
+                {
+                    if (Path.GetExtension(args.Files.ToList()[0].Name).ToUpper() != ".XLSX")
+                    {
+                        uploadFileWarning = "";
+                        await upload.ClearFiles();
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл должен быть формата xlsx");
+                        checkFile = true;
+                        return;
+                    }
+                }               
+            }
+        }
         var loadedFileName = "";
+        showProgress = true;
+        progress = args.Progress;
+        await Task.Delay(1);
+        await InvokeAsync(StateHasChanged);
 
         if (args.Progress == 100)
         {
@@ -440,39 +514,50 @@
             {
 
                 loadedFileName = file.Name;
-
+                checkFile = true;
+                if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
+                    uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Изменить шаблон отчёта\"";
+                else
+                    uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Создать шаблон отчёта\"";
                 //console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
             }
-
+            showProgress = false;
+            await Task.Delay(1);
+            await InvokeAsync(StateHasChanged);            
         }
     }
 
-    void OnChange(UploadChangeEventArgs args)
+    // private async Task OnChange(UploadChangeEventArgs args)
+    // {
+    //     uploadFileWarning = "";
+    //     if (args.Files.Count() > 0)
+    //     {
+
+    //         if (args.Files.ToList()[0].Size > 31457280)
+    //         {
+    //             upload.ClearFiles();
+    //             _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл не может быть больше 30 МБ");
+    //         }
+    //         else
+    //         {
+    //             if (Path.GetExtension(args.Files.ToList()[0].Name).ToUpper() != ".XLSX")
+    //             {
+    //                 upload.ClearFiles();
+    //                 _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл должен быть формата xlsx");
+    //             }
+    //         }
+
+    //         if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
+    //             uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Изменить шаблон отчёта\"";
+    //         else
+    //             uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Создать шаблон отчёта\"";
+    //     }
+    // }
+
+    private async Task UploadError(UploadErrorEventArgs args)
     {
-        //console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
-
-        uploadFileWarning = "";
-        if (args.Files.Count() > 0)
-        {
-
-            if (args.Files.ToList()[0].Size > 31457280)
-            {
-                upload.ClearFiles();
-                _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл не может быть больше 30 МБ");
-            }
-            else
-            {
-                if (Path.GetExtension(args.Files.ToList()[0].Name).ToUpper() != ".XLSX")
-                {
-                    upload.ClearFiles();
-                    _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл должен быть формата xlsx");
-                }
-            }
-
-            @if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
-                uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Изменить шаблон отчёта\"";
-            else
-                uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Создать шаблон отчёта\"";
-        }
+        isUploadFileError = true;
+        uploadFileErrorString = args.Message;
+        var dialogResult = _dialogService.OpenAsync<CustomError>("", new Dictionary<string, object>() { { "ErrorString", uploadFileErrorString } }, new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
     }
 }

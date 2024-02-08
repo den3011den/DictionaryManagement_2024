@@ -12,24 +12,22 @@
 
 @inject DialogService _dialogService
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/SAPshowcase">Витрины SAP</a> - <a href="/SAPshowcase/SapNdoOUT">НДО-выход</a></h6>
         </div>
 
-
         @if (IsLoading != true)
         {
 
-            <RadzenRow Gap="1rem" Class="rz-p-0 rz-p-lg-2">
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
-                        <RadzenStack Gap="1rem">
+                        <RadzenStack Gap="0.5rem">
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
                                     <Items>
@@ -38,11 +36,12 @@
                                     </Items>
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                <RadzenButton title="Загрузка данных из Excel в Витрины SAP - НДО-выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
-                                @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
+                                @*                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton Size="ButtonSize.Small" title="Загрузка данных из Excel в Витрины SAP - НДО-выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                                @* <RadzenText TextStyle="TextStyle.H6">@(sapNdoOUTDTOGrid.View.Count().ToString())</RadzenText> *@
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -53,13 +52,13 @@
             <RadzenDataGridApp @bind-Settings="@SapNdoOUTGridSettings" SettingsName="SapNdoOUTGridSettings" @ref="sapNdoOUTDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@sapNdoOUTDTOs" TItem="SapNdoOUTDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               FilterMode="FilterMode.SimpleWithMenu"
+                               FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
-                               ShowPagingSummary="true"                               
+                               ShowPagingSummary="true"
                                AllowVirtualization="true"
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
-                               Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px")
+                               Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
                                ColumnWidth="200px"
                                AllowColumnPicking="true"
                                GridLines="DataGridGridLines.Both">
@@ -136,29 +135,22 @@
                     </RadzenDataGridColumnApp>
 
 
-@*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapNdoOUTDTO" Context="sapNdoOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-                        <Template Context="sapNdoOUTDTO">
-                            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                        </Template>
-                    </RadzenDataGridColumnApp>
- *@                </Columns>
+                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapNdoOUTDTO" Context="sapNdoOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
+            <Template Context="sapNdoOUTDTO">
+            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapNdoOUTDTO))" @onclick:stopPropagation="true">
+            </RadzenButton>
+            </Template>
+            </RadzenDataGridColumnApp>
+            *@
+                </Columns>
             </RadzenDataGridApp>
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-
-            }
+            <Loading IsLoading="@IsLoading" />
         }
-
     </div>
 }
 
@@ -178,19 +170,17 @@
 
     RadzenDataGrid<SapNdoOUTDTO> sapNdoOUTDTOGrid;
 
-    DateTime startDate = DateTime.Today.AddDays(-7);
-    DateTime endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-    DateTime minEndDate = DateTime.Today.AddMonths(-1).AddDays(-8);
+    DateTime? startDate = DateTime.Today;
+    DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
 
-    bool ApplyButtonDisabled = true;
+    bool ApplyButtonDisabled = false;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,33 +189,35 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 applyRadioGroupValue = 1;
                 ApplyButtonDisabled = false;
 
-                //await GetRows();
-
-                startDate = DateTime.Today.AddDays(-7);
-                endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                maxEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-                minEndDate = DateTime.Today.AddMonths(-1).AddDays(-1);
+                if (startDate == null || endDate == null)
+                {
+                    startDate = DateTime.Today;
+                    endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                }
 
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 //sapNdoOUTDTOs = await _sapNdoOUTRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
                 await GetRows();
 
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/SAPshowcase");
         }
-        else
-            _navigationManager.NavigateTo("/SAPshowcase");
+
     }
 
 
@@ -268,18 +260,58 @@
 
     private async Task ChangeStartDate()
     {
-        ApplyButtonDisabled = false;
-        maxEndDate = startDate.AddMonths(1).AddSeconds(-1);
-        minEndDate = startDate.AddDays(-1);
-        if (endDate > maxEndDate)
-            endDate = maxEndDate;
-
+        if (startDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (startDate != null && endDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+            }
+            ApplyButtonDisabled = false;
+        }
+        // ApplyButtonDisabled = false;
+        // maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
+        // minEndDate = ((DateTime)startDate).AddDays(-1);
+        // if (endDate > maxEndDate)
+        //     endDate = maxEndDate;
     }
 
     private async Task ChangeEndDate()
     {
-
-        ApplyButtonDisabled = false;
+        if (endDate == null)
+        {
+            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            ApplyButtonDisabled = true;
+            return;
+        }
+        if (startDate != null && endDate != null)
+        {
+            if (startDate > endDate)
+            {
+                await _jsRuntime.ToastrWarningLight("Дата начала интервала больше даты окончания");
+                ApplyButtonDisabled = true;
+                return;
+            }
+            var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
+            if (duration.TotalDays > 31)
+            {
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+            }
+            ApplyButtonDisabled = false;
+        }
+        // ApplyButtonDisabled = false;
     }
 
 
@@ -287,15 +319,16 @@
     {
         IsLoading = true;
         await LoadStateAsync();
-        StateHasChanged();
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
         if (applyRadioGroupValue == 1)
             sapNdoOUTDTOs = await _sapNdoOUTRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
         else
             sapNdoOUTDTOs = await _sapNdoOUTRepository.GetAllByTimeInterval(startDate, endDate, "ADDTIME");
-        ApplyButtonDisabled = true;
+        ApplyButtonDisabled = false;
         IsLoading = false;
-        StateHasChanged();
-
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
     }
 
 
@@ -330,12 +363,11 @@
         else
         {
 
-            if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
                 string filename = "SapNdoOUT_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
                 await _simpleExcelExportRepository.GenerateExcelSapNdoOUT(filename, (IEnumerable<SapNdoOUTDTO>)sapNdoOUTDTOGrid.View);
-
                 await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
             }
         }
@@ -346,18 +378,19 @@
 
     async Task ExcelImport()
     {
-        await _jsRuntime.ToastrSuccess("Не реализовано");
-        return;
         IsLoading = true;
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
             dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - НДО-выход)", new Dictionary
                     <string, object>
-                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName } }, new DialogOptions() { Width = $"{950}px", Left = $"{200}px" });
-            IsLoading = false;
+                    () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapNdoOUTLoadFromExcelReportTemplateTypeNameSettingName }
+                    ,{"DataList", (IEnumerable<SapNdoOUTDTO>)sapNdoOUTDTOGrid.View }}
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
+            await this.OnAfterRenderAsync(true);
         }
+        IsLoading = false;
     }
 
 }

@@ -6,8 +6,6 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject IMesUnitOfMeasureRepository _mesUnitOfMeasureRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
@@ -21,21 +19,23 @@
     </div>
 
 
-    @if (IsAdmin == true && IsLoading != true)
+    @if ((IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly) && IsLoading != true)
     {
         <RadzenRow AlignItems="AlignItems.Start">
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую единицу измерения SAP" Click="@InsertRow" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null) />
-            <RadzenButton class="mt-2 mb-4" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения SAP"
+                          Click="@InsertRow" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
+            <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
+                          Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
         </RadzenRow>
 
         <RadzenDataGridApp @ref="mesUnitOfMeasureDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                            @bind-Settings="@MesUnitOfMeasureGridSettings" SettingsName="MesUnitOfMeasureGridSettings"
                            Data="@mesUnitOfMeasureDTOs" TItem="MesUnitOfMeasureDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
-                           FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                           
+                           FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                            AllowColumnResize="false"
-                           FilterMode="FilterMode.SimpleWithMenu"
+                           FilterMode="FilterMode.Advanced"
                            GridLines="DataGridGridLines.Both"
-                           Style="height:calc(100vh - 190px)">
+                           Style="height:calc(100vh - 155px)">
             <Columns>
                 <RadzenDataGridColumnApp TItem="MesUnitOfMeasureDTO" Property="Id" Title="Ид записи" Width="120px" />
                 <RadzenDataGridColumnApp TItem="MesUnitOfMeasureDTO" Property="Name" Title="Наименование" Width="270px">
@@ -58,27 +58,33 @@
                         <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
                     </Template>
                 </RadzenDataGridColumnApp>
-                <RadzenDataGridColumnApp Title="Действия" TItem="MesUnitOfMeasureDTO" Context="mesUnitOfMeasureDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                <RadzenDataGridColumnApp Title="Действия" TItem="MesUnitOfMeasureDTO" Context="mesUnitOfMeasureDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                     <Template Context="mesUnitOfMeasureDTO">
-                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                      Click="@(args => EditRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                         </RadzenButton>
                         @if (!mesUnitOfMeasureDTO.IsArchive)
                         {
-                            <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         }
                         else
                         {
-                            <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(mesUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         }
                     </Template>
                     <EditTemplate Context="mesUnitOfMeasureDTO">
-                        <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(mesUnitOfMeasureDTO))">
+                        <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                      Click="@((args) => SaveRow(mesUnitOfMeasureDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                         </RadzenButton>
-                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(mesUnitOfMeasureDTO))">
+                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                      Click="@((args) => CancelEdit(mesUnitOfMeasureDTO))">
                         </RadzenButton>
-                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesUnitOfMeasureDTO))">
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                      Click="@(args => DeleteRow(mesUnitOfMeasureDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                         </RadzenButton>
                     </EditTemplate>
                 </RadzenDataGridColumnApp>
@@ -87,16 +93,8 @@
     }
     else
     {
-        if (IsLoading)
-        {
-            //отображение gif загрузки
-            <div class="text-center">
-                <img src="/images/loading.gif">
-            </div>
-
-        }
+        <Loading IsLoading="@IsLoading" />
     }
-
 </div>
 
 
@@ -113,10 +111,9 @@
     MesUnitOfMeasureDTO mesUnitOfMeasureDTOToInsert;
     MesUnitOfMeasureDTO mesUnitOfMeasureDTOToUpdate;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
-
 
     DataGridSettings _mesUnitOfMeasureGridSettings;
     public DataGridSettings MesUnitOfMeasureGridSettings
@@ -169,27 +166,29 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
+
                 IsLoading = true;
                 await LoadStateAsync();
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 mesUnitOfMeasureDTOs = _mesUnitOfMeasureRepository.GetAll(SD.SelectDictionaryScope.All).Result;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/dictionary");
         }
-        else
-            _navigationManager.NavigateTo("/dictionary");
     }
 
     async Task EditRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             mesUnitOfMeasureDTOToUpdate = mesUnitOfMeasureDTO;
             await mesUnitOfMeasureDTOGrid.EditRow(mesUnitOfMeasureDTO);
@@ -198,9 +197,8 @@
 
     async Task OnUpdateRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             if (mesUnitOfMeasureDTO == mesUnitOfMeasureDTOToInsert)
             {
                 mesUnitOfMeasureDTOToInsert = null;
@@ -246,7 +244,7 @@
 
     async Task SaveRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
         }
@@ -276,10 +274,8 @@
 
     async Task DeleteRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             if (_dialogs != null)
             {
                 if (mesUnitOfMeasureDTO.IsArchive != true)
@@ -346,9 +342,8 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             mesUnitOfMeasureDTOToInsert = new MesUnitOfMeasureDTO();
             await mesUnitOfMeasureDTOGrid.InsertRow(mesUnitOfMeasureDTOToInsert);
         }
@@ -356,12 +351,9 @@
 
     async Task OnCreateRow(MesUnitOfMeasureDTO mesUnitOfMeasureDTO)
     {
-
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
-
             mesUnitOfMeasureDTOToInsert = null;
-
             var objectForCheckName = await _mesUnitOfMeasureRepository.GetByName(mesUnitOfMeasureDTO.Name);
             if (objectForCheckName != null)
             {
@@ -399,7 +391,7 @@
         excelExportFlag = true;
         await Task.Delay(200);
         await InvokeAsync(StateHasChanged);
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "MesUnitOfMeasure_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";

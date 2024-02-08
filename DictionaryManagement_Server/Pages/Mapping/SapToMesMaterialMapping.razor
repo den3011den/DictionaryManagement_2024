@@ -6,14 +6,12 @@
 @using DictionaryManagement_Models.IntDBModels
 @using Microsoft.EntityFrameworkCore;
 
-
-
 @inject IJSRuntime _jsRuntime
 @inject ISapToMesMaterialMappingRepository _sapToMesMaterialMappingRepository
 @inject ISapMaterialRepository _sapMaterialRepository
 @inject IMesMaterialRepository _mesMaterialRepository
 
-@if (IsAdmin == true)
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -31,20 +29,20 @@
 
         @if (IsLoading != true)
         {
-@*             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку материалов" Click="@InsertRow" Disabled=@(sapToMesMaterialMappingDTOToInsert != null || sapToMesMaterialMappingDTOToUpdate != null) /> *@
+            @*             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку материалов" Click="@InsertRow" Disabled=@(sapToMesMaterialMappingDTOToInsert != null || sapToMesMaterialMappingDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) /> *@
             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-2 mb-4" Text="Добавить новую связку материалов" Click="@InsertRow" Disabled=true />
             <RadzenDataGridApp @ref="sapToMesMaterialMappingDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                            Data="@sapToMesMaterialMappingDTOs" TItem="SapToMesMaterialMappingDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            EmptyText="Нет записей для отображения"
-                            FilterMode="FilterMode.Simple"
-                            AllowColumnResize="false"
-                            AllowVirtualization="true"
-                            GridLines="DataGridGridLines.Both"
-                            Style="height:calc(100vh - 170px)"
-                            ShowCleanGridSettingsHeaderButton="false"
-                            ShowCleanGridFiltersHeaderButton="false"
-                            ShowCleanGridSortsHeaderButton="false">
+                               Data="@sapToMesMaterialMappingDTOs" TItem="SapToMesMaterialMappingDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               EmptyText="Нет записей для отображения"
+                               FilterMode="FilterMode.Simple"
+                               AllowColumnResize="false"
+                               AllowVirtualization="true"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 155px)"
+                               ShowCleanGridSettingsHeaderButton="false"
+                               ShowCleanGridFiltersHeaderButton="false"
+                               ShowCleanGridSortsHeaderButton="false">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapToMesMaterialMappingDTO" Property="SapMaterialDTO" FilterProperty="SapMaterialDTO.ToStringValue" Title="Материал SAP" Width="280px" Filterable="true">
                         <Template Context="sapToMesMaterialMappingDTO">
@@ -52,7 +50,6 @@
                                 @sapToMesMaterialMappingDTO.SapMaterialDTO.ShortName
                             </div>
                         </Template>
-
                         <EditTemplate Context="sapToMesMaterialMappingDTO">
                             <RadzenDropDown Data="@sapMaterialDTOs" @bind-Value="sapToMesMaterialMappingDTO.SapMaterialDTO" Style="width:100%; display: block;" Name="SapMat" AllowFiltering="true"
                                             FilterOperator="StringFilterOperator.Contains" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
@@ -75,21 +72,21 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="SapToMesMaterialMappingDTO" Context="SapToMesMaterialMappingDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="SapToMesMaterialMappingDTO">
-                            @* <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true"> *@
+                            @* <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton Icon="edit" Disabled=true ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
-@*                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true"> *@
+                            @*                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Disabled=true Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
                         </Template>
                         <EditTemplate Context="SapToMesMaterialMappingDTO">
-@*                             <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(SapToMesMaterialMappingDTO))"> *@
+                            @*                             <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(SapToMesMaterialMappingDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton Disabled=true Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(SapToMesMaterialMappingDTO))">
                             </RadzenButton>
                             @* <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(SapToMesMaterialMappingDTO))"> *@
                             <RadzenButton Disabled=true Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(SapToMesMaterialMappingDTO))">
                             </RadzenButton>
-                            @* <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))"> *@
+                            @* <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)"> *@
                             <RadzenButton Disabled=true ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(SapToMesMaterialMappingDTO))">
                             </RadzenButton>
                         </EditTemplate>
@@ -100,13 +97,7 @@
         }
         else
         {
-            if (IsLoading)
-            {
-                //отображение gif загрузки
-                <div class="text-center">
-                    <img src="/images/loading.gif">
-                </div>
-            }
+            <Loading IsLoading="@IsLoading" />
         }
     </div>
 }
@@ -124,8 +115,8 @@
     SapToMesMaterialMappingDTO sapToMesMaterialMappingDTOToInsert;
     SapToMesMaterialMappingDTO sapToMesMaterialMappingDTOToUpdate;
 
-    public bool IsLoading { get; set; }
-    public bool IsAdmin { get; set; }
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
 
     void Reset()
     {
@@ -141,27 +132,29 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (firstRender)
         {
-            IsAdmin = true;
-            if (firstRender)
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
                 sapToMesMaterialMappingDTOs = _sapToMesMaterialMappingRepository.GetAll().Result;
                 sapMaterialDTOs = _sapMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
                 mesMaterialDTOs = _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly).Result;
                 IsLoading = false;
-                StateHasChanged();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
+            else
+                _navigationManager.NavigateTo("/mapping");
         }
-        else
-            _navigationManager.NavigateTo("/mapping");
     }
 
     async Task EditRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapToMesMaterialMappingDTOToUpdate = sapToMesMaterialMappingDTO;
             await sapToMesMaterialMappingDTOGrid.EditRow(sapToMesMaterialMappingDTO);
@@ -170,7 +163,7 @@
 
     async Task OnUpdateRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if ((sapToMesMaterialMappingDTO.SapMaterialId != sapToMesMaterialMappingDTO.SapMaterialDTO.Id) || (sapToMesMaterialMappingDTO.MesMaterialId != sapToMesMaterialMappingDTO.MesMaterialDTO.Id))
             {
@@ -204,7 +197,7 @@
 
     async Task SaveRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             await sapToMesMaterialMappingDTOGrid.UpdateRow(sapToMesMaterialMappingDTO);
         }
@@ -225,7 +218,7 @@
 
     async Task DeleteRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
             {
@@ -266,7 +259,7 @@
 
     async Task InsertRow()
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             sapToMesMaterialMappingDTOToInsert = new SapToMesMaterialMappingDTO();
             await sapToMesMaterialMappingDTOGrid.InsertRow(sapToMesMaterialMappingDTOToInsert);
@@ -275,13 +268,12 @@
 
     async Task OnCreateRow(SapToMesMaterialMappingDTO sapToMesMaterialMappingDTO)
     {
-        if (await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On))
+        if (IsAdmin == AdminMode.IsAdmin)
         {
             var forCheck = _sapToMesMaterialMappingRepository.Get(sapToMesMaterialMappingDTO.SapMaterialDTO.Id, sapToMesMaterialMappingDTO.MesMaterialDTO.Id).Result;
 
             if (forCheck != null)
             {
-
                 sapToMesMaterialMappingDTOToInsert = null;
                 await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть маппинг материалов SAP: \"" + sapToMesMaterialMappingDTO.SapMaterialDTO.ShortName
                             + "\" и MES: " + sapToMesMaterialMappingDTO.MesMaterialDTO.ShortName);
