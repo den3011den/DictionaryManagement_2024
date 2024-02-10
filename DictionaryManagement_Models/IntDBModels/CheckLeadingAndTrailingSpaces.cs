@@ -20,7 +20,7 @@ namespace DictionaryManagement_Models.IntDBModels
                             isValid = false;
                         }
                     }
-                    if (inputValue.Length > 2)
+                    if (inputValue.Length >= 2)
                         if (Char.IsWhiteSpace(inputValue[inputValue.Length - 1]))
                         {
                             isValid = false;

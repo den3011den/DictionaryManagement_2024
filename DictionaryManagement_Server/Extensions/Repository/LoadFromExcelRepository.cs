@@ -1550,49 +1550,49 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 var rowVar = worksheet.Row(rowNumber);
 
-                string actionVarString = rowVar.Cell(2).CachedValue.ToString().Trim();
-                string idVarString = rowVar.Cell(3).CachedValue.ToString().Trim();
-                string codeVarString = rowVar.Cell(4).CachedValue.ToString().Trim();
-                string nameVarString = rowVar.Cell(5).CachedValue.ToString().Trim();
-                string descriptionVarString = rowVar.Cell(6).CachedValue.ToString().Trim();
-                string mesParamSourceTypeNameVarString = rowVar.Cell(7).CachedValue.ToString().Trim();
-                string mesParamSourceLinkVarString = rowVar.Cell(8).CachedValue.ToString().Trim();
-                string departmentIdVarString = rowVar.Cell(9).CachedValue.ToString().Trim();
-                string departmentNameVarString = rowVar.Cell(10).CachedValue.ToString().Trim();
+                string actionVarString = rowVar.Cell(2).CachedValue.ToString();
+                string idVarString = rowVar.Cell(3).CachedValue.ToString();
+                string codeVarString = rowVar.Cell(4).CachedValue.ToString();
+                string nameVarString = rowVar.Cell(5).CachedValue.ToString();
+                string descriptionVarString = rowVar.Cell(6).CachedValue.ToString();
+                string mesParamSourceTypeNameVarString = rowVar.Cell(7).CachedValue.ToString();
+                string mesParamSourceLinkVarString = rowVar.Cell(8).CachedValue.ToString();
+                string departmentIdVarString = rowVar.Cell(9).CachedValue.ToString();
+                string departmentNameVarString = rowVar.Cell(10).CachedValue.ToString();
 
-                string sapEquipmentIdSourceVarString = rowVar.Cell(11).CachedValue.ToString().Trim();
-                string erpPlantIdSourceVarString = rowVar.Cell(12).CachedValue.ToString().Trim();
-                string erpIdSourceVarString = rowVar.Cell(13).CachedValue.ToString().Trim();
-                string erpNameSourceVarString = rowVar.Cell(14).CachedValue.ToString().Trim();
+                string sapEquipmentIdSourceVarString = rowVar.Cell(11).CachedValue.ToString();
+                string erpPlantIdSourceVarString = rowVar.Cell(12).CachedValue.ToString();
+                string erpIdSourceVarString = rowVar.Cell(13).CachedValue.ToString();
+                string erpNameSourceVarString = rowVar.Cell(14).CachedValue.ToString();
 
-                string sapEquipmentIdDestVarString = rowVar.Cell(15).CachedValue.ToString().Trim();
-                string erpPlantIdDestVarString = rowVar.Cell(16).CachedValue.ToString().Trim();
-                string erpIdDestVarString = rowVar.Cell(17).CachedValue.ToString().Trim();
-                string erpNameDestVarString = rowVar.Cell(18).CachedValue.ToString().Trim();
+                string sapEquipmentIdDestVarString = rowVar.Cell(15).CachedValue.ToString();
+                string erpPlantIdDestVarString = rowVar.Cell(16).CachedValue.ToString();
+                string erpIdDestVarString = rowVar.Cell(17).CachedValue.ToString();
+                string erpNameDestVarString = rowVar.Cell(18).CachedValue.ToString();
 
-                string sapMaterialIdVarString = rowVar.Cell(19).CachedValue.ToString().Trim();
-                string sapMaterialCodeVarString = rowVar.Cell(20).CachedValue.ToString().Trim();
-                string sapMaterialNameVarString = rowVar.Cell(21).CachedValue.ToString().Trim();
+                string sapMaterialIdVarString = rowVar.Cell(19).CachedValue.ToString();
+                string sapMaterialCodeVarString = rowVar.Cell(20).CachedValue.ToString();
+                string sapMaterialNameVarString = rowVar.Cell(21).CachedValue.ToString();
 
-                string sapUnitOfMeasureNameVarString = rowVar.Cell(22).CachedValue.ToString().Trim();
-                string daysRequestInPastVarString = rowVar.Cell(23).CachedValue.ToString().Trim();
+                string sapUnitOfMeasureNameVarString = rowVar.Cell(22).CachedValue.ToString();
+                string daysRequestInPastVarString = rowVar.Cell(23).CachedValue.ToString();
 
-                string TIVarString = rowVar.Cell(24).CachedValue.ToString().Trim();
-                string nameTIVarString = rowVar.Cell(25).CachedValue.ToString().Trim();
+                string TIVarString = rowVar.Cell(24).CachedValue.ToString();
+                string nameTIVarString = rowVar.Cell(25).CachedValue.ToString();
 
-                string TMVarString = rowVar.Cell(26).CachedValue.ToString().Trim();
-                string nameTMVarString = rowVar.Cell(27).CachedValue.ToString().Trim();
+                string TMVarString = rowVar.Cell(26).CachedValue.ToString();
+                string nameTMVarString = rowVar.Cell(27).CachedValue.ToString();
 
-                string mesToSirUnitOfMeasureKoefVarString = rowVar.Cell(28).CachedValue.ToString().Trim();
+                string mesToSirUnitOfMeasureKoefVarString = rowVar.Cell(28).CachedValue.ToString();
 
-                string needWriteToSapVarString = rowVar.Cell(29).CachedValue.ToString().Trim();
-                string needReadFromSapVarString = rowVar.Cell(30).CachedValue.ToString().Trim();
+                string needWriteToSapVarString = rowVar.Cell(29).CachedValue.ToString();
+                string needReadFromSapVarString = rowVar.Cell(30).CachedValue.ToString();
 
-                string needReadFromMesVarString = rowVar.Cell(31).CachedValue.ToString().Trim();
-                string needWriteToMesVarString = rowVar.Cell(32).CachedValue.ToString().Trim();
+                string needReadFromMesVarString = rowVar.Cell(31).CachedValue.ToString();
+                string needWriteToMesVarString = rowVar.Cell(32).CachedValue.ToString();
 
-                string isNdoVarString = rowVar.Cell(33).CachedValue.ToString().Trim();
-                string isArchiveVarString = rowVar.Cell(34).CachedValue.ToString().Trim();
+                string isNdoVarString = rowVar.Cell(33).CachedValue.ToString();
+                string isArchiveVarString = rowVar.Cell(34).CachedValue.ToString();
 
                 string resultString = "";
                 int idVarInt = 0;
@@ -1629,6 +1629,31 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 loadFromExcelPage.console.Log($"Обработка строки " + rowNumber.ToString());
                 await loadFromExcelPage.RefreshSate();
+
+                var fieldValueWithColumnPosition = new FieldValueWithColumnPosition[]
+                {
+                    new FieldValueWithColumnPosition(idVarString, 3), new FieldValueWithColumnPosition(codeVarString, 4), new FieldValueWithColumnPosition(nameVarString, 5),
+                    new FieldValueWithColumnPosition(descriptionVarString, 6), new FieldValueWithColumnPosition(mesParamSourceTypeNameVarString, 7), new FieldValueWithColumnPosition(mesParamSourceLinkVarString, 8),
+                    new FieldValueWithColumnPosition(departmentIdVarString, 9), new FieldValueWithColumnPosition(departmentNameVarString, 10), new FieldValueWithColumnPosition(sapEquipmentIdSourceVarString, 11),
+                    new FieldValueWithColumnPosition(erpPlantIdSourceVarString, 12), new FieldValueWithColumnPosition(erpIdSourceVarString, 13), new FieldValueWithColumnPosition(erpNameSourceVarString, 14),
+                    new FieldValueWithColumnPosition(sapEquipmentIdDestVarString, 15), new FieldValueWithColumnPosition(erpPlantIdDestVarString, 16), new FieldValueWithColumnPosition(erpIdDestVarString, 17),
+                    new FieldValueWithColumnPosition(erpNameDestVarString, 18), new FieldValueWithColumnPosition(sapMaterialIdVarString, 19), new FieldValueWithColumnPosition(sapMaterialCodeVarString, 20),
+                    new FieldValueWithColumnPosition(sapMaterialNameVarString, 21), new FieldValueWithColumnPosition(sapUnitOfMeasureNameVarString, 22), new FieldValueWithColumnPosition(daysRequestInPastVarString, 23),
+                    new FieldValueWithColumnPosition(TIVarString, 24), new FieldValueWithColumnPosition(nameTIVarString, 25), new FieldValueWithColumnPosition(TMVarString, 26),
+                    new FieldValueWithColumnPosition(nameTMVarString, 27), new FieldValueWithColumnPosition(mesToSirUnitOfMeasureKoefVarString, 28), new FieldValueWithColumnPosition(needWriteToSapVarString, 29),
+                    new FieldValueWithColumnPosition(needReadFromSapVarString, 30), new FieldValueWithColumnPosition(needReadFromMesVarString, 31), new FieldValueWithColumnPosition(needWriteToMesVarString, 32),
+                    new FieldValueWithColumnPosition(isNdoVarString, 33), new FieldValueWithColumnPosition(isNdoVarString, 34)
+                };
+
+                if ((await CheckControlSymbolsAndLeadingAndTrailingSpaces(loadFromExcelPage, worksheet, fieldValueWithColumnPosition, rowNumber, resultColumnNumber, 1)) != true)
+                {
+                    haveErrors = true;
+                    idVarInt = 0;
+                    rowNumber++;
+                    continue;
+                }
+
+
 
                 if (String.IsNullOrEmpty(idVarString) && String.IsNullOrEmpty(codeVarString))
                 {
@@ -1765,7 +1790,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
                         }
                     }
                 }
-
 
                 if (needCheckMesParamSourceLink)
                 {
@@ -7167,8 +7191,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
         public async Task WriteError(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
             int rowNum, int exclamationColumn, int resultColumnNumber, int[] redColumns, string errorMessage)
         {
-            worksheet.Cell(rowNum, resultColumnNumber).Value = "!!!";
-            worksheet.Cell(rowNum, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+            worksheet.Cell(rowNum, exclamationColumn).Value = "!!!";
+            worksheet.Cell(rowNum, exclamationColumn).Style.Font.FontColor = XLColor.Red;
             worksheet.Cell(rowNum, exclamationColumn).Style.Font.SetBold(true);
             worksheet.Cell(rowNum, resultColumnNumber).Value = errorMessage;
             worksheet.Cell(rowNum, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
@@ -7181,6 +7205,71 @@ namespace DictionaryManagement_Server.Extensions.Repository
             }
             loadFromExcelPage.console.Log(errorMessage, AlertStyle.Danger);
             await loadFromExcelPage.RefreshSate();
+        }
+
+        public record FieldValueWithColumnPosition
+        {
+            public string FieldValue { get; set; } = "";
+            public int FieldColumnPosition { get; set; } = 1;
+            public FieldValueWithColumnPosition(string fieldValue, int fieldColumnPosition)
+            {
+                FieldValue = fieldValue;
+                FieldColumnPosition = fieldColumnPosition;
+            }
+        }
+
+        public async Task<bool> CheckControlSymbolsAndLeadingAndTrailingSpaces(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+            FieldValueWithColumnPosition[] fieldValueWithColumnPosition, int rowNumber,
+            int resultColumnNumber, int exclamationColumn)
+        {
+            List<int> redColumns = new List<int>();
+            redColumns.Add(2);
+            bool goodFlag = true;
+            foreach (var item in fieldValueWithColumnPosition)
+            {
+                if (!String.IsNullOrEmpty(item.FieldValue))
+                {
+                    if (item.FieldValue.Length > 0)
+                    {
+                        if (Char.IsWhiteSpace(item.FieldValue[0]))
+                        {
+                            goodFlag = false;
+                            redColumns.Add(item.FieldColumnPosition);
+                            continue;
+                        }
+                    }
+                    if (item.FieldValue.Length >= 2)
+                    {
+                        if (Char.IsWhiteSpace(item.FieldValue[item.FieldValue.Length - 1]))
+                        {
+                            goodFlag = false;
+                            redColumns.Add(item.FieldColumnPosition);
+                            continue;
+                        }
+                    }
+                    foreach (char c in item.FieldValue)
+                    {
+                        if (Char.IsControl(c))
+                        {
+                            goodFlag = false;
+                            redColumns.Add(item.FieldColumnPosition);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (goodFlag != true)
+            {
+                string columnEnum = "";
+                redColumns.Sort();
+                foreach (var item in redColumns)
+                    columnEnum = columnEnum + item.ToString() + ", ";
+                columnEnum = columnEnum.Substring(0, columnEnum.Length - 2);
+
+                await WriteError(loadFromExcelPage, worksheet, rowNumber, exclamationColumn, resultColumnNumber, redColumns.ToArray(),
+                        "! Строка " + rowNumber.ToString() + ", столбцы: " + columnEnum + ". В отмеченных красным полях присутствуют непечатные символы");
+            }
+            return goodFlag;
         }
     }
 }
