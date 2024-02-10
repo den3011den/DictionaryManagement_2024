@@ -707,7 +707,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             return "ADGroup_Example_with_data_";
         }
 
-
         public async Task<bool> MaterialExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
             IAuthorizationRepository _authorizationRepository)
         {

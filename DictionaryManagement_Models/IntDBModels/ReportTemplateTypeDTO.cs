@@ -11,6 +11,7 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
         [Required(ErrorMessage = "Наименование типа шаблона отчёта является обязательным для заполнения полем")]
         [Display(Name = "Наименование типа шаблона отчёта")]
         [MaxLength(100, ErrorMessage = "Наименование типа шаблона отчёта не может быть больше 100 символов")]
