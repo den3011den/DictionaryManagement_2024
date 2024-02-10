@@ -13,6 +13,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование обязательно для заполнения")]
         [StringLength(300, MinimumLength = 1, ErrorMessage = "Наименование может быть от 1 до 300 символов")]
         [Display(Name = "Наименование")]
@@ -20,6 +21,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [ForLogAttribute(NameProperty = "поле \"Описание\"")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [StringLength(300, MinimumLength = 1, ErrorMessage = "Описание может быть от 1 до 300 символов")]
         [Display(Description = "Описание")]
         public string? Description { get; set; }

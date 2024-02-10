@@ -19,6 +19,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование обязательно для заполнения")]
         [Display(Name = "Наименование")]
         [MaxLength(500, ErrorMessage = "Длина наименования не может быть больше 500 символов")]
@@ -26,6 +27,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [ForLogAttribute(NameProperty = "поле \"Сокр. наименование\"")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Сокр. Наименование обязательно для заполнения")]
         [Display(Name = "Сокр. наименование")]
         [MaxLength(500, ErrorMessage = "Длина сокр. наименование не может быть больше 500 символов")]

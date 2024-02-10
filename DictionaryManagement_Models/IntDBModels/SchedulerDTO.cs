@@ -13,6 +13,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [ForLogAttribute(NameProperty = "поле \"Наименование модуля\"")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Наименование модуля")]
         [Required(ErrorMessage = "Наименование модуля обязательно")]
         public string ModuleName { get; set; }

@@ -703,7 +703,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                 excelRowNum++;
             }
-
             return "ADGroup_Example_with_data_";
         }
 
@@ -4475,69 +4474,6 @@ namespace DictionaryManagement_Server.Extensions.Repository
             return haveErrors;
         }
 
-        public async Task WriteError(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
-            int rowNum, int exclamationColumn, int resultColumnNumber, int[] redColumns, string errorMessage)
-        {
-            worksheet.Cell(rowNum, resultColumnNumber).Value = "!!!";
-            worksheet.Cell(rowNum, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
-            worksheet.Cell(rowNum, exclamationColumn).Style.Font.SetBold(true);
-            worksheet.Cell(rowNum, resultColumnNumber).Value = errorMessage;
-            worksheet.Cell(rowNum, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
-            worksheet.Cell(rowNum, resultColumnNumber).Style.Font.SetBold(true);
-
-            foreach (var column in redColumns)
-            {
-                worksheet.Cell(rowNum, column).Style.Font.FontColor = XLColor.Red;
-                worksheet.Cell(rowNum, column).Style.Font.SetBold(true);
-            }
-            loadFromExcelPage.console.Log(errorMessage, AlertStyle.Danger);
-            await loadFromExcelPage.RefreshSate();
-        }
-
-        //public int? GetIntValue(object obj, string propertyName)
-        //{
-        //    var varProperty = obj.GetType().GetProperty(propertyName);
-        //    int propertyValue = varProperty.GetValue(obj, null) as int?;
-        //    return propertyValue;
-        //}
-
-        //public string? GetStringValue(object obj, string propertyName)
-        //{
-        //    var varProperty = obj.GetType().GetProperty(propertyName);
-        //    string? propertyValue = varProperty.GetValue(obj, null) as string;
-        //    return propertyValue;
-        //}
-
-        //public bool? GetStringBool(object obj, string propertyName)
-        //{
-        //    var varProperty = obj.GetType().GetProperty(propertyName);
-        //    bool? propertyValue = varProperty.GetValue(obj, null) as bool?;
-        //    return propertyValue;
-        //}
-
-
-        //public void SetValue<T>(object obj, string propertyName, T? value)
-        //{
-        //    PropertyInfo varPropertyInfo = obj.GetType().GetProperty(propertyName);
-        //    varPropertyInfo.SetValue(obj, Convert.ChangeType(value, varPropertyInfo.PropertyType), null);
-
-        //}
-
-        //public string? SetStringValue(object obj, string propertyName)
-        //{
-        //    var varProperty = obj.GetType().GetProperty(propertyName);
-        //    string? propertyValue = varProperty.GetValue(obj, null) as string;
-        //    return propertyValue;
-        //}
-
-        //public bool? SetStringBool(object obj, string propertyName)
-        //{
-        //    var varProperty = obj.GetType().GetProperty(propertyName);
-        //    bool? propertyValue = varProperty.GetValue(obj, null) as bool?;
-        //    return propertyValue;
-        //}
-
-
         public async Task<bool> MesMovementsExcelFileLoad(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
         IAuthorizationRepository _authorizationRepository)
         {
@@ -7228,6 +7164,23 @@ namespace DictionaryManagement_Server.Extensions.Repository
             return haveErrors;
         }
 
+        public async Task WriteError(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet,
+            int rowNum, int exclamationColumn, int resultColumnNumber, int[] redColumns, string errorMessage)
+        {
+            worksheet.Cell(rowNum, resultColumnNumber).Value = "!!!";
+            worksheet.Cell(rowNum, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+            worksheet.Cell(rowNum, exclamationColumn).Style.Font.SetBold(true);
+            worksheet.Cell(rowNum, resultColumnNumber).Value = errorMessage;
+            worksheet.Cell(rowNum, resultColumnNumber).Style.Font.FontColor = XLColor.Red;
+            worksheet.Cell(rowNum, resultColumnNumber).Style.Font.SetBold(true);
 
+            foreach (var column in redColumns)
+            {
+                worksheet.Cell(rowNum, column).Style.Font.FontColor = XLColor.Red;
+                worksheet.Cell(rowNum, column).Style.Font.SetBold(true);
+            }
+            loadFromExcelPage.console.Log(errorMessage, AlertStyle.Danger);
+            await loadFromExcelPage.RefreshSate();
+        }
     }
 }

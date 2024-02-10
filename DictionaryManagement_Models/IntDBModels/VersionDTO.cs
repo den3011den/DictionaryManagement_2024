@@ -11,6 +11,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [Display(Name = "Версия БД")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Версия БД обязательна")]
         [MaxLength(20, ErrorMessage = "Значение не должно быть больше 20-ти символов")]
         public string version { get; set; }

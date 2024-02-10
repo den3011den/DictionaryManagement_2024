@@ -11,6 +11,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [ForLogAttribute(NameProperty = "поле \"Код завода SAP\"")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Код завода SAP является обязательным для заполнения полем")]
         [Display(Name = "Код завода SAP")]
         [MaxLength(100, ErrorMessage = "Код завода SAP не может быть больше 100 символов")]
@@ -25,6 +26,7 @@ namespace DictionaryManagement_Models.IntDBModels
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
         [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование ресурса/склада SAP является обязательным для заполнения полем")]
         [Display(Name = "Наименование ресурса/склада SAP")]
         [MaxLength(100, ErrorMessage = "Наименование ресурса/склада SAP не может быть больше 250 символов")]
