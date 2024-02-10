@@ -1561,14 +1561,11 @@ namespace DictionaryManagement_Server.Extensions.Repository
             await loadFromExcelPage.RefreshSate();
 
             int rowNumber = 9;
-
             int resultColumnNumber = 35;
-
             bool isEmptyString = false;
 
             while (isEmptyString == false)
             {
-
                 worksheet.Cell(rowNumber, 1).Value = "";
                 worksheet.Cell(rowNumber, resultColumnNumber).Value = "";
                 worksheet.Row(rowNumber).Style.Font.SetBold(false);

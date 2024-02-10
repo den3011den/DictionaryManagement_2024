@@ -99,6 +99,7 @@
                                         }
                                         else
                                         {
+                                            <p>@loadedFileName</p>
                                             <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
                                         }
                                     }
@@ -174,6 +175,8 @@
 
     public string ReportTemplatePath;
     public string TempFilePath;
+
+    string loadedFileName = "";
 
     RadzenUpload upload;
 
@@ -473,8 +476,7 @@
 
 
     private async Task OnProgress(UploadProgressArgs args)
-    {
-
+    {        
         if (checkFile)
         {
             checkFile = false;
@@ -502,7 +504,7 @@
                 }               
             }
         }
-        var loadedFileName = "";
+        loadedFileName = "";
         showProgress = true;
         progress = args.Progress;
         await Task.Delay(1);
@@ -512,8 +514,8 @@
         {
             foreach (var file in args.Files)
             {
-
-                loadedFileName = file.Name;
+                
+                loadedFileName = file.Name;                
                 checkFile = true;
                 if (ReportTemplateId != null && ReportTemplateId != Guid.Empty)
                     uploadFileWarning = "Файл не будет сохранён в базе данных пока не будет нажата кнопка \"Изменить шаблон отчёта\"";
