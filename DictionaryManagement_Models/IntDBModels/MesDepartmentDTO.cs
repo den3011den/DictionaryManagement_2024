@@ -148,8 +148,18 @@ namespace DictionaryManagement_Models.IntDBModels
             return $"{ToStringHierarchyShortName}";
         }
 
-
-
+        [NotMapped]
+        public string ForSearchProperty
+        {
+            get
+            {
+                return Id.ToString() + (MesCode == null ? "" : " " + MesCode.ToString()) + " " + Name.ToUpper() + " " + ShortName.ToUpper();
+            }
+            set
+            {
+                ForSearchProperty = value;
+            }
+        }
     }
 }
 
