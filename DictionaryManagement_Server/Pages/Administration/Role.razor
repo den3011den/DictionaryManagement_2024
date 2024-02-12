@@ -336,7 +336,7 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                IsLoading = true;                
+                IsLoading = true;
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -353,7 +353,7 @@
 
 
     DataGridSettings _roleGridSettings;
-    public DataGridSettings RoleGridSettings
+    public DataGridSettings? RoleGridSettings
     {
         get
         {
@@ -392,6 +392,7 @@
 
     async Task EditRow(RoleVMDTO roleVMDTO)
     {
+        
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
@@ -417,7 +418,7 @@
                     roleVMDTOs = await _roleVMRepository.GetAll(SD.SelectDictionaryScope.All);
                     IsLoading = false;
                     await Task.Delay(100);
-                    await InvokeAsync(StateHasChanged);                    
+                    await InvokeAsync(StateHasChanged);
                 }
                 else
                 {
@@ -730,7 +731,7 @@
     }
 
     async Task ChangeReadWriteRights(RoleVMDTO roleVMDTO, int reportTemplateTypeToRoleId, string modeString)
-    {
+    {        
         if (!((modeString.Trim().ToUpper() == "READ") || (modeString.Trim().ToUpper() == "WRITE")))
         {
             await _jsRuntime.ToastrError("Не предусмотренный параметр modeString = \"" + modeString.Trim().ToUpper() + "\" передан в процедуру ChangeReadWriteRights!");
@@ -898,9 +899,10 @@
 
     async Task ExcelExport()
     {
-        excelExportFlag = true;
-        await Task.Delay(200);
+        excelExportFlag = true;        
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
+
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);

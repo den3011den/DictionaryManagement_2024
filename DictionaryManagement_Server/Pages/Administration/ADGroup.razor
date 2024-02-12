@@ -184,6 +184,11 @@
 
     async Task EditRow(ADGroupDTO adGroupDTO)
     {
+
+        await LoadStateAsync();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
@@ -227,6 +232,10 @@
 
     async Task DeleteRow(ADGroupDTO adGroupDTO)
     {
+        await LoadStateAsync();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+
         if (IsAdmin == AdminMode.IsAdmin)
         {
             if (_dialogs != null)
@@ -274,7 +283,8 @@
     async Task ExcelExport()
     {
         excelExportFlag = true;
-        await Task.Delay(200);
+        await LoadStateAsync();
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
@@ -291,6 +301,9 @@
     async Task ExcelImport()
     {
         IsLoading = true;
+        await LoadStateAsync();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             SapMaterialDTO dialogResult = null;

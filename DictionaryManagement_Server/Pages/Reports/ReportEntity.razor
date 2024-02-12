@@ -537,7 +537,17 @@
 
         var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.removeItem", "ReportEntityGridSettings");
 
-        ReportEntityGridSettings = null;
+        if (ReportEntityGridSettings != null)
+        {
+            foreach (var c in ReportEntityGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+            }
+        }
 
         selectedDepartments = null;
         selectedReportTemplateTypes = null;
@@ -548,10 +558,9 @@
         {
             await GetDistincts();
         }
-
-        await Task.Delay(200);
+        await SaveStateAsync();
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
-
     }
 
     async Task CleanAllFiltersCustom()

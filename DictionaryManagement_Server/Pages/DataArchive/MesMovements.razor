@@ -666,7 +666,19 @@
         var result = await _jsRuntime.InvokeAsync<string>
             ("window.localStorage.removeItem", "MesMovementsGridSettings");
 
-        MesMovementsGridSettings = null;
+        if (MesMovementsGridSettings != null)
+        {
+            foreach (var c in MesMovementsGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+                if (mesMovementsDTOGrid.ColumnWidth != null)
+                    c.Width = mesMovementsDTOGrid.ColumnWidth;
+            }
+        }
 
         selectedAddUsers = null;
         selectedDataSources = null;
@@ -677,8 +689,8 @@
         {
             await GetDistincts();
         }
-
-        await Task.Delay(200);
+        await SaveStateAsync();
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 
     }

@@ -699,7 +699,19 @@
         var result = await _jsRuntime.InvokeAsync<string>
             ("window.localStorage.removeItem", "SapMovementsINGridSettings");
 
-        SapMovementsINGridSettings = null;
+        if (SapMovementsINGridSettings != null)
+        {
+            foreach (var c in SapMovementsINGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+                if (sapMovementsINDTOGrid.ColumnWidth != null)
+                    c.Width = sapMovementsINDTOGrid.ColumnWidth;
+            }
+        }
 
         selectedMoveTypes = null;
         selectedSapUnitOfMeasure = null;
@@ -708,10 +720,9 @@
         {
             await GetDistincts();
         }
-
-        await Task.Delay(200);
+        await SaveStateAsync();
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
-
     }
 
     async Task CleanAllFiltersCustom()

@@ -94,7 +94,7 @@
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="ToStringMesCode" Title="Код" Width="40px" FilterOperator="FilterOperator.Contains" SortProperty="ToStringMesCode" FilterProperty="ToStringMesCode" />
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="ShortName" Title="Сокр. наименование" FilterOperator="FilterOperator.Contains" Width="200px">
                         <Template Context="data">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-wrap" id="@("id_var_" + data.ToStringId)">
                                 @data.ShortName
                             </div>
                         </Template>
@@ -142,7 +142,7 @@
             font-size: 0.75rem;
             height: 80%;
             max-height: 80%;
-        } */
+        } */    
 </style>
 
 @code {
@@ -248,7 +248,7 @@
     }
 
     async Task EditRow(MesDepartmentDTO mesDepartmentDTO)
-    {
+    {        
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             MesDepartmentDTO dialogResult;
@@ -464,7 +464,7 @@
 
     async Task SearchOnClick(string searchStringPar)
     {
-        SearchInProgressFlag = true;
+        SearchInProgressFlag = true;        
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 
@@ -538,6 +538,10 @@
                         await mesDepartmentDTOGrid.ExpandRow(item.Item1);
                 }
                 await mesDepartmentDTOGrid.SelectRow(dialogResult, true);
+                //await _jsRuntime.InvokeVoidAsync("eval", $"document.getElementById('{dialogResult.ToStringId}').scrollTop = document.getElementById('{dialogResult.ToStringId}').scrollHeight");
+                //await _jsRuntime.InvokeVoidAsync("eval", "document.getElementById(\"" + dialogResult.ToStringId + "\").scrollIntoView()");
+
+                //await _jsRuntime.InvokeVoidAsync("eval", $@"document.getElementById('{dialogResult.ToStringId}').scrollIntoView()");
 
                 bool isFilterApplied = false;
                 if (MesDepartmentGridSettings != null)
@@ -551,11 +555,11 @@
                     }
                 if (isFilterApplied)
                 {
-                    await _jsRuntime.ToastrWarningLight("Запись выделена. Очистите фильтры, если не можете найти выделенную запись");
+                    await _jsRuntime.ToastrWarningLight("Запись выделена. Применены фильтры. Очистите фильтры, если не видите выделенную запись");
                 }
                 else
                 {
-                    await _jsRuntime.ToastrSuccess("Запись выделена. Прокрутите список, если не видите среди отображаемых записей");
+                    await _jsRuntime.ToastrSuccess("Запись выделена.");
                 }
             }
         }
@@ -563,6 +567,13 @@
         SearchInProgressFlag = false;
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
+        if (dialogResult != null)
+        {
+            await _jsRuntime.InvokeVoidAsync("eval",
+                "(document.getElementById('id_var_" + dialogResult.ToStringId + "') !==null) ? (document.getElementById('id_var_" + dialogResult.ToStringId + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     protected async Task SearchInputKeyPressed(KeyboardEventArgs args)

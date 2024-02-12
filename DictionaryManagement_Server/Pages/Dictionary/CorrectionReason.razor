@@ -38,11 +38,6 @@
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
                                Style="height:calc(100vh - 155px)">
-                @*                 <HeaderTemplate>
-        <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @correctionReasonDTOGrid.View.Count().ToString()+" из "+(correctionReasonDTOs == null ? "0" : correctionReasonDTOs.Count().ToString())+" в выборке")
-        ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
-        </RadzenButton>
-        </HeaderTemplate> *@
                 <Columns>
                     <RadzenDataGridColumnApp TItem="CorrectionReasonDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="CorrectionReasonDTO" Property="Name" Title="Наименование" Width="320px">
