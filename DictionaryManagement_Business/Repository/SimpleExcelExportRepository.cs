@@ -223,7 +223,7 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД ед.изм. Sap (SapUnitOfMeasureId)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Наименование ед.изм. Sap (SapUnitOfMeasure.ShortName)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Наименование ед.изм. Sap (SapUnitOfMeasure.Name / SapUnitOfMeasure.ShortName)";
 
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Время запроса данных в прошлое в днях (DaysRequestInPast)";
@@ -314,7 +314,7 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamDTO.SapUnitOfMeasureId == null ? "" : mesParamDTO.SapUnitOfMeasureId.ToString();
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = mesParamDTO.SapUnitOfMeasureDTOFK == null ? "" : mesParamDTO.SapUnitOfMeasureDTOFK.ShortName;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesParamDTO.SapUnitOfMeasureDTOFK == null ? "" : mesParamDTO.SapUnitOfMeasureDTOFK.Name + " / " + mesParamDTO.SapUnitOfMeasureDTOFK.ShortName;
 
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamDTO.DaysRequestInPast == null ? "" : mesParamDTO.DaysRequestInPast.ToString();

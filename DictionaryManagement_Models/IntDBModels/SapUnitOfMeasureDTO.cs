@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DictionaryManagement_Models.IntDBModels
 {
@@ -33,6 +34,19 @@ namespace DictionaryManagement_Models.IntDBModels
         public override string ToString()
         {
             return $"{ShortName}";
+        }
+
+        [NotMapped]
+        public string NameAndShortName
+        {
+            get
+            {
+                return $"{Name} / {ShortName}";
+            }
+            set
+            {
+                NameAndShortName = value;
+            }
         }
     }
 }

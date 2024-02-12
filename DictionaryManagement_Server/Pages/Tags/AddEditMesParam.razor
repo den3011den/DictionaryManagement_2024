@@ -109,7 +109,7 @@
 
                                 <RadzenFormField Text="Ед.изм. SAP" Variant="@variant" Style="width: 100%; max-width: 900px;">
                                     <RadzenDropDown @ref=@sapUnitOfMeasureDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
-                                                    Data=@SapUnitOfMeasureDTOList TextProperty="ShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.SapUnitOfMeasureId" Style="width: 100%; max-width: 900px;" />
+                                                    Data=@SapUnitOfMeasureDTOList TextProperty="NameAndShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.SapUnitOfMeasureId" Style="width: 100%; max-width: 900px;" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveMesParamDTO.SapUnitOfMeasureId"></ValidationMessage>
                                 @*                                 } *@
@@ -121,7 +121,6 @@
                 <RadzenColumn Size="3">
                     <RadzenStack>
                         <RadzenFieldset Text="Доп. параметры">
-
                             <RadzenStack Gap="1rem">
                                 <RadzenFormField Text="Глубина опроса (в днях)" Variant="@variant" Style="width: 100%; max-width: 900px;">
                                     <RadzenNumeric @bind-Value="@ActiveMesParamDTO.DaysRequestInPast" />

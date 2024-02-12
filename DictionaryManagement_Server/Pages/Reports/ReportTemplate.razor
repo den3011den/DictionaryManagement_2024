@@ -81,6 +81,7 @@
                             <RadzenDropDown @bind-Value=@selectedAddUsers
                                             Change=OnSelectedAddUsersChange Data="@(distinctAddUsersInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:50vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -95,6 +96,7 @@
                             <RadzenDropDown @bind-Value=@selectedReportTemplates
                                             Change=OnSelectedReportTemplatesChange Data="@(distinctReportTemplatesInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:50vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -111,6 +113,7 @@
                             <RadzenDropDown @bind-Value=@selectedMesDepartments
                                             Change=OnSelectedMesDepartmentsChange Data="@(distinctMesDepartmentsInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:50vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -128,6 +131,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedDestDataTypes
                                             Change=OnSelectedDestDataTypesChange Data="@(distinctDestDataTypesInList)" AllowClear="true" Multiple="true" Style="width: 30vw;"
+                                            PopupStyle="max-height:50vh"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>

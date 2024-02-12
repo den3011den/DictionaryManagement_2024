@@ -92,6 +92,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedLogEventTypes
                                             Change=OnSelectedLogEventTypesChange Data="@(distinctLogEventTypesInList)" AllowClear="true" Multiple="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:50vh"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -109,6 +110,7 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedUsers
                                             Change=OnSelectedUsersChange Data="@(distinctUsersInList)" AllowClear="true" Multiple="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:50vh"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
