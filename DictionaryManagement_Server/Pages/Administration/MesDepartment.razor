@@ -502,8 +502,7 @@
             , new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
 
         if (dialogResult != null)
-        {
-            //await _jsRuntime.InvokeVoidAsync("ShowSwal", "success", "Выбрано: " + dialogResult.ToStringHierarchyShortName);
+        {            
             MesDepartmentDTO? selectDepartment;
             var selectDepartments = mesDepartmentDTOGrid.View.Where(u => u.Id == dialogResult.Id);
             if (selectDepartments != null && selectDepartments.Count() > 0)
@@ -537,30 +536,36 @@
                     if (!mesDepartmentDTOGrid.IsRowExpanded(item.Item1))
                         await mesDepartmentDTOGrid.ExpandRow(item.Item1);
                 }
-                await mesDepartmentDTOGrid.SelectRow(dialogResult, true);
+
                 //await _jsRuntime.InvokeVoidAsync("eval", $"document.getElementById('{dialogResult.ToStringId}').scrollTop = document.getElementById('{dialogResult.ToStringId}').scrollHeight");
                 //await _jsRuntime.InvokeVoidAsync("eval", "document.getElementById(\"" + dialogResult.ToStringId + "\").scrollIntoView()");
 
                 //await _jsRuntime.InvokeVoidAsync("eval", $@"document.getElementById('{dialogResult.ToStringId}').scrollIntoView()");
 
                 bool isFilterApplied = false;
-                if (MesDepartmentGridSettings != null)
-                    foreach (var column in MesDepartmentGridSettings.Columns)
-                    {
-                        if (column.FilterValue != null || column.SecondFilterValue != null)
-                        {
-                            isFilterApplied = true;
-                            break;
-                        }
-                    }
+                var viewItem = mesDepartmentDTOGrid.View.FirstOrDefault(u => u.Id == dialogResult.Id);
+
+                await mesDepartmentDTOGrid.SelectRow(dialogResult, true);
+
+                // if (MesDepartmentGridSettings != null)
+                //     foreach (var column in MesDepartmentGridSettings.Columns)
+                //     {
+                //         if (column.FilterValue != null || column.SecondFilterValue != null)
+                //         {
+                //             isFilterApplied = true;
+                //             break;
+                //         }
+                //     }
+                if (viewItem == null) isFilterApplied = true;
+
                 if (isFilterApplied)
                 {
-                    await _jsRuntime.ToastrWarningLight("Запись выделена. Применены фильтры. Очистите фильтры, если не видите выделенную запись");
+                    await _jsRuntime.ToastrWarningLight("Запись выделена. Очистите применённые фильтры, чтобы увидеть найденную запись");
                 }
-                else
-                {
-                    await _jsRuntime.ToastrSuccess("Запись выделена.");
-                }
+                // else
+                // {
+                //     await _jsRuntime.ToastrSuccess("Запись выделена.");
+                // }
             }
         }
 
