@@ -544,28 +544,34 @@
 
                 bool isFilterApplied = false;
                 var viewItem = mesDepartmentDTOGrid.View.FirstOrDefault(u => u.Id == dialogResult.Id);
-
-                await mesDepartmentDTOGrid.SelectRow(dialogResult, true);
-
-                // if (MesDepartmentGridSettings != null)
-                //     foreach (var column in MesDepartmentGridSettings.Columns)
-                //     {
-                //         if (column.FilterValue != null || column.SecondFilterValue != null)
-                //         {
-                //             isFilterApplied = true;
-                //             break;
-                //         }
-                //     }
                 if (viewItem == null) isFilterApplied = true;
 
+                bool selectionResult = true;
                 if (isFilterApplied)
+                {
+                    selectionResult = await _dialogs.ShowYesOrNoDialogBox("Поиск", "Из-за применённого фильтра не удастся увидеть выбранный элемент. Очистить фильтры?", "Очистить", "Отмена");
+                    if (selectionResult == true)
+                    {                                                
+                        if (MesDepartmentGridSettings != null)
+                        {
+                            foreach (var c in MesDepartmentGridSettings.Columns)
+                            {
+                                c.FilterValue = null;
+                                c.SecondFilterValue = null;
+                            }
+                        }
+                        await InvokeAsync(SaveStateAsync);
+                        await Task.Delay(10);
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }
+                await mesDepartmentDTOGrid.SelectRow(dialogResult, true);
+                 
+                if (isFilterApplied && selectionResult != true)
                 {
                     await _jsRuntime.ToastrWarningLight("Запись выделена. Очистите применённые фильтры, чтобы увидеть найденную запись");
                 }
-                // else
-                // {
-                //     await _jsRuntime.ToastrSuccess("Запись выделена.");
-                // }
+
             }
         }
 

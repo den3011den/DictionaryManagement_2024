@@ -166,7 +166,7 @@ namespace DictionaryManagement_Server.Extensions
 
         }
 
-        async Task CleanAllFilters()
+        public async Task CleanAllFilters()
         {
             var selectionResult = await _dialogs.Confirm("Будут очищены все фильтры", "Очистить фильтры",
                 new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
