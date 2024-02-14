@@ -206,19 +206,23 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="ReportTemplateDTO" Context="reportTemplateDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="130px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                         <Template Context="reportTemplateDTO">
-                            <RadzenButton title="Скачать файл шаблона" Icon="download" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => DownloadTemplate(reportTemplateDTO.Id))" @onclick:stopPropagation="true">
+                            <RadzenButton title="@((reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0) ? "Нет истории изменения файла (появилась с версии 0.15.2.3)" : "История изменений файла шаблона")" Icon="history" ButtonStyle="ButtonStyle.Light" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                          Click="@(args => ShowFileHistory(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0)">
                             </RadzenButton>
-                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(reportTemplateDTO))" @onclick:stopPropagation="true">
+
+                            <RadzenButton title="Скачать файл шаблона" Icon="download" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" Click="@(args => DownloadTemplate(reportTemplateDTO.Id))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" Click="@(args => EditRow(reportTemplateDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
                             @if (!reportTemplateDTO.IsArchive)
                             {
-                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
@@ -394,6 +398,40 @@
             IsLoading = false;
         }
     }
+
+    async Task ShowFileHistory(ReportTemplateDTO reportTemplateDTO)
+    {
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            IsLoading = true;
+            ReportTemplateDTO dialogResult = null;
+            if (reportTemplateDTO == null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Пустой объект шаблона отчёта");
+            }
+            else
+            {
+                if (reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "отсутствует история изменения файла шаблона отчёта");
+                }
+                else
+                {
+                    IsLoading = false;
+                    dialogResult = await _dialogService.OpenAsync<ShowReportTemplateFileHistory>("История изменений шаблона отчёта " + reportTemplateDTO.Id.ToString(), new Dictionary
+                            <string, object>
+                            () { {"DataList", (IEnumerable<ReportTemplateFileHistoryDTO>)reportTemplateDTO.ReportTemplateFileHistoryListDTO.OrderBy(u=> u.AddTime) }}
+                            , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
+                    IsLoading = false;
+                    await this.OnAfterRenderAsync(true);
+                    IsLoading = false;                    
+                }
+            }
+            IsLoading = false;
+        }
+    }
+
+
 
     async Task DeleteRow(ReportTemplateDTO reportTemplateDTO)
     {
