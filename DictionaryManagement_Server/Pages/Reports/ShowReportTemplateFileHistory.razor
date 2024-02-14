@@ -33,22 +33,24 @@
                     <RadzenColumn Size="12">
                         <RadzenStack>
                             <RadzenStack Gap="1rem">
-                                <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="10" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                                <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="9" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                                    SelectionMode=DataGridSelectionMode.Single
                                                    Data="DataList" TItem="ReportTemplateFileHistoryDTO"
                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                                    FilterMode="FilterMode.Simple"
                                                    Density=Density.Compact
-                                                   ShowPagingSummary="true"
+                                                   ShowPagingSummary="true"                                                   
+                                                   GridLines="DataGridGridLines.Both"
                                                    AllowVirtualization="true"
+                                                   Style="height:70vh"
                                                    ShowCleanGridSettingsHeaderButton="false"
                                                    ShowCleanGridFiltersHeaderButton="false"
                                                    ShowCleanGridSortsHeaderButton="false">
                                     <Columns>
-                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="ToStringId" Title="Ид записи" Width="100px" TextAlign="TextAlign.Center"
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="ToStringId" Title="Ид записи" Width="130px" TextAlign="TextAlign.Center"
                                                                  FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId" />
                                         <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="AddTime" Title="Время" TextAlign="TextAlign.Center"
-                                                                 Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals">
+                                                                 Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals" Width="170px">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     <strong>
@@ -66,21 +68,32 @@
                                             </Template>
                                         </RadzenDataGridColumnApp>
                                         <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="PreviousFileName" Title="Предыдущий файл" TextAlign="TextAlign.Center"
-                                                                 Filterable="true" Sortable="true" />
-
-                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="PreviousFileName" Title="Файл" Width="35px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
+                                                                 Filterable="true" Sortable="true">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.PreviousFileName
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="PreviousFileName" Title="Файл" Width="50px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                                             <Template Context="data">
-                                                <RadzenButton title="Скачать файл" Icon="download" ButtonStyle="ButtonStyle.Light" Disabled="@(String.IsNullOrEmpty(data.PreviousFileName))" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => DownloadHistoryFile(data.PreviousFileName))" @onclick:stopPropagation="true">
+                                                <RadzenButton title="Скачать файл" Icon="download" ButtonStyle="ButtonStyle.Light" Disabled="@(String.IsNullOrEmpty(data.PreviousFileName))"
+                                                              Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => DownloadHistoryFile(data.PreviousFileName))" @onclick:stopPropagation="true">
                                                 </RadzenButton>
                                             </Template>
                                         </RadzenDataGridColumnApp>
-
                                         <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="CurrentFileName" Title="Новый файл" TextAlign="TextAlign.Center"
-                                                                 Filterable="true" Sortable="true" />
-
-                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="CurrentFileName" Title="Файл" Width="35px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
+                                                                 Filterable="true" Sortable="true">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.CurrentFileName
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="CurrentFileName" Title="Файл" Width="50px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                                             <Template Context="data">
-                                                <RadzenButton title="Скачать файл" Icon="download" ButtonStyle="ButtonStyle.Light" Disabled="@(String.IsNullOrEmpty(data.PreviousFileName))" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => DownloadHistoryFile(data.CurrentFileName))" @onclick:stopPropagation="true">
+                                                <RadzenButton title="Скачать файл" Icon="download" ButtonStyle="ButtonStyle.Light" Disabled="@(String.IsNullOrEmpty(data.CurrentFileName))"
+                                                        Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => DownloadHistoryFile(data.CurrentFileName))" @onclick:stopPropagation="true">
                                                 </RadzenButton>
                                             </Template>
                                         </RadzenDataGridColumnApp>
@@ -127,7 +140,6 @@
 
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
-            //_navigationManager.NavigateTo("/DownloadFileController/DownloadReportTemplateFile/" + id.ToString());
             await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportTemplateFileByFileName/" + fileName, "_blank");
         }
     }

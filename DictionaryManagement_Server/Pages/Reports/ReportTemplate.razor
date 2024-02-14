@@ -420,11 +420,9 @@
                     IsLoading = false;
                     dialogResult = await _dialogService.OpenAsync<ShowReportTemplateFileHistory>("История изменений шаблона отчёта " + reportTemplateDTO.Id.ToString(), new Dictionary
                             <string, object>
-                            () { {"DataList", (IEnumerable<ReportTemplateFileHistoryDTO>)reportTemplateDTO.ReportTemplateFileHistoryListDTO.OrderBy(u=> u.AddTime) }}
-                            , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
+                            () { {"DataList", (IEnumerable<ReportTemplateFileHistoryDTO>)reportTemplateDTO.ReportTemplateFileHistoryListDTO.OrderByDescending(u=> u.AddTime) }}
+                            , new DialogOptions() { Width = $"{70}vw", Left = "10vw" });
                     IsLoading = false;
-                    await this.OnAfterRenderAsync(true);
-                    IsLoading = false;                    
                 }
             }
             IsLoading = false;
