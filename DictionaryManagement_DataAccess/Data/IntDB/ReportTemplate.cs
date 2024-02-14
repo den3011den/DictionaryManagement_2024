@@ -49,6 +49,8 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public bool? NeedAutoCalc { get; set; }
         public int? AutoCalcOrder { get; set; }
         public int? AutoCalcNumber { get; set; }
+
+        public virtual ICollection<ReportTemplateFileHistory>? ReportTemplateFileHistoryList { get; set; }
     }
 
 }

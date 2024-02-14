@@ -100,7 +100,8 @@ namespace DictionaryManagement_Business.Mapper
                 .ForMember(dest => dest.MesDepartmentDTOFK, opt => opt.MapFrom(src => src.MesDepartmentFK))
                 .ForMember(dest => dest.NeedAutoCalc, opt => opt.MapFrom(src => src.NeedAutoCalc == null ? false : src.NeedAutoCalc))
                 .ForMember(dest => dest.AutoCalcOrder, opt => opt.MapFrom(src => src.AutoCalcOrder == null ? 1 : src.AutoCalcOrder))
-                .ForMember(dest => dest.AutoCalcNumber, opt => opt.MapFrom(src => src.AutoCalcNumber == null ? 1 : src.AutoCalcNumber));
+                .ForMember(dest => dest.AutoCalcNumber, opt => opt.MapFrom(src => src.AutoCalcNumber == null ? 1 : src.AutoCalcNumber))
+                .ForMember(dest => dest.ReportTemplateFileHistoryListDTO, opt => opt.MapFrom(src => src.ReportTemplateFileHistoryList));
 
             CreateMap<ReportTemplateDTO, ReportTemplate>()
                     .ForMember(dest => dest.AddUserFK, opt => opt.MapFrom(src => src.AddUserDTOFK))
@@ -110,7 +111,8 @@ namespace DictionaryManagement_Business.Mapper
                     .ForMember(dest => dest.NeedAutoCalc, opt => opt.MapFrom(src => src.NeedAutoCalc == null ? false : src.NeedAutoCalc))
                     .ForMember(dest => dest.NeedAutoCalc, opt => opt.MapFrom(src => src.NeedAutoCalc == null ? false : src.NeedAutoCalc))
                     .ForMember(dest => dest.AutoCalcOrder, opt => opt.MapFrom(src => src.AutoCalcOrder == null ? 1 : src.AutoCalcOrder))
-                    .ForMember(dest => dest.AutoCalcNumber, opt => opt.MapFrom(src => src.AutoCalcNumber == null ? 1 : src.AutoCalcNumber));
+                    .ForMember(dest => dest.AutoCalcNumber, opt => opt.MapFrom(src => src.AutoCalcNumber == null ? 1 : src.AutoCalcNumber))
+                    .ForMember(dest => dest.ReportTemplateFileHistoryList, opt => opt.MapFrom(src => src.ReportTemplateFileHistoryListDTO));
 
 
             CreateMap<ReportTemplateTypeTоRole, ReportTemplateTypeTоRoleDTO>()
@@ -275,6 +277,15 @@ namespace DictionaryManagement_Business.Mapper
 
             CreateMap<ReportEntityResendDatesDTO, ReportEntityResendDates>()
                 .ForMember(dest => dest.ReportEntityFK, opt => opt.MapFrom(src => src.ReportEntityDTOFK));
+
+            CreateMap<ReportTemplateFileHistory, ReportTemplateFileHistoryDTO>()
+                .ForMember(dest => dest.ReportTemplateDTOFK, opt => opt.MapFrom(src => src.ReportTemplateFK))
+                .ForMember(dest => dest.AddUserDTOFK, opt => opt.MapFrom(src => src.AddUserFK)); ;
+
+            CreateMap<ReportTemplateFileHistoryDTO, ReportTemplateFileHistory>()
+                .ForMember(dest => dest.ReportTemplateFK, opt => opt.MapFrom(src => src.ReportTemplateDTOFK))
+                .ForMember(dest => dest.AddUserFK, opt => opt.MapFrom(src => src.AddUserDTOFK));
+
         }
     }
 }

@@ -35,7 +35,7 @@
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 @* <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
-                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss"/>
+                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
                                 <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                             </RadzenRow>
@@ -233,7 +233,7 @@
     }
 
     .rz-calendar .rz-inputtext {
-        font-size: 14px!important;
+        font-size: 14px !important;
         max-height: 1.9rem;
     }
 </style>
@@ -486,8 +486,8 @@
             {
                 IsLoading = false;
                 dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
-        <string, object>
-    () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"calc(50vw - 950px)" });
+    <string, object>
+        () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"calc(50vw - 950px)" });
                 //             dialogResult = await _dialogService.OpenAsync<ReportEntityDetails>("Подробно по экземпляру отчёта " + reportEntityDTO.Id.ToString(), new Dictionary
                 // <string, object>
                 // () { { "ReportEntityId", reportEntityDTO.Id } }, new DialogOptions() { Width = iconMenuActive ? $"{1700}px" : $"{1560}px", Left = $"{20}px" });
@@ -552,7 +552,7 @@
     {
         await Task.CompletedTask;
         var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: видимость колонок, порядок следования колонок, ширина колонок, применённые фильтры", "Сбросить настройки интерфейса страницы",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+    new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -591,7 +591,7 @@
     async Task CleanAllFiltersCustom()
     {
         var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+    new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -629,7 +629,7 @@
     {
 
         var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
-        new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+    new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
 
         if (selectionResult != true)
         {
@@ -654,18 +654,18 @@
         if (reportEntityDTOs != null)
         {
             distinctDepartmentsInList = (List<string>)reportEntityDTOs.Where(u => u.ReportDepartmentDTOFK != null).OrderBy(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName)
-    .Select(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
+        .Select(u => u.ReportDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
             distinctReportTemplateTypesInList = (List<string>)reportEntityDTOs.OrderBy(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name)
-    .Select(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name).Distinct().ToList();
+        .Select(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name).Distinct().ToList();
             distinctDownloadUsersInList = (List<string>)reportEntityDTOs.Where(u => u.DownloadUserDTOFK != null).OrderBy(u => u.DownloadUserDTOFK.UserName)
-    .Select(u => u.DownloadUserDTOFK.UserName).Distinct().ToList();
+        .Select(u => u.DownloadUserDTOFK.UserName).Distinct().ToList();
             distinctUploadUsersInList = (List<string>)reportEntityDTOs.Where(u => u.UploadUserDTOFK != null).OrderBy(u => u.UploadUserDTOFK.UserName)
-    .Select(u => u.UploadUserDTOFK.UserName).Distinct().ToList();
+        .Select(u => u.UploadUserDTOFK.UserName).Distinct().ToList();
         }
     }
 
     void ShowTooltip(IEnumerable<ReportEntityResendDatesDTO>? reportEntityResendDatesListDTO, ElementReference elementReference, TooltipOptions options = null
-        ) => _tooltipService.Open(elementReference, ds =>
+    ) => _tooltipService.Open(elementReference, ds =>
     @<div>
         <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="false" AllowPaging="false" AllowSorting="true" EditMode="DataGridEditMode.Single"
                            Data="@reportEntityResendDatesListDTO" TItem="ReportEntityResendDatesDTO"
