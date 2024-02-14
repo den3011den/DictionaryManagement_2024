@@ -18,6 +18,24 @@ namespace DictionaryManagement_Business.Repository
             _mapper = mapper;
         }
 
+        public async Task<ReportTemplateFileHistoryDTO> Create(ReportTemplateFileHistoryDTO objectToAddDTO)
+        {
+
+            ReportTemplateFileHistory objectToAdd = new ReportTemplateFileHistory();
+
+            objectToAdd.Id = objectToAddDTO.Id;
+            objectToAdd.ReportTemplateId = objectToAddDTO.ReportTemplateId;
+            objectToAdd.AddTime = objectToAddDTO.AddTime;
+            objectToAdd.AddUserId = objectToAddDTO.AddUserId;
+            objectToAdd.PreviousFileName = objectToAddDTO.PreviousFileName;
+            objectToAdd.CurrentFileName = objectToAddDTO.CurrentFileName;
+
+            var addedReportTemplateFileHistoryEntity = _db.ReportTemplateFileHistory.Add(objectToAdd);
+            _db.SaveChanges();
+            return _mapper.Map<ReportTemplateFileHistory, ReportTemplateFileHistoryDTO>(addedReportTemplateFileHistoryEntity.Entity);
+        }
+
+
         public async Task<IEnumerable<ReportTemplateFileHistoryDTO>?> GetListByReportEntityId(Guid? reportEntityId)
         {
             if (reportEntityId == null || reportEntityId == Guid.Empty)

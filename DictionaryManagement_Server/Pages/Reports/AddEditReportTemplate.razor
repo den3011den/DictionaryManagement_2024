@@ -12,6 +12,8 @@
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 @inject ILogEventRepository _logEventRepository
 @inject DialogService _dialogService
+@inject IUserRepository _userRepository
+@inject IReportTemplateFileHistoryRepository _reportTemplateFileHistoryRepository
 
 <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -22,10 +24,7 @@
         <Loading IsLoading="@IsLoading" />
     }
     else
-    {
-        @*OnSubmit = "AddEditReportTemplateProcedure2"*@
-        @*OnValidSubmit="AddEditReportTemplateProcedure*@
-
+    {    
         <EditForm Model="ActiveReportTemplateDTO" OnValidSubmit="AddEditReportTemplateProcedure">
             <DataAnnotationsValidator />
 
@@ -349,6 +348,15 @@
                 //upload.Url = @"UploadFileController/UploadReportTemplateFile/" + createdTemplateDTO.Id;
                 //await upload.Upload();
 
+                UserDTO? addedUser = await _authorizationRepository.GetCurrentUserDTO();
+                DateTime addedTime = DateTime.Now;
+
+                if (addedUser == null)
+                {
+                    addedUser = await _userRepository.GetByUserName(SD.DictionaryManagementUserName);
+                }
+                string oldTemplateFileName = "";
+
                 try
                 {
                     File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
@@ -357,6 +365,15 @@
                 {
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
                 }
+
+                ReportTemplateFileHistoryDTO reportTemplateFileHistoryDTO = new ReportTemplateFileHistoryDTO();
+                reportTemplateFileHistoryDTO.ReportTemplateId = ActiveReportTemplateDTO.Id;
+                reportTemplateFileHistoryDTO.AddTime = addedTime;
+                reportTemplateFileHistoryDTO.AddUserId = addedUser.Id;
+                reportTemplateFileHistoryDTO.PreviousFileName = oldTemplateFileName;
+                reportTemplateFileHistoryDTO.CurrentFileName = ActiveReportTemplateDTO.TemplateFileName;
+                await _reportTemplateFileHistoryRepository.Create(reportTemplateFileHistoryDTO);
+
                 await _jsRuntime.ToastrSuccess("Шаблон \"" + ActiveReportTemplateDTO.Description + "\" создан");
                 if (isUploadFileError == false)
                     _dialogService.Close(ActiveReportTemplateDTO);
@@ -386,16 +403,35 @@
                 {
                     //upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
                     //await upload.Upload();
+
+                    UserDTO? addedUser = await _authorizationRepository.GetCurrentUserDTO();
+                    DateTime addedTime = DateTime.Now;
+
+                    if(addedUser == null)
+                    {
+                        addedUser = await _userRepository.GetByUserName(SD.DictionaryManagementUserName);
+                    }
+                    string oldTemplateFileName = SD.RemoveInvalidCharsFromFilename(addedUser.UserName + "_" + addedTime.ToString() + "_" + ActiveReportTemplateDTO.TemplateFileName);
+
                     try
                     {
+                        File.Copy(ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + oldTemplateFileName, true);
                         File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
                     }
                     catch(Exception copyEx)
                     {
                         await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
                     }
-                    Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
-                    await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUserId, ActiveReportTemplateDTO.ToString(), ActiveReportTemplateDTO.ToString(), false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
+
+                    await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUser.Id, ActiveReportTemplateDTO.ToString(), ActiveReportTemplateDTO.ToString(), false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
+
+                    ReportTemplateFileHistoryDTO reportTemplateFileHistoryDTO = new ReportTemplateFileHistoryDTO();
+                    reportTemplateFileHistoryDTO.ReportTemplateId = ActiveReportTemplateDTO.Id;
+                    reportTemplateFileHistoryDTO.AddTime = addedTime;
+                    reportTemplateFileHistoryDTO.AddUserId = addedUser.Id;
+                    reportTemplateFileHistoryDTO.PreviousFileName = oldTemplateFileName;
+                    reportTemplateFileHistoryDTO.CurrentFileName = ActiveReportTemplateDTO.TemplateFileName;
+                    await _reportTemplateFileHistoryRepository.Create(reportTemplateFileHistoryDTO);
                 }
 
                 ReportTemplateDTO oldReportTemplateDTO = await _reportTemplateRepository.GetById(ActiveReportTemplateDTO.Id);
