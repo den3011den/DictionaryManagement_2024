@@ -288,7 +288,7 @@ namespace DictionaryManagement_Server.Controllers
             {
                 return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
             }
-            string file = System.IO.Path.Combine(filePath, fileName);
+            string file = System.IO.Path.Combine(filePath.UnhideSlash(), fileName);
             if (System.IO.File.Exists(file))
             {
                 try

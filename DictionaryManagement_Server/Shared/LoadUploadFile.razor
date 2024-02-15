@@ -1,4 +1,4 @@
-﻿@page "/LoadUploadFile/{Title}/{FilePath?}/{FileName?}"
+﻿@page "/LoadUploadFile/{Title}/{FilePath}/{FileName}/{FileExtension}"
 @attribute [Authorize]
 
 @using DictionaryManagement_Business.Repository.IRepository;
@@ -22,19 +22,10 @@
         {
             <a href="/DownloadFileController/DownloadAnyFile/@FilePath/@FileName" target="_blank">Скачать файл</a>
         }
-        else
-        {
-            @if (!String.IsNullOrEmpty(DownloadFileName.Trim()) && !FileExistsFlag)
-            {
-                <br />
-                <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                    @("Не найден файл \"" + DownloadFileName.Trim() + "\"")
-                </RadzenText>
-            }
-        }
 
         @if (PathExistsFlag && FilePath != null && !String.IsNullOrEmpty(FilePath.Trim()))
         {
+            <br />
             <RadzenRow Gap="1rem">
                 <RadzenStack>
                     <RadzenCard Style="width: 100%;">
@@ -42,6 +33,12 @@
                         <RadzenUpload @ref="upload" Auto="false" ChooseText="Выбрать" Multiple="false"
                                       Url=@("UploadFileController/UploadAnyFile/" + FilePath + "/" + FileName)
                                       Change=@(args => OnChangeUploadFile(args)) Progress=@(args => OnProgressUploadFile(args)) Style="width: 850px;" />
+                        @if (!String.IsNullOrEmpty(uploadFileWarning))
+                        {
+                            <br />
+                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                        }
+
                     </RadzenCard>
                 </RadzenStack>
             </RadzenRow>
@@ -52,30 +49,33 @@
             {
                 <br />
                 <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                    @("Не найден путь \"" + FilePath.Trim() + "\"")
+                    @("Не найден путь \"" + FilePath.Trim().UnhideSlash() + "\"")
                 </RadzenText>
             }
         }
 
+        <br />
         <RadzenButton Text="Сохранить" title="Сохранить файл на сервере"
-                      Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                      Click=@(() => LoadFile().GetAwaiter()) @onclick:stopPropagation="true" />
+                      Icon="save" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                      Click=@(() => LoadFile().GetAwaiter()) @onclick:stopPropagation="true"
+                      IsBusy="@IsBusySaveButton" BusyText="Сохраняется ..." />
+        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
     }
 }
 
 @code {
-
     [Parameter]
-    public string? FilePath { get; set; } = "";
-
+    public string Title { get; set; } = "";
     [Parameter]
-    public string? FileName { get; set; } = "";
-
+    public string FilePath { get; set; } = "";
     [Parameter]
-    public string Title { get; set; }
+    public string FileName { get; set; } = "";
+    [Parameter]
+    public string FileExtension { get; set; } = "";
 
     public bool FileExistsFlag { get; set; } = false;
     public bool PathExistsFlag { get; set; } = false;
+    public bool IsBusySaveButton { get; set; } = false;
 
     public string DownloadFileName { get; set; } = "";
 
@@ -111,31 +111,29 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-
+                IsBusySaveButton = false;
                 IsLoading = true;
                 await Task.Delay(10);
                 await InvokeAsync(StateHasChanged);
 
-                if (System.IO.File.Exists(FilePath.Trim()))
+                if (System.IO.Directory.Exists(FilePath.Trim().UnhideSlash()))
                 {
                     PathExistsFlag = true;
                 }
 
-                if (System.IO.File.Exists(FilePath.Trim() + FileName.Trim()))
+                if (System.IO.File.Exists(FilePath.Trim().UnhideSlash() + FileName.Trim()))
                 {
                     FileExistsFlag = true;
                 }
 
                 DownloadFileName = FilePath.Trim() + FileName.Trim();
+                IsLoading = false;
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
             }
-
-
-            IsLoading = false;
-            await Task.Delay(100);
-            await InvokeAsync(StateHasChanged);
+            else
+                _navigationManager.NavigateTo("/");
         }
-        else
-            _navigationManager.NavigateTo("/");
     }
 
     void OnChangeUploadFile(UploadChangeEventArgs args)
@@ -151,11 +149,11 @@
             }
             else
             {
-                // if (Path.GetExtension(args.Files.ToList()[0].Name).ToUpper() != ".XLSX")
-                // {
-                //     upload.ClearFiles();
-                //     _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл должен быть формата xlsx");
-                // }
+                if (Path.GetExtension(args.Files.ToList()[0].Name).ToUpper() != "." + FileExtension.ToUpper())
+                {
+                    upload.ClearFiles();
+                    _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл должен быть с расширением \"" + FileExtension + "\"");
+                }
             }
             uploadFileWarning = "Для загрузки файла на сервер нажмите  \"Сохранить\"";
         }
@@ -177,6 +175,7 @@
 
     async Task LoadFile()
     {
+        IsBusySaveButton = true;
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 
@@ -186,14 +185,17 @@
             upload.Url = @"UploadFileController/UploadAnyFile/" + FilePath + "/" + FileName;
             await upload.Upload();
             await Task.Delay(2000);
+            IsBusySaveButton = false;
         }
         catch (Exception ex1)
         {
             await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка загрузки файла на сервер. Сообщение ошибки:  " + ex1.Message);
+            IsBusySaveButton = false;
             await Task.Delay(1);
             await InvokeAsync(StateHasChanged);
             return;
-        }     
+        }
+        IsBusySaveButton = false;
         _dialogService.Close(true);
     }
 

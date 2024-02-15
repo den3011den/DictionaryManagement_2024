@@ -147,7 +147,7 @@ namespace DictionaryManagement_Server.Controllers
             {
                 if (file != null && file.Length > 0)
                 {
-                    using (FileStream fileStream = new FileStream(filePath + fileName, FileMode.Create, FileAccess.ReadWrite))
+                    using (FileStream fileStream = new FileStream(filePath.UnhideSlash() + fileName, FileMode.Create, FileAccess.ReadWrite))
                     {
                         file.CopyTo(fileStream);
                     }
@@ -158,6 +158,7 @@ namespace DictionaryManagement_Server.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
+            return StatusCode(200);
         }
     }
 }
