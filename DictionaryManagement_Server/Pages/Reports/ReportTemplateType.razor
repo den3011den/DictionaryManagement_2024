@@ -326,7 +326,7 @@
             string filePath = "";
             string fileName = "";
 
-            SettingsDTO? settingsDTO = await _settingsRepository.GetByName(SD.TempFilePathSettingName);
+            SettingsDTO? settingsDTO = await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName);
             if (settingsDTO != null)
             {
                 filePath = settingsDTO.Value.Trim();
