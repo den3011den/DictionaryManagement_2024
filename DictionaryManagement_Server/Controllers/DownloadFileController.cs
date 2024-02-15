@@ -271,5 +271,37 @@ namespace DictionaryManagement_Server.Controllers
             return StatusCode(500, "Файл " + file + " не найден");
         }
 
+        [DisableRequestSizeLimit]
+        [HttpGet("DownloadFileController/DownloadAnyFile/{filePath}/{fileName}")]
+        //[RequestSizeLimit(60000000)]
+        public async Task<IActionResult> DownloadAnyFile(string filePath, string fileName)
+        {
+
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
+                }
+            }
+            catch
+            {
+                return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
+            }
+            string file = System.IO.Path.Combine(filePath, fileName);
+            if (System.IO.File.Exists(file))
+            {
+                try
+                {
+                    return File(new FileStream(file, FileMode.Open), "application/octet-stream", fileName);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, ex.Message);
+                }
+            }
+            return StatusCode(500, "Файл " + file + " не найден");
+        }
+
     }
 }

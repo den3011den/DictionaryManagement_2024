@@ -63,6 +63,10 @@ namespace DictionaryManagement_Business.Repository
                         objectToUpdate.NeedAutoCalc = objectToUpdateDTO.NeedAutoCalc;
                     if (objectToUpdate.CanAutoCalc != objectToUpdateDTO.CanAutoCalc)
                         objectToUpdate.CanAutoCalc = objectToUpdateDTO.CanAutoCalc;
+                    if (objectToUpdate.VbaScriptFileName != objectToUpdateDTO.VbaScriptFileName)
+                        objectToUpdate.VbaScriptFileName = objectToUpdateDTO.VbaScriptFileName;
+                    if (objectToUpdate.SampleFileName != objectToUpdateDTO.SampleFileName)
+                        objectToUpdate.SampleFileName = objectToUpdateDTO.SampleFileName;
                 }
                 if (updateMode == SD.UpdateMode.MoveToArchive)
                 {

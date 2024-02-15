@@ -29,6 +29,14 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "Доступен для настройки авторасчёта")]
         public bool? CanAutoCalc { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Файл-скрипт VBA\"")]
+        [Display(Name = "Файл-скрипт VBA")]
+        public string? VbaScriptFileName { get; set; } = string.Empty;
+
+        [ForLogAttribute(NameProperty = "поле \"Файл-образец шаблона отчёта\"")]
+        [Display(Name = "Файл-образец шаблона отчёта")]
+        public string? SampleFileName { get; set; } = string.Empty;
+
         [NotMapped]
         [Display(Name = "Чтение")]
         public bool CanDownload { get; set; }

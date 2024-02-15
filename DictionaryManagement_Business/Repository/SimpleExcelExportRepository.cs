@@ -25,6 +25,8 @@ namespace DictionaryManagement_Business.Repository
             _mapper = mapper;
         }
 
+        public string ExcelWorkBookProtectionPassword { get; set; } = "";
+
         public async Task<string> GenerateExcelReportEntity(string filename, IEnumerable<ReportEntityDTO> data)
         {
 
@@ -2662,15 +2664,22 @@ namespace DictionaryManagement_Business.Repository
             {
                 workbook.CalculateMode = XLCalculateMode.Manual;
 
+                if (String.IsNullOrEmpty(ExcelWorkBookProtectionPassword))
+                {
+                    var settingsObject = await _settingsRepository.GetByName(SD.ExcelWorkBookProtectionPasswordName);
+                    if (settingsObject != null)
+                        ExcelWorkBookProtectionPassword = settingsObject.Value;
+                }
+
                 if (workbook.IsProtected)
                 {
                     try
                     {
-                        workbook.Unprotect(SD.ExcelWorkBookProtectionPassword);
+                        workbook.Unprotect(ExcelWorkBookProtectionPassword);
                     }
                     catch (Exception exx1)
                     {
-                        return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не удалось снять защиту с книги с помощью пароля: " + SD.ExcelWorkBookProtectionPassword, workbook);
+                        return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не удалось снять защиту с книги с помощью пароля: " + ExcelWorkBookProtectionPassword, workbook);
                     }
                 }
                 string? sheetName = (await _settingsRepository.GetByName(sheetSettingName)).Value;

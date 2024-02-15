@@ -1,0 +1,205 @@
+﻿@page "/LoadUploadFile/{Title}/{FilePath?}/{FileName?}"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
+
+@inject IUserRepository _userRepository
+@inject IReportTemplateFileHistoryRepository _reportTemplateFileHistoryRepository
+@inject IJSRuntime _jsRuntime
+@inject DialogService _dialogService
+
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+{
+    @if (IsLoading)
+    {
+        <Loading IsLoading="@IsLoading" />
+    }
+    else
+    {
+        @if (FileExistsFlag && !String.IsNullOrEmpty(DownloadFileName.Trim()))
+        {
+            <a href="/DownloadFileController/DownloadAnyFile/@FilePath/@FileName" target="_blank">Скачать файл</a>
+        }
+        else
+        {
+            @if (!String.IsNullOrEmpty(DownloadFileName.Trim()) && !FileExistsFlag)
+            {
+                <br />
+                <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                    @("Не найден файл \"" + DownloadFileName.Trim() + "\"")
+                </RadzenText>
+            }
+        }
+
+        @if (PathExistsFlag && FilePath != null && !String.IsNullOrEmpty(FilePath.Trim()))
+        {
+            <RadzenRow Gap="1rem">
+                <RadzenStack>
+                    <RadzenCard Style="width: 100%;">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Выбрать загружаемый файл</RadzenText>
+                        <RadzenUpload @ref="upload" Auto="false" ChooseText="Выбрать" Multiple="false"
+                                      Url=@("UploadFileController/UploadAnyFile/" + FilePath + "/" + FileName)
+                                      Change=@(args => OnChangeUploadFile(args)) Progress=@(args => OnProgressUploadFile(args)) Style="width: 850px;" />
+                    </RadzenCard>
+                </RadzenStack>
+            </RadzenRow>
+        }
+        else
+        {
+            @if (FilePath != null && !String.IsNullOrEmpty(FilePath.Trim()) && !PathExistsFlag)
+            {
+                <br />
+                <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
+                    @("Не найден путь \"" + FilePath.Trim() + "\"")
+                </RadzenText>
+            }
+        }
+
+        <RadzenButton Text="Сохранить" title="Сохранить файл на сервере"
+                      Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                      Click=@(() => LoadFile().GetAwaiter()) @onclick:stopPropagation="true" />
+    }
+}
+
+@code {
+
+    [Parameter]
+    public string? FilePath { get; set; } = "";
+
+    [Parameter]
+    public string? FileName { get; set; } = "";
+
+    [Parameter]
+    public string Title { get; set; }
+
+    public bool FileExistsFlag { get; set; } = false;
+    public bool PathExistsFlag { get; set; } = false;
+
+    public string DownloadFileName { get; set; } = "";
+
+    string uploadFileWarning = "";
+
+    RadzenUpload upload;
+
+    Variant variant = Variant.Outlined;
+
+    bool IsSubmited = false;
+
+    public string ReportTemplatePath;
+    public string TempFilePath;
+
+    string loadedFileName = "";
+
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+    public bool isUploadFileError { get; set; } = false;
+    public string uploadFileErrorString { get; set; } = "";
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+            {
+
+                IsLoading = true;
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
+
+                if (System.IO.File.Exists(FilePath.Trim()))
+                {
+                    PathExistsFlag = true;
+                }
+
+                if (System.IO.File.Exists(FilePath.Trim() + FileName.Trim()))
+                {
+                    FileExistsFlag = true;
+                }
+
+                DownloadFileName = FilePath.Trim() + FileName.Trim();
+            }
+
+
+            IsLoading = false;
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+            _navigationManager.NavigateTo("/");
+    }
+
+    void OnChangeUploadFile(UploadChangeEventArgs args)
+    {
+        uploadFileWarning = "";
+        if (args.Files.Count() > 0)
+        {
+
+            if (args.Files.ToList()[0].Size > 31457280)
+            {
+                upload.ClearFiles();
+                _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл не может быть больше 30 МБ");
+            }
+            else
+            {
+                // if (Path.GetExtension(args.Files.ToList()[0].Name).ToUpper() != ".XLSX")
+                // {
+                //     upload.ClearFiles();
+                //     _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Файл должен быть формата xlsx");
+                // }
+            }
+            uploadFileWarning = "Для загрузки файла на сервер нажмите  \"Сохранить\"";
+        }
+    }
+
+
+    void OnProgressUploadFile(UploadProgressArgs args)
+    {
+        var loadedFileName = "";
+        if (args.Progress == 100)
+        {
+            foreach (var file in args.Files)
+            {
+                loadedFileName = file.Name;
+            }
+        }
+    }
+
+
+    async Task LoadFile()
+    {
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+
+            upload.Url = @"UploadFileController/UploadAnyFile/" + FilePath + "/" + FileName;
+            await upload.Upload();
+            await Task.Delay(2000);
+        }
+        catch (Exception ex1)
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка загрузки файла на сервер. Сообщение ошибки:  " + ex1.Message);
+            await Task.Delay(1);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }     
+        _dialogService.Close(true);
+    }
+
+    private async Task OnClickCancel()
+    {
+        upload.Dispose();
+        _dialogService.Close(false);
+    }
+}
