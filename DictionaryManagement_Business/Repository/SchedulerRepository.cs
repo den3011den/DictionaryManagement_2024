@@ -25,6 +25,7 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.ModuleName = objectToAddDTO.ModuleName;
             objectToAdd.StartTime = objectToAddDTO.StartTime;
             objectToAdd.LastExecuted = objectToAddDTO.LastExecuted;
+            objectToAdd.IsRunningNow = objectToAddDTO.IsRunningNow;
 
             var addedScheduler = _db.Scheduler.Add(objectToAdd);
             _db.SaveChanges();
@@ -66,6 +67,9 @@ namespace DictionaryManagement_Business.Repository
                 if (objectToUpdateDTO.LastExecuted != objectToUpdate.LastExecuted)
                     objectToUpdate.LastExecuted = objectToUpdateDTO.LastExecuted;
 
+                if (objectToUpdateDTO.IsRunningNow != objectToUpdate.IsRunningNow)
+                    objectToUpdate.IsRunningNow = objectToUpdateDTO.IsRunningNow;
+
                 _db.Scheduler.Update(objectToUpdate);
                 _db.SaveChanges();
                 return _mapper.Map<Scheduler, SchedulerDTO>(objectToUpdate);
@@ -85,7 +89,6 @@ namespace DictionaryManagement_Business.Repository
                 }
             }
             return 0;
-
         }
     }
 }

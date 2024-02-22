@@ -32,6 +32,10 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "Время последнего выполнения")]
         public DateTime? LastExecuted { get; set; } = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
 
+        [ForLogAttribute(NameProperty = "поле \"Сейчас выполняется\"")]
+        [Display(Name = "Сейчас выполняется")]
+        public bool IsRunningNow { get; set; } = false;
+
         public override string ToString()
         {
             return $"Модуль: {ModuleName} Старт: {StartTime.ToString()}";

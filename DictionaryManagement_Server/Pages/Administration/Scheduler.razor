@@ -53,6 +53,12 @@
                     <RadzenDataGridColumnApp TItem="SchedulerDTO" Property="LastExecuted" Title="Время последнего выполнения" Width="120px">
                     </RadzenDataGridColumnApp>
 
+                    <RadzenDataGridColumnApp TItem="SchedulerDTO" Property="IsRunningNow" Title="Выполняется сейчас" Width="120px">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.IsRunningNow ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
                     <RadzenDataGridColumnApp Title="Действия" TItem="SchedulerDTO" Context="SchedulerDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="55px">
                         <Template Context="schedulerDTO">
                             <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
