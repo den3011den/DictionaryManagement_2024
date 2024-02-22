@@ -129,15 +129,6 @@
                     <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="DownloadTime" Title="Скачан из СИР" Width="130px" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals" />
 
-
-                    @*                     <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="DownloadTime" Title="Скачан из СИР" Width="150px" TextAlign="TextAlign.Center"
-            Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals" FilterValue="@downloadTimeFilterValue">
-            <FilterTemplate>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value=@downloadTimeFilterValue ShowTime="true"
-            ShowSeconds="true" HourFormat="24" DateFormat="dd.MM.yyyy hh:mm:ss" Style="width:100%;" AllowClear="true"/>
-            </FilterTemplate>
-            </RadzenDataGridColumnApp>  *@
-
                     <RadzenDataGridColumnApp TItem="ReportEntityDTO" Title="Кто скачал" Property="DownloadUserDTOFK.UserName" Type="typeof(IEnumerable<string>)" Width="160px"
                                              FilterValue="@selectedDownloadUsers" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
@@ -689,7 +680,4 @@
         </RadzenDataGridApp>
     </div>
     , options);
-
 }
-
-

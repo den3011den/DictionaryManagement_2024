@@ -38,7 +38,7 @@
                                 {
                                     <RadzenFormField Text="ИД тэга СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
                                         <RadzenNumeric @bind-Value="@ActiveMesParamDTO.Id" Disabled />
-                                     </RadzenFormField>
+                                    </RadzenFormField>
                                 }
                                 <RadzenFormField Text="Код тэга СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
                                     <RadzenTextBox @bind-Value="@ActiveMesParamDTO.Code" />
@@ -147,7 +147,7 @@
                                 <ValidationMessage For="()=>ActiveMesParamDTO.NameTM"></ValidationMessage>
 
                                 <RadzenFormField Text="Коэф. пересчёта из ед.изм. MES в СИР" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                                    <RadzenNumeric @bind-Value="@ActiveMesParamDTO.MesToSirUnitOfMeasureKoef" />
+                                    <RadzenNumeric TValue="decimal?" @bind-Value="@ActiveMesParamDTO.MesToSirUnitOfMeasureKoef" />
                                 </RadzenFormField>
 
                             </RadzenStack>
@@ -410,6 +410,17 @@
                     return;
                 }
 
+                if (ActiveMesParamDTO.MesToSirUnitOfMeasureKoef == null || ActiveMesParamDTO.MesToSirUnitOfMeasureKoef <= 0)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Добавление тэга СИР",
+                        "\"Коэф. пересчёта из ед.изм. MES в СИР\" у добавляемого тэга будет равен нулю. Если это неверно - нажмите \"Отмена\" и введите число в формате, например: 1,020001 (через запятую)" +
+                                "   Всё равно добавить ?", "Добавить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        return;
+                    }
+                }
+
                 var addedDTO = await _mesParamRepository.Create(ActiveMesParamDTO);
 
                 await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: addedDTO, "Добавление тэга СИР", "Тэг: ", _authorizationRepository);
@@ -469,6 +480,18 @@
                     await _jsRuntime.ToastrError("Выбран \"Источник\", но не введён \"Тэг/ИД источника\"");
                     return;
                 }
+
+                if (ActiveMesParamDTO.MesToSirUnitOfMeasureKoef == null || ActiveMesParamDTO.MesToSirUnitOfMeasureKoef <= 0)
+                {
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение тэга СИР",
+                        "\"Коэф. пересчёта из ед.изм. MES в СИР\" у изменяемого тэга будет равен нулю. Если это неверно - нажмите \"Отмена\" и введите число в формате, например: 1,020001 (через запятую)" +
+                                "   Всё равно добавить ?", "Добавить", "Отмена");
+                    if (selectionResult == false)
+                    {
+                        return;
+                    }
+                }
+
 
                 if (ActiveMesParamDTO.Name == null)
                     ActiveMesParamDTO.Name = "";

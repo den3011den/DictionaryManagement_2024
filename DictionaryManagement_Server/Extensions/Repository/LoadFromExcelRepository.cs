@@ -2333,22 +2333,22 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 }
                 else
                 {
-                    decimal mesToSirUnitOfMeasureKoefVarInt;
+                    decimal mesToSirUnitOfMeasureKoefVarDecimal;
                     try
                     {
-                        mesToSirUnitOfMeasureKoefVarInt = decimal.Parse(mesToSirUnitOfMeasureKoefVarString);
+                        mesToSirUnitOfMeasureKoefVarDecimal = decimal.Parse(mesToSirUnitOfMeasureKoefVarString);
                     }
                     catch (Exception ex)
                     {
                         haveErrors = true;
-                        mesToSirUnitOfMeasureKoefVarInt = 0;
+                        mesToSirUnitOfMeasureKoefVarDecimal = 0;
                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 28. Не удалось получить число \"Коэффициент пересчёта данных по тэгу ед. изм. MES в ед. изм. СИР\"" +
                             " Изменения не применялись. Сообщение ошибки: " + ex.Message;
                         await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 28 }, resultString);
                         rowNumber++;
                         continue;
                     }
-                    changedMesParamDTO.MesToSirUnitOfMeasureKoef = mesToSirUnitOfMeasureKoefVarInt;
+                    changedMesParamDTO.MesToSirUnitOfMeasureKoef = mesToSirUnitOfMeasureKoefVarDecimal;
                 }
 
                 changedMesParamDTO.NeedWriteToSap = needWriteToSapVarString.ToUpper() == "ДА" ? true : false;
@@ -2386,6 +2386,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     rowNumber++;
                     continue;
                 }
+
 
                 if (((bool)changedMesParamDTO.NeedWriteToSap && (bool)changedMesParamDTO.NeedWriteToMes))
                 {
