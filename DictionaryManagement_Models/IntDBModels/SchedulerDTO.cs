@@ -12,6 +12,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование модуля\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Наименование модуля")]
         [Required(ErrorMessage = "Наименование модуля обязательно")]
         public string ModuleName { get; set; }
@@ -29,6 +31,10 @@ namespace DictionaryManagement_Models.IntDBModels
         [ForLogAttribute(NameProperty = "поле \"Время последнего выполнения\"")]
         [Display(Name = "Время последнего выполнения")]
         public DateTime? LastExecuted { get; set; } = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
+
+        [ForLogAttribute(NameProperty = "поле \"Сейчас выполняется\"")]
+        [Display(Name = "Сейчас выполняется")]
+        public bool IsRunningNow { get; set; } = false;
 
         public override string ToString()
         {

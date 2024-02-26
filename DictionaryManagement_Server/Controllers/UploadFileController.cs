@@ -124,5 +124,41 @@ namespace DictionaryManagement_Server.Controllers
             }
         }
 
+
+
+        [DisableRequestSizeLimit]
+        [HttpPost("UploadFileController/UploadAnyFile/{filePath}/{fileName}")]
+        //[RequestSizeLimit(60000000)]
+        public async Task<IActionResult> UploadAnyFile(IFormFile file, string filePath, string fileName)
+        {
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
+                }
+            }
+            catch
+            {
+                return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
+            }
+
+            try
+            {
+                if (file != null && file.Length > 0)
+                {
+                    using (FileStream fileStream = new FileStream(filePath.UnhideSlash() + fileName, FileMode.Create, FileAccess.ReadWrite))
+                    {
+                        file.CopyTo(fileStream);
+                    }
+                    return StatusCode(200);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            return StatusCode(200);
+        }
     }
 }

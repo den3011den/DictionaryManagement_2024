@@ -10,6 +10,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование причины корректировки является обязательным для заполнения полем")]
         [Display(Name = "Наименование причины корректировки")]
         [MaxLength(250, ErrorMessage = "Наименование причины корректировки не может быть больше 250 символов")]

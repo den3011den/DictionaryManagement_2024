@@ -159,9 +159,6 @@ namespace DictionaryManagement_Server.Controllers
             {
                 return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
             }
-
-
-
             string pathVar = (await _settingsRepository.GetByName("ReportUploadPath")).Value;
             ReportEntityDTO? foundEntity = await _reportEntityRepository.GetById(reportEntityId);
             //string fileName = foundEntity.UploadReportFileName;
@@ -227,6 +224,76 @@ namespace DictionaryManagement_Server.Controllers
                 {
                     var forFileName = SD.RemoveInvalidCharsFromFilename(filename);
                     return File(new FileStream(file, FileMode.Open), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", forFileName /*+ extension*/);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, ex.Message);
+                }
+            }
+            return StatusCode(500, "Файл " + file + " не найден");
+        }
+
+
+        [DisableRequestSizeLimit]
+        [HttpGet("DownloadFileController/DownloadReportTemplateFileByFileName/{reportTemplateFileName}")]
+        //[RequestSizeLimit(60000000)]
+        public async Task<IActionResult> DownloadReportTemplateFileByFileName(string reportTemplateFileName)
+        {
+
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
+                }
+                if (String.IsNullOrEmpty(reportTemplateFileName))
+                {
+                    return StatusCode(500, "Пустое имя файла");
+                }
+            }
+            catch
+            {
+                return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
+            }
+            string pathVar = (await _settingsRepository.GetByName("ReportTemplatePath")).Value;
+            string file = System.IO.Path.Combine(pathVar, reportTemplateFileName);
+            if (System.IO.File.Exists(file))
+            {
+                try
+                {
+                    return File(new FileStream(file, FileMode.Open), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", reportTemplateFileName);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, ex.Message);
+                }
+            }
+            return StatusCode(500, "Файл " + file + " не найден");
+        }
+
+        [DisableRequestSizeLimit]
+        [HttpGet("DownloadFileController/DownloadAnyFile/{filePath}/{fileName}")]
+        //[RequestSizeLimit(60000000)]
+        public async Task<IActionResult> DownloadAnyFile(string filePath, string fileName)
+        {
+
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return StatusCode(401, "Вы не авторизованы. Доступ запрещён");
+                }
+            }
+            catch
+            {
+                return StatusCode(401, "Не удалось проверить авторизацию. Вы не авторизованы. Доступ запрещён. Возможно авторизация отключена.");
+            }
+            string file = System.IO.Path.Combine(filePath.UnhideSlash(), fileName);
+            if (System.IO.File.Exists(file))
+            {
+                try
+                {
+                    return File(new FileStream(file, FileMode.Open), "application/octet-stream", fileName);
                 }
                 catch (Exception ex)
                 {

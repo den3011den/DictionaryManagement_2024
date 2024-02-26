@@ -12,18 +12,24 @@ namespace DictionaryManagement_Models.IntDBModels
         public Guid Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Логин\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Логин обязателен для заполнения")]
         [StringLength(250, MinimumLength = 1, ErrorMessage = "Логин может быть от 1 до 250 символов")]
         [Display(Name = "Логин")]
         public string Login { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"ФИО\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "ФИО обязательно для заполнения")]
         [StringLength(250, MinimumLength = 3, ErrorMessage = "ФИО может быть от 3 до 250 символов")]
         [Display(Name = "ФИО")]
         public string? UserName { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Описание\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Описание")]
         public string? Description { get; set; }
 

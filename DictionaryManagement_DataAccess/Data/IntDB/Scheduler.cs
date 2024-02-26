@@ -18,5 +18,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public TimeSpan StartTime { get; set; }
 
         public DateTime? LastExecuted { get; set; } = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
+
+        public bool? IsRunningNow { get; set; } = false;
     }
 }

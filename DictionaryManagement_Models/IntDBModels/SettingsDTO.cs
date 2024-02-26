@@ -10,17 +10,23 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование настройки является обязательным для заполнения полем")]
         [Display(Name = "Наименование настройки")]
         [MaxLength(100, ErrorMessage = "Наименование настройки не может быть больше 100 символов")]
         public string Name { get; set; } = string.Empty;
 
         [ForLogAttribute(NameProperty = "поле \"Описание\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Описание настройки")]
         [MaxLength(300, ErrorMessage = "Описание настройки не может быть больше 300 символов")]
         public string Description { get; set; } = string.Empty;
 
         [ForLogAttribute(NameProperty = "поле \"Значение настройки\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Значение настройки")]
         public string Value { get; set; } = string.Empty;
 

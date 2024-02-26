@@ -105,7 +105,12 @@
                             <RadzenDropDown @bind-Value=@selectedMesParamSourceType
                                             Change=OnSelectedMesParamSourceTypeChange Data="@(distinctMesParamSourceTypeInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 30vw;"
+                                            Style="font-size:0.75rem;width: 30vw;"                                            
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -131,7 +136,12 @@
                             <RadzenDropDown @bind-Value=@selectedMesDepartment
                                             Change=OnSelectedMesDepartmentChange Data="@(distinctMesDepartmentInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Chips = "true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder = "Поиск..."
+                                            MaxSelectedLabels = "6"
                                             Style="font-size:0.75rem;width: 30vw;"
+                                            PopupStyle="max-height:50vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -188,19 +198,24 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="MesParamDTO" Title="Ед.изм SAP" Property="SapUnitOfMeasureDTOFK.ShortName" Type="typeof(IEnumerable<string>)"
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Title="Ед.изм SAP" Property="SapUnitOfMeasureDTOFK.NameAndShortName" Type="typeof(IEnumerable<string>)"
                                              FilterValue="@selectedSapUnitOfMeasure" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedSapUnitOfMeasure
                                             Change=OnSelectedSapUnitOfMeasureChange Data="@(distinctSapUnitOfMeasureInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             Style="font-size:0.75rem;width: 100%;"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
 
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 12px">
-                                @(data1.SapUnitOfMeasureDTOFK == null ? "" : data1.SapUnitOfMeasureDTOFK.ShortName)
+                                @(data1.SapUnitOfMeasureDTOFK == null ? "" : data1.SapUnitOfMeasureDTOFK.NameAndShortName)
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
@@ -279,23 +294,23 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TItem="MesParamDTO" Context="mesParamDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="130px">
+                    <RadzenDataGridColumnApp Title="Действия" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TItem="MesParamDTO" Context="mesParamDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="95px">
                         <Template Context="mesParamDTO">
-                            <RadzenButton title="Создать на основании" Icon="add_box" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Создать на основании" Icon="add_box" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
                                           Click="@(args => EditRow(mesParamDTO, SD.EditMode.CreateBasedOnRow))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
                                           Click="@(args => EditRow(mesParamDTO, SD.EditMode.Edit))" @onclick:stopPropagation="true">
                             </RadzenButton>
                             @if (!mesParamDTO.IsArchive)
                             {
-                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
@@ -391,17 +406,17 @@
             if (_mesParamGridSettings != null)
             {
                 var col_var = _mesParamGridSettings.Columns.Where(c => c.Property == "MesParamSourceTypeDTOFK.ToStringValue").FirstOrDefault();
-                if (col_var.FilterValue != null)
+                if (col_var != null && col_var.FilterValue != null)
                 {
                     selectedMesParamSourceType = JsonSerializer.Deserialize<List<string>>(col_var.FilterValue.ToString());
                 }
                 var col_var2 = _mesParamGridSettings.Columns.Where(c => c.Property == "MesDepartmentDTOFK.ToStringHierarchyShortName").FirstOrDefault();
-                if (col_var2.FilterValue != null)
+                if (col_var2 != null && col_var2.FilterValue != null)
                 {
                     selectedMesDepartment = JsonSerializer.Deserialize<List<string>>(col_var2.FilterValue.ToString());
                 }
-                var col_var3 = _mesParamGridSettings.Columns.Where(c => c.Property == "SapUnitOfMeasureDTOFK.ShortName").FirstOrDefault();
-                if (col_var3.FilterValue != null)
+                var col_var3 = _mesParamGridSettings.Columns.Where(c => c.Property == "SapUnitOfMeasureDTOFK.NameAndShortName").FirstOrDefault();
+                if (col_var3!= null && col_var3.FilterValue != null)
                 {
                     selectedSapUnitOfMeasure = JsonSerializer.Deserialize<List<string>>(col_var3.FilterValue.ToString());
                 }
@@ -596,8 +611,20 @@
 
         var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.removeItem", "MesParamGridSettings");
 
-        MesParamGridSettings = null;
-
+        if (MesParamGridSettings != null)
+        {
+            foreach (var c in MesParamGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+                if (mesParamDTOGrid.ColumnWidth != null)
+                    c.Width = mesParamDTOGrid.ColumnWidth;
+            }
+        }
+        
         selectedMesParamSourceType = null;
         selectedMesDepartment = null;
         selectedSapUnitOfMeasure = null;
@@ -607,7 +634,8 @@
             await GetDistincts();
         }
 
-        await Task.Delay(200);
+        await InvokeAsync(SaveStateAsync);        
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 
     }
@@ -679,8 +707,8 @@
             .Select(u => u.MesParamSourceTypeDTOFK.ToStringValue).Distinct().ToList();
             distinctMesDepartmentInList = (List<string>)mesParamDTOs.Where(u => u.MesDepartmentDTOFK != null).OrderBy(u => u.MesDepartmentDTOFK.ToStringHierarchyShortName)
                 .Select(u => u.MesDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
-            distinctSapUnitOfMeasureInList = (List<string>)mesParamDTOs.Where(u => u.SapUnitOfMeasureDTOFK != null).OrderBy(u => u.SapUnitOfMeasureDTOFK.ShortName)
-                .Select(u => u.SapUnitOfMeasureDTOFK.ShortName).Distinct().ToList();
+            distinctSapUnitOfMeasureInList = (List<string>)mesParamDTOs.Where(u => u.SapUnitOfMeasureDTOFK != null).OrderBy(u => u.SapUnitOfMeasureDTOFK.NameAndShortName)
+                .Select(u => u.SapUnitOfMeasureDTOFK.NameAndShortName).Distinct().ToList();
         }
     }
 

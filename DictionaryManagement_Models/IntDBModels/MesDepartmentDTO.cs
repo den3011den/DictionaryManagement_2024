@@ -18,12 +18,16 @@ namespace DictionaryManagement_Models.IntDBModels
         public int? MesCode { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование обязательно для заполнения")]
         [Display(Name = "Наименование")]
         [MaxLength(500, ErrorMessage = "Длина наименования не может быть больше 500 символов")]
         public string Name { get; set; } = string.Empty;
 
         [ForLogAttribute(NameProperty = "поле \"Сокр. наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Сокр. Наименование обязательно для заполнения")]
         [Display(Name = "Сокр. наименование")]
         [MaxLength(500, ErrorMessage = "Длина сокр. наименование не может быть больше 500 символов")]
@@ -144,8 +148,18 @@ namespace DictionaryManagement_Models.IntDBModels
             return $"{ToStringHierarchyShortName}";
         }
 
-
-
+        [NotMapped]
+        public string ForSearchProperty
+        {
+            get
+            {
+                return Id.ToString() + (MesCode == null ? "" : " " + MesCode.ToString()) + " " + Name.ToUpper() + " " + ShortName.ToUpper();
+            }
+            set
+            {
+                ForSearchProperty = value;
+            }
+        }
     }
 }
 

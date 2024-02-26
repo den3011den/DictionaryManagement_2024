@@ -282,6 +282,11 @@
                                             Change=OnSelectedSapUnitOfMeasureChange Data="@(distinctSapUnitOfMeasureInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             Style="font-size:0.75rem;width: 30vw;"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -393,6 +398,11 @@
                                             Change=OnSelectedMoveTypesChange Data="@(distinctMoveTypesInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             Style="font-size:0.75rem;width: 30vw;"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -417,6 +427,11 @@
 <style>
     .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
         font-size: 0.75rem;
+    }
+
+    .rz-calendar .rz-inputtext {
+        font-size: 14px !important;
+        max-height: 1.9rem;
     }
 </style>
 
@@ -699,7 +714,19 @@
         var result = await _jsRuntime.InvokeAsync<string>
             ("window.localStorage.removeItem", "SapMovementsINGridSettings");
 
-        SapMovementsINGridSettings = null;
+        if (SapMovementsINGridSettings != null)
+        {
+            foreach (var c in SapMovementsINGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+                if (sapMovementsINDTOGrid.ColumnWidth != null)
+                    c.Width = sapMovementsINDTOGrid.ColumnWidth;
+            }
+        }
 
         selectedMoveTypes = null;
         selectedSapUnitOfMeasure = null;
@@ -708,10 +735,9 @@
         {
             await GetDistincts();
         }
-
-        await Task.Delay(200);
+        await SaveStateAsync();
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
-
     }
 
     async Task CleanAllFiltersCustom()

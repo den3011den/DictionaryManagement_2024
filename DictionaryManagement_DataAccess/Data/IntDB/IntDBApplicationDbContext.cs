@@ -55,8 +55,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
 
         public DbSet<ReportEntityResendDates> ReportEntityResendDates { get; set; }
 
-
-
+        public DbSet<ReportTemplateFileHistory> ReportTemplateFileHistory { get; set; }
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{

@@ -11,6 +11,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование типа тэга является обязательным для заполнения полем")]
         [Display(Name = "Наименование типа параметра")]
         [MaxLength(250, ErrorMessage = "Наименование типа тэга не может быть больше 250 символов")]

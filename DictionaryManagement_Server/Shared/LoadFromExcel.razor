@@ -2,7 +2,6 @@
 
 @attribute [Authorize]
 
-@* @using ClosedXML.Report *@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 @using ClosedXML.Excel;
@@ -22,7 +21,6 @@
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 
 @inject DialogService _dialogService
-
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -189,8 +187,6 @@
 
     [Parameter]
     public IEnumerable<object>? DataList { get; set; }
-
-
 
     RadzenUpload upload;
 

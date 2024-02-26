@@ -27,10 +27,10 @@
         {
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton title="Добавить новое производство" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
-                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || ExpandInProgressFlag == true || CollapseInProgressFlag == true)" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || ExpandInProgressFlag == true || CollapseInProgressFlag == true || SearchInProgressFlag==true)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
                               IsBusy=@excelExportFlag BusyText="Выполняется ..."
-                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
+                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
                 @*                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="@(IsExpandModeOn ? "Свернуть всю иерархию производств" : "Развернуть всю иерархию производств")" Text="@(IsExpandModeOn ? "Свернуть" : "Развернуть")"
         Icon="@(IsExpandModeOn ? "unfold_less" : "unfold_more")" Click="@(args => ToggleRowsExpand(!IsExpandModeOn))"
         IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..." />
@@ -41,21 +41,32 @@
                               Text="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString():" Maкс уровень " + (MaxExpandLevel-1).ToString())"
                               Icon="unfold_more" Click="@(args => ToggleRowsExpand(true))"
                               IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..."
-                              Disabled="@(ExpandLevel >= MaxExpandLevel || CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
+                              Disabled="@(ExpandLevel >= MaxExpandLevel || CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
                               title="@(ExpandLevel > 2 ? "Свернуть до уровня " + (ExpandLevel-1).ToString() + " иерархии производств" : "Достигнут минимальный уровень равный " + (ExpandLevel-1).ToString())"
                               Text="@(ExpandLevel > 2 ? "Свернуть уровень " + (ExpandLevel-1).ToString():" Мин уровень " + (ExpandLevel-1).ToString())"
                               Icon="unfold_less" Click="@(args => ToggleRowsExpand(false))"
                               IsBusy=@CollapseInProgressFlag BusyText="Выполняется ..."
-                              Disabled="@(ExpandLevel <= 2 || CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
+                              Disabled="@(ExpandLevel <= 2 || CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
 
-                <div class="mt-1 mb-1 col-4" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
+                <div class="mt-1 mb-1 col-2" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
                     <RadzenLabel Text="@("* фильтр действует только по \"развёрнутым\" записям")" />
-                    @*                     <RadzenButton Size=ButtonSize.Small Style="text-transform:none" ButtonStyle=ButtonStyle.Primary Variant=Variant.Text
-            Text="@(String.Concat("Отображается ", mesDepartmentDTOGrid.View == null ? "0" : mesDepartmentDTOGrid.View.Count().ToString(),
-            " из ", mesDepartmentFullListDTOs == null ? "0" : mesDepartmentFullListDTOs.Count().ToString(), " записей"))" />
-            *@
                 </div>
+                <RadzenTextBox Trim="true" Placeholder="Поиск..." class="mt-1 col-2" @bind-Value=@searchString
+                               @oninput=@(args => @searchString = args.Value.ToString())
+                               @onkeypress=@(args => SearchInputKeyPressed(args))
+                               Style="font-size: 0.75rem; height: 80%; max-height: 80%;"/>
+                <RadzenButton Size="ButtonSize.Small" class="mt-1"
+                              Text="Поиск"
+                              title="Поиск по всем элементам справочника"
+                              Icon="search" Click="@(() => SearchOnClick(@searchString))"
+                              IsBusy=@SearchInProgressFlag BusyText="Поиск ..."
+                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
+                @*                     <RadzenButton Size=ButtonSize.Small Style="text-transform:none" ButtonStyle=ButtonStyle.Primary Variant=Variant.Text
+        Text="@(String.Concat("Отображается ", mesDepartmentDTOGrid.View == null ? "0" : mesDepartmentDTOGrid.View.Count().ToString(),
+        " из ", mesDepartmentFullListDTOs == null ? "0" : mesDepartmentFullListDTOs.Count().ToString(), " записей"))" />
+        *@
+
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@MesDepartmentGridSettings" SettingsName="MesDepartmentGridSettings" @ref="mesDepartmentDTOGrid" ExpandMode="DataGridExpandMode.Multiple"
                                Data="@mesDepartmentDTOs" TItem="MesDepartmentDTO" RowRender="@RowRender" LoadChildData="@LoadChildData"
@@ -66,8 +77,10 @@
                                Density="Density.Compact"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
-                               MesDepartmentCount="@mesDepartmentCount">
+                               Style="height:calc(100vh - 160px)"
+                               MesDepartmentCount="@mesDepartmentCount"
+                               SelectionMode="DataGridSelectionMode.Single"
+                               @bind-Value=@selectedDepartments>
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="Name" Title="Наименование" Frozen="true" Width="200px"
                                              FilterOperator="FilterOperator.Contains" SortProperty="Name" FilterProperty="Name">
@@ -81,7 +94,7 @@
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="ToStringMesCode" Title="Код" Width="40px" FilterOperator="FilterOperator.Contains" SortProperty="ToStringMesCode" FilterProperty="ToStringMesCode" />
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="ShortName" Title="Сокр. наименование" FilterOperator="FilterOperator.Contains" Width="200px">
                         <Template Context="data">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-wrap" id="@("id_var_" + data.ToStringId)">
                                 @data.ShortName
                             </div>
                         </Template>
@@ -96,19 +109,19 @@
                         <Template Context="mesDepartmentDTO">
                             <RadzenButton title="Редактировать производство" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
                                           Size="ButtonSize.Medium" Click="@(args => EditRow(mesDepartmentDTO))"
-                                          @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag|| ExpandInProgressFlag)" />
+                                          @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag|| ExpandInProgressFlag || SearchInProgressFlag==true)" />
                             @if (!mesDepartmentDTO.IsArchive)
                             {
                                 <RadzenButton title="Удалить в архив производство" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true"
-                                              Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag || ExpandInProgressFlag)">
+                                              Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag || ExpandInProgressFlag || SearchInProgressFlag==true)">
                                 </RadzenButton>
                             }
                             else
                             {
                                 <RadzenButton title="Восстановить из архива производство" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter"
                                               Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesDepartmentDTO))" @onclick:stopPropagation="true"
-                                              Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag || ExpandInProgressFlag)">
+                                              Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag || ExpandInProgressFlag || SearchInProgressFlag==true)">
                                 </RadzenButton>
                             }
                         </Template>
@@ -122,11 +135,15 @@
         }
 
     </div>
-
-    <css>
-
-    </css>
 }
+
+<style>
+    /*     .rz-textbox {
+            font-size: 0.75rem;
+            height: 80%;
+            max-height: 80%;
+        } */    
+</style>
 
 @code {
 
@@ -134,7 +151,7 @@
 
     IEnumerable<MesDepartmentDTO>? mesDepartmentFullListDTOs;
     IEnumerable<MesDepartmentDTO>? mesDepartmentDTOs;
-
+    IList<MesDepartmentDTO>? selectedDepartments;
     RadzenDataGrid<MesDepartmentDTO> mesDepartmentDTOGrid;
 
     public int ExpandLevel { get; set; } = 1;
@@ -142,15 +159,17 @@
     public AdminMode IsAdmin { get; set; }
     public bool ExpandInProgressFlag { get; set; } = false;
     public bool CollapseInProgressFlag { get; set; } = false;
+    public bool SearchInProgressFlag { get; set; } = false;
     public bool excelExportFlag { get; set; } = false;
     public int? mesDepartmentCount = 0;
+    public string searchString { get; set; } = "";
 
     // считаем что больше уровней производств вряд ли будет
     public int MaxExpandLevel { get; set; } = 5;
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();        
+        await base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -166,7 +185,7 @@
                 await InvokeAsync(StateHasChanged);
                 mesDepartmentFullListDTOs = await GetRecords();
                 mesDepartmentDTOs = await GetAllTopLevel();
-                if(mesDepartmentDTOs != null)
+                if (mesDepartmentDTOs != null)
                     mesDepartmentCount = mesDepartmentFullListDTOs.Count();
                 IsLoading = false;
                 await Task.Delay(10);
@@ -229,7 +248,7 @@
     }
 
     async Task EditRow(MesDepartmentDTO mesDepartmentDTO)
-    {
+    {        
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             MesDepartmentDTO dialogResult;
@@ -242,7 +261,7 @@
                     int currentExpandLevel = ExpandLevel;
                     await LoadStateAsync();
                     await Task.Delay(10);
-                    await InvokeAsync(StateHasChanged);                    
+                    await InvokeAsync(StateHasChanged);
                     ExpandLevel = 1;
                     mesDepartmentFullListDTOs = await GetRecords();
                     mesDepartmentDTOs = await GetAllTopLevel();
@@ -250,7 +269,7 @@
                     {
                         await ToggleRowsExpand(true);
                     }
-                    IsLoading = false;                    
+                    IsLoading = false;
                     await Task.Delay(10);
                     await InvokeAsync(StateHasChanged);
                 }
@@ -266,7 +285,7 @@
                         int currentExpandLevel = ExpandLevel;
                         await LoadStateAsync();
                         await Task.Delay(10);
-                        await InvokeAsync(StateHasChanged);                        
+                        await InvokeAsync(StateHasChanged);
                         ExpandLevel = 1;
                         mesDepartmentFullListDTOs = await GetRecords();
                         mesDepartmentDTOs = await GetAllTopLevel();
@@ -394,7 +413,7 @@
             }
             CollapseInProgressFlag = false;
             await Task.Delay(10);
-            await InvokeAsync(StateHasChanged);            
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -439,6 +458,140 @@
             foreach (var item in tempList)
                 item.DepLevel = ExpandLevel;
             return tempList;
+        }
+    }
+
+
+    async Task SearchOnClick(string searchStringPar)
+    {
+        SearchInProgressFlag = true;        
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+
+        if (String.IsNullOrEmpty(searchStringPar))
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Пустая строка поиска");
+            SearchInProgressFlag = false;
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (mesDepartmentFullListDTOs == null || mesDepartmentFullListDTOs.Count() <= 0)
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Справочник производств пустой");
+            SearchInProgressFlag = false;
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        IEnumerable<MesDepartmentDTO>? foundMesDepartmentList = mesDepartmentFullListDTOs.Where(u => u.ForSearchProperty.Contains(searchStringPar.Trim().ToUpper()));
+
+        if (foundMesDepartmentList == null || foundMesDepartmentList.Count() <= 0)
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Не найдено производств по поисковой строке: \"" + searchStringPar + "\"");
+            SearchInProgressFlag = false;
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        MesDepartmentDTO dialogResult = await _dialogService.OpenAsync<FoundMesDepartment>("По строке поиска \"" + searchStringPar + "\" найдено производств: " + foundMesDepartmentList.Count().ToString(),
+            new Dictionary<string, object>() { { "FoundMesDepartmentList", (IEnumerable<MesDepartmentDTO>)foundMesDepartmentList.OrderBy(u => u.ToStringHierarchyShortName) } }
+            , new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
+
+        if (dialogResult != null)
+        {            
+            MesDepartmentDTO? selectDepartment;
+            var selectDepartments = mesDepartmentDTOGrid.View.Where(u => u.Id == dialogResult.Id);
+            if (selectDepartments != null && selectDepartments.Count() > 0)
+            {
+                selectDepartment = selectDepartments.First();
+                if (selectDepartment != null)
+                {
+                    await mesDepartmentDTOGrid.SelectRow(selectDepartment);
+                }
+            }
+            else
+            {
+                int? parentId = dialogResult.ParentDepartmentId;
+                int sortInt = 100;
+                List<(MesDepartmentDTO, int)> expandList = new List<(MesDepartmentDTO, int)>();
+                while (parentId != null && parentId != 0)
+                {
+                    var foundItem = mesDepartmentFullListDTOs.First(u => u.Id == parentId);
+                    if (foundItem != null)
+                    {
+                        expandList.Add((foundItem, sortInt));
+                        parentId = foundItem.ParentDepartmentId;
+                    }
+                    else
+                        parentId = null;
+                    sortInt--;
+                }
+                expandList = expandList.OrderBy(u => u.Item2).ToList();
+                foreach (var item in expandList)
+                {
+                    if (!mesDepartmentDTOGrid.IsRowExpanded(item.Item1))
+                        await mesDepartmentDTOGrid.ExpandRow(item.Item1);
+                }
+
+                //await _jsRuntime.InvokeVoidAsync("eval", $"document.getElementById('{dialogResult.ToStringId}').scrollTop = document.getElementById('{dialogResult.ToStringId}').scrollHeight");
+                //await _jsRuntime.InvokeVoidAsync("eval", "document.getElementById(\"" + dialogResult.ToStringId + "\").scrollIntoView()");
+
+                //await _jsRuntime.InvokeVoidAsync("eval", $@"document.getElementById('{dialogResult.ToStringId}').scrollIntoView()");
+
+                bool isFilterApplied = false;
+                var viewItem = mesDepartmentDTOGrid.View.FirstOrDefault(u => u.Id == dialogResult.Id);
+                if (viewItem == null) isFilterApplied = true;
+
+                bool selectionResult = true;
+                if (isFilterApplied)
+                {
+                    selectionResult = await _dialogs.ShowYesOrNoDialogBox("Поиск", "Из-за применённого фильтра не удастся увидеть выбранный элемент. Очистить фильтры?", "Очистить", "Отмена");
+                    if (selectionResult == true)
+                    {                                                
+                        if (MesDepartmentGridSettings != null)
+                        {
+                            foreach (var c in MesDepartmentGridSettings.Columns)
+                            {
+                                c.FilterValue = null;
+                                c.SecondFilterValue = null;
+                            }
+                        }
+                        await InvokeAsync(SaveStateAsync);
+                        await Task.Delay(10);
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }
+                await mesDepartmentDTOGrid.SelectRow(dialogResult, true);
+                 
+                if (isFilterApplied && selectionResult != true)
+                {
+                    await _jsRuntime.ToastrWarningLight("Запись выделена. Очистите применённые фильтры, чтобы увидеть найденную запись");
+                }
+
+            }
+        }
+
+        SearchInProgressFlag = false;
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+        if (dialogResult != null)
+        {
+            await _jsRuntime.InvokeVoidAsync("eval",
+                "(document.getElementById('id_var_" + dialogResult.ToStringId + "') !==null) ? (document.getElementById('id_var_" + dialogResult.ToStringId + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected async Task SearchInputKeyPressed(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await SearchOnClick(@searchString);
         }
     }
 

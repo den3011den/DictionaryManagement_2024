@@ -1,0 +1,146 @@
+﻿@page "/dictionary/reports/ReportTemplate/{DataList}"
+
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using DictionaryManagement_Server.Extensions.Repository.IRepository
+@using static DictionaryManagement_Common.SD
+
+@inject IJSRuntime _jsRuntime
+
+@inject IReportEntityRepository _reportEntityRepository
+@inject ILogEventRepository _logEventRepository
+@inject ISettingsRepository _settingsRepository
+@inject IReportTemplateTypeRepository _reportTemplateTypeRepository
+@inject IReportTemplateRepository _reportTemplateRepository
+@inject ILoadFromExcelRepository _loadFromExcelRepository
+@inject ISapEquipmentRepository _sapEquipmentRepository
+@inject ISapMaterialRepository _sapMaterialRepository
+@inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
+
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+{
+    <div class="row my-2">
+        <div class="col-md-12">
+            @if (IsLoading)
+            {
+                <Loading IsLoading="@IsLoading" />
+            }
+            else
+            {
+                <RadzenRow Gap="1rem">
+                    <RadzenColumn Size="12">
+                        <RadzenStack>
+                            <RadzenStack Gap="1rem">
+                                <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="9" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                                                   SelectionMode=DataGridSelectionMode.Single
+                                                   Data="DataList" TItem="ReportTemplateFileHistoryDTO"
+                                                   FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                   FilterMode="FilterMode.Simple"
+                                                   Density=Density.Compact
+                                                   ShowPagingSummary="true"                                                   
+                                                   GridLines="DataGridGridLines.Both"
+                                                   AllowVirtualization="true"
+                                                   Style="height:70vh"
+                                                   ShowCleanGridSettingsHeaderButton="false"
+                                                   ShowCleanGridFiltersHeaderButton="false"
+                                                   ShowCleanGridSortsHeaderButton="false">
+                                    <Columns>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="ToStringId" Title="Ид записи" Width="130px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId" />
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="AddTime" Title="Время" TextAlign="TextAlign.Center"
+                                                                 Filterable="true" Sortable="true" FilterOperator="FilterOperator.Equals" Width="170px">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    <strong>
+                                                        @data1.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff")
+                                                    </strong>
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Title="Кто"
+                                                                 Property="AddUserDTOFK.UserName" Filterable=true>
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.AddUserDTOFK.UserName
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="PreviousFileName" Title="Предыдущий файл" TextAlign="TextAlign.Center"
+                                                                 Filterable="true" Sortable="true">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.PreviousFileName
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="PreviousFileName" Title="Файл" Width="50px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
+                                            <Template Context="data">
+                                                <RadzenButton title="Скачать файл" Icon="download" ButtonStyle="ButtonStyle.Light" Disabled="@(String.IsNullOrEmpty(data.PreviousFileName))"
+                                                              Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => DownloadHistoryFile(data.PreviousFileName))" @onclick:stopPropagation="true">
+                                                </RadzenButton>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="CurrentFileName" Title="Новый файл" TextAlign="TextAlign.Center"
+                                                                 Filterable="true" Sortable="true">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.CurrentFileName
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateFileHistoryDTO" Property="CurrentFileName" Title="Файл" Width="50px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
+                                            <Template Context="data">
+                                                <RadzenButton title="Скачать файл" Icon="download" ButtonStyle="ButtonStyle.Light" Disabled="@(String.IsNullOrEmpty(data.CurrentFileName))"
+                                                        Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => DownloadHistoryFile(data.CurrentFileName))" @onclick:stopPropagation="true">
+                                                </RadzenButton>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                    </Columns>
+                                </RadzenDataGridApp>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </div>
+    </div>
+}
+
+
+@code {
+
+    [Parameter]
+    public IEnumerable<ReportTemplateFileHistoryDTO>? DataList { get; set; }
+
+    public string reportTemplatePath = "";
+    public string reportTempPath = "";
+
+
+    public bool haveChanges = false;
+
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        IsLoading = true;
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        IsLoading = false;
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task DownloadHistoryFile(string fileName)
+    {
+
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            await _jsRuntime.InvokeVoidAsync("open", "/DownloadFileController/DownloadReportTemplateFileByFileName/" + fileName, "_blank");
+        }
+    }
+}

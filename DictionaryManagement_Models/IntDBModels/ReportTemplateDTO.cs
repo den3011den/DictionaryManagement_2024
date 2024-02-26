@@ -77,6 +77,9 @@ namespace DictionaryManagement_Models.IntDBModels
         [Range(1, 5, ErrorMessage = "Кол-во прогонов авторасчёта должно быть от {1} до {2}")]
         public int? AutoCalcNumber { get; set; }
 
+        [Display(Name = "История файлов шаблона отчёта")]
+        public IEnumerable<ReportTemplateFileHistoryDTO>? ReportTemplateFileHistoryListDTO { get; set; }
+
         [NotMapped]
         [Display(Name = "Ид записи")]
         public string ToStringId

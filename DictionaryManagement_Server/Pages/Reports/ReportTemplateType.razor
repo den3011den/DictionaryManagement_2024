@@ -5,6 +5,7 @@
 @using DictionaryManagement_Models.IntDBModels
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
+@using static StringExtension;
 
 
 @inject IJSRuntime _jsRuntime
@@ -12,6 +13,8 @@
 @inject IReportTemplateRepository _reportTemplateRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
+@inject DialogService _dialogService
+@inject ISettingsRepository _settingsRepository
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -71,6 +74,12 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Title="Действия" Context="reportTemplateTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="reportTemplateTypeDTO">
+                            <RadzenButton title="Загрузить/скачать vba-скрипт файл" Icon="code" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@((args) => LoadUploadFile(reportTemplateTypeDTO, "bas"))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton title="Загрузить/скачать образец файла-шаблона" Icon="text_snippet" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@(args => LoadUploadFile(reportTemplateTypeDTO, "xlsx"))" @onclick:stopPropagation="true">
+                            </RadzenButton>
                             <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
@@ -88,12 +97,12 @@
                             }
                         </Template>
                         <EditTemplate Context="reportTemplateTypeDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Сохранить" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@((args) => SaveRow(reportTemplateTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(reportTemplateTypeDTO))">
+                            <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(reportTemplateTypeDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                            <RadzenButton title="Удалить" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@(args => DeleteRow(reportTemplateTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                         </EditTemplate>
@@ -113,6 +122,8 @@
     _Dialogs? _dialogs { get; set; }
 
     public string DeleteMessage { get; set; } = "";
+
+    UserDTO? currentUserDTO = null;
 
     RadzenDataGrid<ReportTemplateTypeDTO> reportTemplateTypeDTOGrid;
 
@@ -180,6 +191,7 @@
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
                 IsLoading = true;
+                currentUserDTO = await _authorizationRepository.GetCurrentUserDTO();
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -301,6 +313,86 @@
             await reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTO);
     }
 
+    async Task LoadUploadFile(ReportTemplateTypeDTO reportTemplateTypeDTO, string fileExtension)
+    {
+        IsLoading = true;
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            if (fileExtension.Trim().ToUpper() != "BAS" && fileExtension.Trim().ToUpper() != "XLSX")
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "В качестве параметра получено расширение для файла: " + fileExtension + ". Процедура работает только с расширениями \"vba\" и \"xlsx\"");
+                return;
+            }
+            string filePath = "";
+            string fileName = "";
+
+            SettingsDTO? settingsDTO = await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName);
+            if (settingsDTO != null)
+            {
+                filePath = settingsDTO.Value.Trim();
+            }
+            else
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найдена настройка с наименованием " + SD.TempFilePathSettingName + " в таблице настроек settings");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(filePath))
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Пустое значение настройки с наименованием " + SD.TempFilePathSettingName + " в таблице настроек settings");
+                return;
+            }
+
+            if (!System.IO.Directory.Exists(filePath))
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найден путь: " + filePath);
+                return;
+            }
+
+            if (fileExtension.Trim().ToUpper() == "BAS")
+            {
+                if (reportTemplateTypeDTO.VbaScriptFileName != null && !String.IsNullOrEmpty(reportTemplateTypeDTO.VbaScriptFileName.Trim()))
+                    fileName = reportTemplateTypeDTO.VbaScriptFileName.Trim();
+                else
+                    fileName = reportTemplateTypeDTO.Name.TranslitLatToKir() + "_VbaScriptFile_" + reportTemplateTypeDTO.Id.ToString() + "." + fileExtension.Trim();
+            }
+            else
+            {
+                if (reportTemplateTypeDTO.SampleFileName != null && !String.IsNullOrEmpty(reportTemplateTypeDTO.SampleFileName.Trim()))
+                    fileName = reportTemplateTypeDTO.SampleFileName.Trim();
+                else
+                    fileName = reportTemplateTypeDTO.Name.TranslitLatToKir() + "_SampleFile_" + reportTemplateTypeDTO.Id.ToString() + "." + fileExtension.Trim();
+            }
+            fileName = SD.RemoveInvalidCharsFromFilename(fileName);
+
+            IsLoading = false;
+            bool dialogResult = await _dialogService.OpenAsync<LoadUploadFile>(fileExtension.Trim().ToUpper() == "BAS" ? "Файл Vba-скрипт для " + reportTemplateTypeDTO.Name : "Файл-образец для типа шаблона отчёта " + reportTemplateTypeDTO.Name, new Dictionary
+                        <string, object>
+                () { { "Title", fileExtension.Trim().ToUpper() == "BAS" ? "Файл Vba-скрипт для " + reportTemplateTypeDTO.Name : "Файл-образец для типа шаблона отчёта " + reportTemplateTypeDTO.Name}
+                            ,{ "FilePath", filePath.HideSlash() }
+                            ,{ "FileName", fileName }
+                            ,{ "FileExtension", fileExtension }}
+                        , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)", ShowClose = false });
+            if (dialogResult == true)
+            {
+                ReportTemplateTypeDTO? reportTemplateTypeChangedDTO = await _reportTemplateTypeRepository.Get(reportTemplateTypeDTO.Id);
+                if (reportTemplateTypeChangedDTO != null)
+                {
+                    if (fileExtension.Trim().ToUpper() == "BAS")
+                        reportTemplateTypeChangedDTO.VbaScriptFileName = fileName;
+                    else
+                        reportTemplateTypeChangedDTO.SampleFileName = fileName;
+
+                    await _reportTemplateTypeRepository.Update(reportTemplateTypeChangedDTO, UpdateMode.Update);
+                    await _logEventRepository.AddRecord("Изменение типа шаблона отчёта", currentUserDTO.Id, fileName, fileName, false
+                    , fileExtension.Trim().ToUpper() == "BAS" ? "Файл vba-скрипт для типа шаблона отчёта " + reportTemplateTypeDTO.Name + " изменён" : "Файл - образец для типа шаблона отчёта " + reportTemplateTypeDTO.Name + " изменён");
+                }
+            }
+        }
+        IsLoading = false;
+    }
+
+
     void CancelEdit(ReportTemplateTypeDTO reportTemplateTypeDTO)
     {
         if (reportTemplateTypeDTO == reportTemplateTypeDTOToInsert)
@@ -377,7 +469,8 @@
                     await _jsRuntime.ToastrSuccess("Тип шаблона отчёта " + reportTemplateTypeDTO.Name + " удален в архив");
                     logEventTypeName = "Удаление в архив типа шаблона отчёта";
                 }
-                await _logEventRepository.ToLog<ReportTemplateTypeDTO>(oldObject: oldReportTemplateTypeDTO, newObject: newReportTemplateTypeDTO, logEventTypeName, "Тип шаблона отчёта: ", _authorizationRepository);
+                await _logEventRepository.ToLog<ReportTemplateTypeDTO>
+                    (oldObject: oldReportTemplateTypeDTO, newObject: newReportTemplateTypeDTO, logEventTypeName, "Тип шаблона отчёта: ", _authorizationRepository);
                 await reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTO);
                 //await sapEquipmentDTOGrid.Reload();
             }
@@ -415,7 +508,8 @@
             }
 
             var newDTO = await _reportTemplateTypeRepository.Create(reportTemplateTypeDTO);
-            await _logEventRepository.ToLog<ReportTemplateTypeDTO>(oldObject: null, newObject: newDTO, "Добавление типа шаблона отчёта", "Тип шаблона отчёта: ", _authorizationRepository);
+            await _logEventRepository.ToLog<ReportTemplateTypeDTO>
+                (oldObject: null, newObject: newDTO, "Добавление типа шаблона отчёта", "Тип шаблона отчёта: ", _authorizationRepository);
             //reportTemplateTypeDTOToInsert.Id = newDTO.Id;
             //await reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTOToInsert);
 
@@ -432,7 +526,8 @@
         {
             string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
             string filename = "ReportTemplateType_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
-            await _simpleExcelExportRepository.GenerateExcelReportTemplateType(filename, (IEnumerable<ReportTemplateTypeDTO>)reportTemplateTypeDTOGrid.View);
+            await _simpleExcelExportRepository.GenerateExcelReportTemplateType(filename, (IEnumerable<ReportTemplateTypeDTO>
+                )reportTemplateTypeDTOGrid.View);
             await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
         }
         excelExportFlag = false;
@@ -445,11 +540,9 @@
         if (CanAutoCalcVar == true)
         {
             await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Данная настройка не будет иметь эффекта, если в AutoCalc не предусмотрен авторасчёт " +
-                "для данного типа шаблона отчёта, а так же если в \"Отчёты - Шаблоны отчётов\" не включен авторасчёт для конкретных шаблонов отчётов.");
+            "для данного типа шаблона отчёта, а так же если в \"Отчёты - Шаблоны отчётов\" не включен авторасчёт для конкретных шаблонов отчётов.");
         }
     }
-
-
 }
 
 

@@ -10,6 +10,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public Guid Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование обязательно для заполнения")]
         [StringLength(250, MinimumLength = 1, ErrorMessage = "Наименование может быть от 1 до 100 символов")]
         [Display(Name = "Наименование")]

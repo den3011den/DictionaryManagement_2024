@@ -11,6 +11,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование типа шаблона отчёта является обязательным для заполнения полем")]
         [Display(Name = "Наименование типа шаблона отчёта")]
         [MaxLength(100, ErrorMessage = "Наименование типа шаблона отчёта не может быть больше 100 символов")]
@@ -26,6 +28,14 @@ namespace DictionaryManagement_Models.IntDBModels
         [ForLogAttribute(NameProperty = "поле \"Доступен для настройки авторасчёта\"")]
         [Display(Name = "Доступен для настройки авторасчёта")]
         public bool? CanAutoCalc { get; set; }
+
+        [ForLogAttribute(NameProperty = "поле \"Файл-скрипт VBA\"")]
+        [Display(Name = "Файл-скрипт VBA")]
+        public string? VbaScriptFileName { get; set; } = string.Empty;
+
+        [ForLogAttribute(NameProperty = "поле \"Файл-образец шаблона отчёта\"")]
+        [Display(Name = "Файл-образец шаблона отчёта")]
+        public string? SampleFileName { get; set; } = string.Empty;
 
         [NotMapped]
         [Display(Name = "Чтение")]

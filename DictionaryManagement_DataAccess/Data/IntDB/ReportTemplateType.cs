@@ -20,6 +20,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public bool IsArchive { get; set; }
 
         public bool? CanAutoCalc { get; set; }
-        
+        public string? VbaScriptFileName { get; set; } = string.Empty;
+        public string? SampleFileName { get; set; } = string.Empty;
     }
 }

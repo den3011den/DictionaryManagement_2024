@@ -108,7 +108,12 @@
                             <RadzenDropDown @bind-Value=@selectedAddUsers
                                             Change=OnSelectedAddUsersChange Data="@(distinctAddUsersInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             Style="font-size:0.75rem;width: 30vw;"
+                                            PopupStyle="max-height:40vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -127,7 +132,12 @@
                             <RadzenDropDown @bind-Value=@selectedDataSources
                                             Change=OnSelectedDataSourcesChange Data="@(distinctDataSourcesInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             Style="font-size:0.75rem;width: 30vw;"
+                                            PopupStyle="max-height:40vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -150,6 +160,11 @@
                                             Change=OnSelectedDataTypesChange Data="@(distinctDataTypesInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             Style="font-size:0.75rem;width: 30vw;"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
+                                            PopupStyle="max-height:40vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -300,6 +315,11 @@
                                             Change=OnSelectedCorrectionReasonsChange Data="@(distinctCorrectionReasonsInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             Style="font-size:0.75rem;width: 30vw;"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
+                                            PopupStyle="max-height:40vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
@@ -346,6 +366,11 @@
 <style>
     .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
         font-size: 0.75rem;
+    }
+
+    .rz-calendar .rz-inputtext {
+        font-size: 14px !important;
+        max-height: 1.9rem;
     }
 </style>
 
@@ -666,7 +691,19 @@
         var result = await _jsRuntime.InvokeAsync<string>
             ("window.localStorage.removeItem", "MesMovementsGridSettings");
 
-        MesMovementsGridSettings = null;
+        if (MesMovementsGridSettings != null)
+        {
+            foreach (var c in MesMovementsGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+                if (mesMovementsDTOGrid.ColumnWidth != null)
+                    c.Width = mesMovementsDTOGrid.ColumnWidth;
+            }
+        }
 
         selectedAddUsers = null;
         selectedDataSources = null;
@@ -677,8 +714,8 @@
         {
             await GetDistincts();
         }
-
-        await Task.Delay(200);
+        await SaveStateAsync();
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 
     }

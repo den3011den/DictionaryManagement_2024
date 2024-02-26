@@ -26,7 +26,7 @@ namespace DictionaryManagement_Business.Repository
         }
 
 
-        public async Task<SettingsDTO> Get(int Id)
+        public async Task<SettingsDTO?> Get(int Id)
         {
             var objToGet = _db.Settings.FirstOrDefaultWithNoLock(u => u.Id == Id);
             if (objToGet != null)
@@ -36,7 +36,7 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<SettingsDTO> GetByName(string name)
+        public async Task<SettingsDTO?> GetByName(string name)
         {
             var objToGet = _db.Settings.FirstOrDefaultWithNoLock(u => u.Name.Trim().ToUpper() == name.Trim().ToUpper());
             if (objToGet != null)
@@ -46,7 +46,7 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<IEnumerable<SettingsDTO>> GetAll()
+        public async Task<IEnumerable<SettingsDTO>?> GetAll()
         {
             return _mapper.Map<IEnumerable<Settings>, IEnumerable<SettingsDTO>>(_db.Settings.ToListWithNoLock());
         }

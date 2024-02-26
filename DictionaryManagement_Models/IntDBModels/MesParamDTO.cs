@@ -11,6 +11,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Код тэга СИР\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Код обязателен для заполнения")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "Код может быть от 1 до 100 символов")]
         [Display(Name = "Код тэга СИР")]
@@ -19,10 +21,14 @@ namespace DictionaryManagement_Models.IntDBModels
         //[Required(ErrorMessage = "Наименование тэга СИР обязательно для заполнения")]
         //[StringLength(250, MinimumLength = 3, ErrorMessage = "Наименование может быть от 3 до 250 символов")]
         [ForLogAttribute(NameProperty = "поле \"Наименование тэга СИР\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Наименование")]
         public string? Name { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Описание\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "Описание может быть от 3 до 100 символов")]
         [Display(Name = "Описание")]
         public string? Description { get; set; }
@@ -35,6 +41,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public MesParamSourceTypeDTO? MesParamSourceTypeDTOFK { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Тэг/ИД источника\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Тэг источника")]
         [StringLength(300, ErrorMessage = "Тэг источника может быть до 300 символов")]
         public string? MesParamSourceLink { get; set; } = "";
@@ -93,21 +101,29 @@ namespace DictionaryManagement_Models.IntDBModels
         public int? DaysRequestInPast { get; set; } = 45;
 
         [ForLogAttribute(NameProperty = "поле \"Точка измерения\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Точка измерения")]
         [StringLength(maximumLength: 100, ErrorMessage = "Точка измерения не может быть длиннее 100 символов")]
         public string? TI { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование точки измерения\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Наименование точки измерения")]
         [StringLength(maximumLength: 250, ErrorMessage = "Наименование точки измерения не может быть длиннее 250 символов")]
         public string? NameTI { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Технологическое место\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Технологическое место")]
         [StringLength(maximumLength: 100, ErrorMessage = "Технологическое место не может быть длиннее 100 символов")]
         public string? TM { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование технологического места\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Наименование технологического места")]
         [StringLength(maximumLength: 250, ErrorMessage = "Наименование технологического места не может быть длиннее 250 символов")]
         public string? NameTM { get; set; }

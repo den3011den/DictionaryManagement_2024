@@ -146,17 +146,27 @@ namespace DictionaryManagement_Server.Extensions
                 await InvokeAsync(SaveStateAsync);
                 return;
             }
-
             var result = await JS.InvokeAsync<string>("window.localStorage.removeItem", SettingsName);
+            //Settings = null;
+            //-------------------------
+            if (Settings != null)
+            {
+                foreach (var c in this.Settings.Columns)
+                {
+                    c.FilterValue = null;
+                    c.SecondFilterValue = null;
+                }
+            }
 
-            Settings = null;
+            //-------------------------
 
+            await InvokeAsync(SaveStateAsync);
             await Task.Delay(200);
             await InvokeAsync(StateHasChanged);
 
         }
 
-        async Task CleanAllFilters()
+        public async Task CleanAllFilters()
         {
             var selectionResult = await _dialogs.Confirm("Будут очищены все фильтры", "Очистить фильтры",
                 new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
@@ -166,9 +176,6 @@ namespace DictionaryManagement_Server.Extensions
                 await InvokeAsync(SaveStateAsync);
                 return;
             }
-            //if (SettingsData != null)
-
-
 
             if (Settings != null)
             {
@@ -177,11 +184,10 @@ namespace DictionaryManagement_Server.Extensions
                     c.FilterValue = null;
                     c.SecondFilterValue = null;
                 }
-                await InvokeAsync(SaveStateAsync);
-                await Task.Delay(200);
-                await InvokeAsync(StateHasChanged);
             }
-
+            await InvokeAsync(SaveStateAsync);
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
         }
 
         async Task CleanAllOrders()
@@ -199,11 +205,17 @@ namespace DictionaryManagement_Server.Extensions
                 foreach (var c in Settings.Columns)
                 {
                     c.SortOrder = null;
+                    c.FilterValue = null;
+                    c.SecondFilterValue = null;
+                    c.Visible = true;
+                    c.OrderIndex = 0;
+                    if (this.ColumnWidth != null)
+                        c.Width = this.ColumnWidth;
                 }
-                await InvokeAsync(SaveStateAsync);
-                await Task.Delay(200);
-                await InvokeAsync(StateHasChanged);
             }
+            await InvokeAsync(SaveStateAsync);
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
         }
 
         private async Task SaveStateAsync()

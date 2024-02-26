@@ -10,6 +10,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование источника данных является обязательным для заполнения полем")]
         [Display(Name = "Наименование источника данных")]
         [MaxLength(250, ErrorMessage = "Наименование источника данных не может быть больше 250 символов")]

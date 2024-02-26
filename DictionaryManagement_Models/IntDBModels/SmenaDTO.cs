@@ -10,6 +10,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "Наименование")]
         [Required(ErrorMessage = "Наименование смены обязательно")]
         public string Name { get; set; }

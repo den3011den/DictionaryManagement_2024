@@ -1,0 +1,137 @@
+﻿@page "/administration/MesDepartment/FoundMesDepartmentList/{FoundMesDepartmentList}"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+
+@inject IJSRuntime _jsRuntime
+@inject IRoleVMRepository _roleVMRepository
+@inject IMesDepartmentRepository _mesDepartmentRepository
+@inject IRoleToDepartmentRepository _roleToDepartmentRepository
+@inject DialogService _dialogService
+@inject ILogEventRepository _logEventRepository;
+
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row my-2">
+        <div class="col-md-12">
+            @if (IsLoading)
+            {
+                <Loading IsLoading="@IsLoading" />
+            }
+            else
+            {
+                @* <EditForm OnSubmit="SelectProcedure"> *@
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn Size="12">
+                            <RadzenStack>
+                                <RadzenStack Gap="1rem">
+                                    <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" PageSize="10" AllowPaging="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                                                       @ref="foundMesDepartmentListGrid"
+                                                       SelectionMode=DataGridSelectionMode.Single
+                                                       Data="FoundMesDepartmentList" TItem="MesDepartmentDTO"
+                                                       FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                       FilterMode="FilterMode.Simple"
+                                                       Density=Density.Compact
+                                                       ShowPagingSummary="true"
+                                                       AllowVirtualization="true"
+                                                       ShowCleanGridSettingsHeaderButton="false"
+                                                       ShowCleanGridFiltersHeaderButton="false"
+                                                       ShowCleanGridSortsHeaderButton="false"
+                                                       @bind-Value=@selectedMesDepartment
+                                                       RowDoubleClick="() => SelectProcedure()">
+                                        <Columns>
+                                            <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="ToStringId" Filterable="true" FilterProperty="ToStringId" Title="Ид" Width="75px">
+                                            </RadzenDataGridColumnApp>
+                                            <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="ToStringMesCode" Filterable="true" FilterProperty="ToStringMesCode" Title="Код" Width="75px">
+                                            </RadzenDataGridColumnApp>
+                                            <RadzenDataGridColumnApp TItem="MesDepartmentDTO" SortProperty="ToStringHierarchyShortName" FilterProperty="ToStringHierarchyShortName" Property="ToStringHierarchyShortName" Title="Наименование" Width="330px">
+                                                <Template Context="data">
+                                                    <div style="white-space:pre-line; word-wrap: break-word;">
+                                                        @data.ToStringHierarchyShortName
+                                                    </div>
+                                                </Template>
+                                            </RadzenDataGridColumnApp>
+                                            <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="60px" TextAlign="TextAlign.Center">
+                                                <Template Context="data">
+                                                    <RadzenCheckBox @bind-Value="data.IsArchive" ReadOnly="true" TriState="false" TValue="bool" />
+                                                </Template>
+                                            </RadzenDataGridColumnApp>
+                                        </Columns>
+                                    </RadzenDataGridApp>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <div class="form-group py-2">
+                    <button title="Выделить выбранную запись в общем списке" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin) @onclick="()=> SelectProcedure()">Выделить выбранную запись в общем списке</button>
+                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                    </div>
+                @* </EditForm> *@
+            }
+        </div>
+    </div>
+}
+
+
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+    Variant variant = Variant.Outlined;    
+    RadzenDataGrid<MesDepartmentDTO> foundMesDepartmentListGrid;
+    IList<MesDepartmentDTO> selectedMesDepartment;
+
+    [Parameter]
+    public IEnumerable<MesDepartmentDTO> FoundMesDepartmentList { get; set; }
+
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+
+    private string Title { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {        
+        if (firstRender)
+        {
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+            {
+                IsLoading = true;
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
+                Title = "Найдено производств: " + FoundMesDepartmentList.Count().ToString();
+                IsLoading = false;
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+                _navigationManager.NavigateTo("/administration/MesDepartment");
+        }
+    }
+
+    private async Task SelectProcedure()
+    {
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            if (selectedMesDepartment == null || selectedMesDepartment.Count() <= 0)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Не выбрано производство для перехода");
+                return;
+            }
+            MesDepartmentDTO selectedItem = (MesDepartmentDTO)selectedMesDepartment.First();
+            _dialogService.Close(selectedItem);
+        }
+    }
+
+    private async Task OnClickCancel() => _dialogService.Close(null);
+
+}

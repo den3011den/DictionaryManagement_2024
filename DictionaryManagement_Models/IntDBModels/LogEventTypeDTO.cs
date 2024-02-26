@@ -10,6 +10,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public int Id { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"Наименование\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Required(ErrorMessage = "Наименование типа события является обязательным для заполнения полем")]
         [Display(Name = "Наименование типа события")]
         [MaxLength(100, ErrorMessage = "Наименование типа собылия не может быть больше 100 символов")]

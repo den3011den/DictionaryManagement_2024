@@ -52,6 +52,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public SapMovementsOUTDTO? SapMovementsOUTDTOFK { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"ИД записи в витрине SAP (вход)\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "ИД записи в витрине SAP (вход)")]
         public string? SapMovementInId { get; set; }
 
@@ -80,6 +82,8 @@ namespace DictionaryManagement_Models.IntDBModels
         public ReportEntityDTO? ReportEntityDTOFK { get; set; }
 
         [ForLogAttribute(NameProperty = "поле \"ИД предыдущей записи\"")]
+        [CheckControlSymbols]
+        [CheckLeadingAndTrailingSpaces]
         [Display(Name = "ИД предыдущей записи")]
         public Guid? PreviousRecordId { get; set; }
 

@@ -92,6 +92,11 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedLogEventTypes
                                             Change=OnSelectedLogEventTypesChange Data="@(distinctLogEventTypesInList)" AllowClear="true" Multiple="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -109,6 +114,11 @@
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedUsers
                                             Change=OnSelectedUsersChange Data="@(distinctUsersInList)" AllowClear="true" Multiple="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -193,6 +203,11 @@
 <style>
     .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
         font-size: 0.75rem;
+    }
+
+    .rz-calendar .rz-inputtext {
+        font-size: 14px !important;
+        max-height: 1.9rem;
     }
 </style>
 
@@ -446,7 +461,19 @@
 
         var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.removeItem", "LogEventGridSettings");
 
-        LogEventGridSettings = null;
+        if (LogEventGridSettings != null)
+        {
+            foreach (var c in LogEventGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+                if (logEventDTOGrid.ColumnWidth != null)
+                    c.Width = logEventDTOGrid.ColumnWidth;
+            }
+        }
 
         selectedLogEventTypes = null;
         selectedUsers = null;
@@ -459,9 +486,9 @@
                 .Select(u => u.UserDTOFK.UserName).Distinct().ToList();
 
         }
-        await Task.Delay(200);
+        await SaveStateAsync();
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
-
     }
 
     async Task CleanAllFiltersCustom()
