@@ -78,7 +78,22 @@
                                     <RadzenFormField Text="Имя Файла" Variant="@variant" Style="width: 100%;">
                                         <RadzenTextBox @bind-Value="@ActiveReportTemplateDTO.TemplateFileName" ReadOnly="true" />
                                     </RadzenFormField>
-                                    <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
+
+                                    @if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+                                    {
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
+                                            </div>
+                                            <div class="col-4 float-right">
+                                                <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.CurrentFile, ReportTemplateId))" class="btn btn-outline-success">Проверить действующий шаблон</NavLink>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
+                                    }
                                 }
 
                                 <RadzenCard Style="width: 100%;">
@@ -98,8 +113,23 @@
                                         }
                                         else
                                         {
-                                            <p>@loadedFileName</p>
-                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                            @if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+                                            {
+                                                <div class="row">
+                                                    <div class="col-8">
+                                                        <p>@loadedFileName</p>
+                                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                                    </div>
+                                                    <div class="col-4 float-right">
+                                                        <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.LoadFile, ActiveReportTemplateDTO.Id))" class="btn btn-outline-success">Проверить загружаемый шаблон</NavLink>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <p>@loadedFileName</p>
+                                                <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                            }
                                         }
                                     }
                                 </RadzenCard>
@@ -214,6 +244,12 @@
 
     [Parameter]
     public Guid ReportTemplateId { get; set; }
+
+    enum ReportTemplateFile
+    {
+        CurrentFile,
+        LoadFile
+    }
 
     bool IsSubmited = false;
 
@@ -341,7 +377,7 @@
                 return;
             }
 
-            TempFilePath = (await _settingsRepository.GetByName("TempFilePath")).Value;
+            TempFilePath = (await _settingsRepository.GetByName(SD.TempFilePathSettingName)).Value;
 
             if (String.IsNullOrEmpty(TempFilePath))
             {
@@ -536,6 +572,64 @@
         _dialogService.Close(null);
     }
 
+
+    private async Task OnClickCheckCurrentReportTemplate(ReportTemplateFile reportTemplateFile, Guid reportTemplateId)
+    {
+        IsLoading = true;
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            string? reportTemplateFilePath = "";
+            switch (reportTemplateFile)
+            {
+                case ReportTemplateFile.CurrentFile:
+                    {
+                        reportTemplateFilePath = (await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName)).Value;
+                        break;
+                    }
+                case ReportTemplateFile.LoadFile:
+                    {
+                        reportTemplateFilePath = (await _settingsRepository.GetByName(SD.TempFilePathSettingName)).Value;
+                        break;
+                    }
+                default:
+                    {
+                        await _jsRuntime.ToastrError("Не предусмотренный параметр \"ReportTemplateFile.CurrentFile\" = " + reportTemplateFile.ToString());
+                        return;
+                    }
+            }
+
+            if (String.IsNullOrEmpty(reportTemplateFilePath))
+            {
+                await _jsRuntime.ToastrError("Не удалось определить путь нахождения файла");
+                return;
+            }
+
+            if (!System.IO.Directory.Exists(reportTemplateFilePath))
+            {
+                await _jsRuntime.ToastrError("Не существует путь: " + reportTemplateFilePath);
+                return;
+            }
+
+            string filepath = reportTemplateFilePath + reportTemplateId.ToString() + ".xlsx";
+
+            if (!System.IO.File.Exists(filepath))
+            {
+                await _jsRuntime.ToastrError("Не найден файл: " + filepath);
+                return;
+            }
+
+            bool dialogResult = true;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>("Проверка файла шаблона отчёта", new Dictionary
+                    <string, object>
+                    () { { "ReportTemplateFilePath", filepath.HideSlash() } }
+                    , new DialogOptions() { Width = $"{60}rem", Left = "calc(50vw - 40rem)" });
+            await this.OnAfterRenderAsync(true);
+        }
+        IsLoading = false;
+    }
+
+
     private async Task OnClickSave()
     {
         IsSubmited = true;
@@ -642,5 +736,16 @@
         isUploadFileError = true;
         uploadFileErrorString = args.Message;
         var dialogResult = _dialogService.OpenAsync<CustomError>("", new Dictionary<string, object>() { { "ErrorString", uploadFileErrorString } }, new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
+    }
+
+    private async Task<bool> CanCheckReportTemplateFile()
+    {
+        if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.TebReportTemplateTypeName.Trim().ToUpper()
+                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
+                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.NdoReportTemplateTypeName.Trim().ToUpper())
+            return true;
+        else
+            return false;
     }
 }

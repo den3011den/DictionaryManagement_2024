@@ -1,0 +1,78 @@
+﻿@page "/reports/ReportTemplate/AddEditReportTemplate/CheckReportTemplateFile/{ReportTemplateFilePath}"
+
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using ClosedXML.Excel;
+@using DictionaryManagement_Server.Extensions.Repository.IRepository
+@using static DictionaryManagement_Common.SD
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using ClosedXML.Excel;
+@using DictionaryManagement_Server.Extensions.Repository.IRepository
+@using static DictionaryManagement_Common.SD
+
+@inject IJSRuntime _jsRuntime
+@inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
+@inject DialogService _dialogService
+@inject IMesParamRepository _mesParamRepository
+
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+
+    @if (IsLoading)
+    {
+        <Loading IsLoading="@IsLoading" />
+    }
+    else
+    {
+        <RadzenRow Gap="1rem">
+            <RadzenStack>
+                <RadzenCard Style="width: 100%; height: 420px;">
+                    <EventConsole @ref=@console />
+                </RadzenCard>
+            </RadzenStack>
+        </RadzenRow>
+    }
+}
+
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+    public EventConsole console;
+
+    IEnumerable<MesParamDTO> mesParamDTOList { get; set; }
+
+    [Parameter]
+    public string ReportTemplateFilePath { get; set; }
+
+    XLWorkbook? workbook = null;
+
+    Variant variant = Variant.Outlined;
+
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+
+    private string Title { get; set; } = "Проверка файла шаблона отчёта";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IsLoading = true;
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
+
+        mesParamDTOList = await _mesParamRepository.GetAll(SelectDictionaryScope.All);
+
+        IsLoading = false;
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
+    }
+}
