@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DictionaryManagement_DataAccess.Data.IntDB
@@ -62,6 +63,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public string? TM { get; set; }
         public string? NameTM { get; set; }
 
+        [Precision(12, 6)]
         public decimal? MesToSirUnitOfMeasureKoef { get; set; } = decimal.One;
 
         public bool? NeedWriteToSap { get; set; }
