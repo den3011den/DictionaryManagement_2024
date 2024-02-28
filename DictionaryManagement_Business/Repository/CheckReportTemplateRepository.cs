@@ -18,7 +18,7 @@ namespace DictionaryManagement_Business.Repository
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<string>?> IsNotExistSheets(IXLWorkbook workbook, List<string> sheetList)
+        public async Task<List<string>?> IsNotExistSheets(IXLWorkbook workbook, List<string> sheetList)
         {
             var sheets = workbook.Worksheets.ToList();
             if (sheets == null || sheets.Count <= 0)
@@ -64,7 +64,7 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<IEnumerable<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType)
+        public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType)
         {
             var mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString().Trim()).ToList();
             switch (checkReportTemplateTagsType)

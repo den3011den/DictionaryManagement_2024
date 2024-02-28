@@ -1302,6 +1302,10 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Тип (DataType.Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Время значения (ValueTime)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Значение (Value)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД экземпляра отчёта (ReportGuid)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД записи в витрине SAP (выход) (SapMovementOutId)";
@@ -1355,6 +1359,10 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.DataSourceDTOFK == null ? "" : mesMovementsDTO.DataSourceDTOFK.Name;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.DataTypeDTOFK == null ? "" : mesMovementsDTO.DataTypeDTOFK.Name;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.ValueTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.Value.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.ReportGuid == null ? "" : mesMovementsDTO.ReportGuid.ToString();
                     excelColNum++;

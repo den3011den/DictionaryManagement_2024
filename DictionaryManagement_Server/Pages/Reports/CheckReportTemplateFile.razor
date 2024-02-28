@@ -1,4 +1,4 @@
-﻿@page "/reports/ReportTemplate/AddEditReportTemplate/CheckReportTemplateFile/{ReportTemplateFilePath}"
+﻿@page "/reports/ReportTemplate/AddEditReportTemplate/CheckReportTemplateFile/{ReportTemplateFilePath}/{ReportTemplateTypeName}"
 
 @attribute [Authorize]
 
@@ -18,6 +18,7 @@
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
 @inject DialogService _dialogService
 @inject IMesParamRepository _mesParamRepository
+@inject ICheckReportTemplateRepository _checkReportTemplateRepository
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -50,6 +51,8 @@
 
     [Parameter]
     public string ReportTemplateFilePath { get; set; }
+    [Parameter]
+    public string ReportTemplateTypeName { get; set; }
 
     XLWorkbook? workbook = null;
 
@@ -57,6 +60,8 @@
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
+
+    public bool resultFlag  { get; set; } = false;
 
     private string Title { get; set; } = "Проверка файла шаблона отчёта";
 
@@ -69,10 +74,242 @@
         await Task.Delay(100);
         await InvokeAsync(StateHasChanged);
 
-        mesParamDTOList = await _mesParamRepository.GetAll(SelectDictionaryScope.All);
+        resultFlag = await CheckReportTemplate();
 
         IsLoading = false;
         await Task.Delay(100);
         await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task<bool> CheckReportTemplate()
+    {
+
+        bool retFlag = true;
+
+        console.Log($"--> Начало проверки шаблона отчёта: " + ReportTemplateFilePath);
+        console.Log($"--> Тип шаблона отчёта: " + ReportTemplateTypeName);
+
+        mesParamDTOList = await _mesParamRepository.GetAll(SelectDictionaryScope.All);
+
+        try
+        {
+            ReportTemplateFilePath = ReportTemplateFilePath.UnhideSlash();
+
+            List<SheetTemplate>? sheets = null;            
+            if (ReportTemplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper())
+            {
+                sheets = SD.EmbSheetsList;
+            }
+            if (ReportTemplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
+            {
+                sheets = SD.TebSheetsList;
+            }
+            if (ReportTemplateTypeName == SD.CorrectionReportTemplateTypeName.Trim().ToUpper())
+            {
+                sheets = SD.CorrectionSheetsList;
+            }
+            if (ReportTemplateTypeName == SD.NdoReportTemplateTypeName.Trim().ToUpper())
+            {
+                sheets = SD.NdoSheetsList;
+            }
+
+            if (sheets == null)
+            {
+                console.Log($"!!! Не удалось определить список листов для типа шаблона отчёта: " + ReportTemplateTypeName, AlertStyle.Danger);
+                return false;
+            }
+
+            using var workbook = new XLWorkbook(ReportTemplateFilePath);
+            {
+                console.Log($"Проверка наличия обязательных листов ...");
+                List<string>? notExistSheetsList = await _checkReportTemplateRepository.IsNotExistSheets(workbook, sheets.Select(u => u.SheetName).ToList());
+                if(notExistSheetsList != null)
+                {
+                    foreach (var sheet in notExistSheetsList)
+                    {
+                        console.Log($"!!! Не найден обязательный лист: {sheet}", AlertStyle.Danger);
+                        retFlag = false;
+                    }
+                    console.Log($"!!! Проверка наличия обязательных листов: Обнаружены ошибки", AlertStyle.Danger);
+                }
+                else
+                    console.Log($"Проверка наличия обязательных листов: OK", AlertStyle.Success);
+                if (notExistSheetsList == null)
+                    notExistSheetsList = new List<string>();
+
+                List<string>? existSheets = sheets.Select(u => u.SheetName).ToList().Except(notExistSheetsList, StringComparer.OrdinalIgnoreCase).ToList();
+                if(existSheets != null)
+                {
+                    foreach (var sheetName in existSheets)
+                    {
+                        console.Log($"Начало проверки листа: {sheetName} ");
+                        IXLWorksheet? worksheet = workbook.Worksheet(sheetName);
+                        try
+                        {
+                            worksheet = workbook.Worksheet(sheetName);
+                        }
+                        catch(Exception ex2)
+                        {
+                            console.Log($"!!! Не удалось получить лист книги {sheetName}. Ошибка: {ex2.Message}", AlertStyle.Danger);
+                            console.Log($"!!! Проверка листа пропущена", AlertStyle.Danger);
+                            retFlag = false;
+                            continue;
+                        }
+                        bool isEmptySheet = await _checkReportTemplateRepository.IsEmptySheet(worksheet);
+                        if (isEmptySheet == true)
+                        {
+                            console.Log($"!!! Лист книги {sheetName} пустой.", AlertStyle.Danger);
+                            console.Log($"!!! Проверка листа пропущена", AlertStyle.Danger);
+                            retFlag = false;
+                            continue;
+                        }
+
+                        SheetTemplate? sheetTemplate = sheets.FirstOrDefault(u => u.SheetName.Trim().ToUpper() == sheetName.Trim().ToUpper());
+                        List<SheetHeader>? sheetHeaderList = null;
+                        if (sheetTemplate != null)
+                        {
+                            sheetHeaderList = sheetTemplate.SheetHeaderList;
+
+                            console.Log($" Проверка заголовков на листе \"{sheetTemplate.SheetName}\" ...");
+                            bool headersFlag = true;
+
+                            if (sheetTemplate.NeedCheckSheetHeaders)
+                            {
+                                List<SheetHeader>? notExistHeaderList = await _checkReportTemplateRepository.CheckSheetHeader(worksheet, sheetHeaderList);
+
+                                if (notExistHeaderList != null && notExistHeaderList.Count() > 0)
+                                {
+                                    foreach (var header in notExistHeaderList)
+                                    {
+                                        console.Log($"!!! Не найден заголовок \"{header.SheetHeaderColumnName}\" в строке 1, столбце {header.SheetHeaderColumnNumber.ToString()}.", AlertStyle.Danger);                                        
+                                        headersFlag = true;
+                                    }
+                                }
+                            }
+
+                            if (headersFlag)
+                            {
+                                console.Log($" Проверка заголовков на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                            }
+                            else
+                            {
+                                console.Log($"!!! Проверка заголовков на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                retFlag = false;
+                            }
+
+
+                            if (sheetTemplate.NeedCheckIsDuplicateTags)
+                            {
+                                console.Log($" Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\" ...");
+                                bool duplicateFlag = false;
+
+                                List<string>? duplicateTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsDuplicate);
+
+                                if (duplicateTagList != null && duplicateTagList.Count() > 0)
+                                {
+
+                                    foreach (var tag in duplicateTagList)
+                                    {
+                                        console.Log($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" встречается более одного раза.", AlertStyle.Danger);
+                                        duplicateFlag = true;
+                                    }
+                                }
+
+                                if (!duplicateFlag)
+                                {
+                                    console.Log($" Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                                }
+                                else
+                                {
+                                    console.Log($"!!! Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                    retFlag = false;
+                                }
+                            }
+
+                            if (sheetTemplate.NeedCheckIsNotInBaseTags)
+                            {
+                                console.Log($" Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\" ...");
+                                bool notInBaseFlag = false;
+
+                                List<string>? notInBaseTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsNotInBase);
+
+                                if (notInBaseTagList != null && notInBaseTagList.Count() > 0)
+                                {
+
+                                    foreach (var tag in notInBaseTagList)
+                                    {
+                                        console.Log($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" не найден в справочнике тэгов СИР.", AlertStyle.Danger);
+                                        notInBaseFlag = true;
+                                    }
+                                }
+
+                                if (!notInBaseFlag)
+                                {
+                                    console.Log($" Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                                }
+                                else
+                                {
+                                    console.Log($"!!! Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                    retFlag = false;
+                                }
+                            }
+
+                            if (sheetTemplate.NeedCheckIsInArchiveTags)
+                            {
+                                console.Log($" Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\" ...");
+                                bool notInArchiveFlag = false;
+
+                                List<string>? notInArchiveTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsInArchive);
+
+                                if (notInArchiveTagList != null && notInArchiveTagList.Count() > 0)
+                                {
+
+                                    foreach (var tag in notInArchiveTagList)
+                                    {
+                                        console.Log($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" находится в архиве в справочнике тэгов СИР.", AlertStyle.Danger);
+                                        notInArchiveFlag = true;
+                                    }
+                                }
+
+                                if (!notInArchiveFlag)
+                                {
+                                    console.Log($" Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                                }
+                                else
+                                {
+                                    console.Log($"!!! Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                    retFlag = false;
+                                }
+                            }
+
+                        }
+                    }
+                }
+                else
+                {
+                    console.Log($"!!! Дальнейшие проверки (наличие тэгов в БД и прочее) не проводилось так как нет ни одного обязательного листа в файле", AlertStyle.Danger);
+                    retFlag = false;
+                }
+            }
+        }
+        catch (Exception ex1)
+        {
+            console.Log($"!!! Произошла ошибка! Сообщение ошибки: " + ex1.Message, AlertStyle.Danger);
+            retFlag = false;
+        }
+
+        console.Log($"<-- Окончание проверки шаблона отчёта: " + ReportTemplateFilePath);
+        console.Log($"<-- Тип шаблона отчёта: " + ReportTemplateTypeName);
+
+        if (retFlag)
+        {
+            console.Log($"<-- Результат проверки: Успешно.", AlertStyle.Success);
+        }
+        else
+        {
+            console.Log($"<-- Результат проверки: Неудачно.", AlertStyle.Danger);
+        }
+
+        return retFlag;
     }
 }
