@@ -50,7 +50,7 @@ namespace DictionaryManagement_Business.Repository
                     var rowVar = worksheet.Row(1);
                     foreach (var sheetHeader in sheetHeaderList)
                     {
-                        if (!rowVar.Cell(sheetHeader.SheetHeaderColumnNumber).CachedValue.ToString().Trim().ToUpper().Equals(sheetHeader.SheetHeaderColumnName.Trim().ToUpper()))
+                        if (!rowVar.Cell(sheetHeader.SheetHeaderColumnNumber).CachedValue.ToString().Trim().Replace(" ", "").Replace("_", "").ToUpper().Equals(sheetHeader.SheetHeaderColumnName.Trim().ToUpper()))
                         {
                             resultList.Add(sheetHeader);
                         }
@@ -66,7 +66,7 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType)
         {
-            var mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString().Trim()).ToList();
+            var mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString().Trim()).Skip(1).ToList();
             switch (checkReportTemplateTagsType)
             {
                 case CheckReportTemplateTagsType.IsDuplicate:

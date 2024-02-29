@@ -7,7 +7,7 @@
         <RadzenText TextStyle="TextStyle.Subtitle1" Class="rz-m-0">Лог процесса:</RadzenText>
         <RadzenButton Click=@OnClearClick Text="Очистить лог" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" />
     </RadzenStack>
-    <RadzenStack Orientation="Orientation.Vertical" Gap="0" ID="event-console" Class="rz-pt-1" Style="border-top: var(--rz-grid-cell-border); min-height: 2rem; max-height: 32rem; height:300px; overflow: auto;">
+    <RadzenStack Orientation="Orientation.Vertical" Gap="0" ID="event-console" Class="rz-pt-1" Style=@("border-top: var(--rz-grid-cell-border); min-height: " + MinHeight + "; max-height: " + MaxHeight + "; height: " + Height + "; overflow: auto;")>
         @foreach (var message in messages)
         {
             <RadzenAlert ShowIcon="false" Variant="Variant.Flat" AlertStyle="@message.MessageStyle" Size="AlertSize.ExtraSmall" Shade="Shade.Lighter" AllowClose="false" Style="font-size: 0.75rem">
@@ -37,6 +37,12 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object> Attributes { get; set; }
     IList<Message> messages = new List<Message>();
+    [Parameter]
+    public string MinHeight { get; set; } = "2rem";
+    [Parameter]
+    public string MaxHeight { get; set; } = "32rem";
+    [Parameter]
+    public string Height { get; set; } = "300px";    
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -118,7 +118,7 @@ namespace DictionaryManagement_Common
         {
             new SheetTemplate {SheetName = "StartEndDate", SheetHeaderList = new List<SheetHeader>()
             {
-                new SheetHeader { SheetHeaderColumnName = "Start Date", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "StartDate", SheetHeaderColumnNumber = 1},
                 new SheetHeader { SheetHeaderColumnName = "EndDate", SheetHeaderColumnNumber = 2}
             },
             NeedCheckIsDuplicateTags = false,
@@ -131,12 +131,12 @@ namespace DictionaryManagement_Common
                 new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
                 new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
                 new SheetHeader { SheetHeaderColumnName = "Measured", SheetHeaderColumnNumber = 3},
-                new SheetHeader { SheetHeaderColumnName = "Measured_Updated", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "MeasuredUpdated", SheetHeaderColumnNumber = 4},
                 new SheetHeader { SheetHeaderColumnName = "Reconciled", SheetHeaderColumnNumber = 5},
-                new SheetHeader { SheetHeaderColumnName = "Gone to SAP value", SheetHeaderColumnNumber = 6},
+                new SheetHeader { SheetHeaderColumnName = "GoneToSAPValue", SheetHeaderColumnNumber = 6},
                 new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 7},
                 new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 8},
-                new SheetHeader { SheetHeaderColumnName = "Add User NAME", SheetHeaderColumnNumber = 9}
+                new SheetHeader { SheetHeaderColumnName = "AddUserNAME", SheetHeaderColumnNumber = 9}
             },
             NeedCheckIsDuplicateTags = false,
             NeedCheckIsNotInBaseTags = false,
@@ -256,7 +256,7 @@ namespace DictionaryManagement_Common
         {
             new SheetTemplate {SheetName = "StartEndDate", SheetHeaderList = new List<SheetHeader>()
             {
-                new SheetHeader { SheetHeaderColumnName = "Start Date", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "StartDate", SheetHeaderColumnNumber = 1},
                 new SheetHeader { SheetHeaderColumnName = "EndDate", SheetHeaderColumnNumber = 2}
             },
             NeedCheckIsDuplicateTags = false,
@@ -269,12 +269,12 @@ namespace DictionaryManagement_Common
                 new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
                 new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
                 new SheetHeader { SheetHeaderColumnName = "Measured", SheetHeaderColumnNumber = 3},
-                new SheetHeader { SheetHeaderColumnName = "Measured_Updated", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "MeasuredUpdated", SheetHeaderColumnNumber = 4},
                 new SheetHeader { SheetHeaderColumnName = "Reconciled", SheetHeaderColumnNumber = 5},
-                new SheetHeader { SheetHeaderColumnName = "Gone to SAP value", SheetHeaderColumnNumber = 6},
+                new SheetHeader { SheetHeaderColumnName = "GoneToSAPValue", SheetHeaderColumnNumber = 6},
                 new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 7},
                 new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 8},
-                new SheetHeader { SheetHeaderColumnName = "Add User NAME", SheetHeaderColumnNumber = 9}
+                new SheetHeader { SheetHeaderColumnName = "AddUserNAME", SheetHeaderColumnNumber = 9}
             },
             NeedCheckIsDuplicateTags = false,
             NeedCheckIsNotInBaseTags = false,
@@ -326,7 +326,7 @@ namespace DictionaryManagement_Common
         {
             new SheetTemplate {SheetName = "StartEndDate", SheetHeaderList = new List<SheetHeader>()
             {
-                new SheetHeader { SheetHeaderColumnName = "Start Date", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "StartDate", SheetHeaderColumnNumber = 1},
                 new SheetHeader { SheetHeaderColumnName = "EndDate", SheetHeaderColumnNumber = 2}
             },
             NeedCheckIsDuplicateTags = false,
@@ -353,18 +353,18 @@ namespace DictionaryManagement_Common
                 new SheetHeader { SheetHeaderColumnName = "ValueDifference", SheetHeaderColumnNumber = 3}
             },
             NeedCheckIsDuplicateTags = false,
-            NeedCheckIsNotInBaseTags = true,
-            NeedCheckIsInArchiveTags = true,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true
             },
             new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
             {
-                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1}
+                new SheetHeader { SheetHeaderColumnName = "СписокТеговСИР", SheetHeaderColumnNumber = 1}
             },
-            NeedCheckIsDuplicateTags = true,
-            NeedCheckIsNotInBaseTags = true,
-            NeedCheckIsInArchiveTags = true,
-            NeedCheckSheetHeaders = true
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = false
             }
         };
 
