@@ -97,6 +97,7 @@ namespace DictionaryManagement_Common
         public static string CorrectionReportTemplateTypeName = "Корректировки";
         public static string NdoReportTemplateTypeName = "Ручной ввод НДО";
         public static string TebReportTemplateTypeName = "Форма по Энергетике";
+        public static string NeedCheckReportTemplateBeforeSaving = "NeedCheckReportTemplateBeforeSaving";
 
         public record SheetHeader
         {

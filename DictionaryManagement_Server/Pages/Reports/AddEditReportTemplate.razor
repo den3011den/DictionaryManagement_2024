@@ -267,6 +267,8 @@
     public bool isUploadFileError { get; set; } = false;
     public string uploadFileErrorString { get; set; } = "";
 
+    public bool NeedCheckReportTemplateBeforeSaving { get; set; } = false;
+
     string uploadFileWarning = "";
 
     string downloadLinkPath = "";
@@ -313,9 +315,20 @@
         }
 
         ReportTemplatePath = (await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName)).Value;
-        IsLoading = false;
-        await Task.Delay(100);
-        await InvokeAsync(StateHasChanged);
+        string? needCheckReportTemplateBeforeSaving = (await _settingsRepository.GetByName(SD.NeedCheckReportTemplateBeforeSaving))?.Value;
+
+        NeedCheckReportTemplateBeforeSaving = false;
+        if (needCheckReportTemplateBeforeSaving != null)
+        {
+            if (needCheckReportTemplateBeforeSaving.Trim() == "1" || needCheckReportTemplateBeforeSaving.Trim().ToUpper() == "ДА"
+                 || needCheckReportTemplateBeforeSaving.Trim().ToUpper() == "TRUE")
+            {
+                NeedCheckReportTemplateBeforeSaving = true;
+            }
+        }
+        // IsLoading = false;
+        // await Task.Delay(100);
+        // await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -765,25 +778,28 @@
 
     private async Task<bool> ReportTemplateFileSaveAborded(string fileFullPath)
     {
-        if (!String.IsNullOrEmpty(uploadFileWarning))
+        if (NeedCheckReportTemplateBeforeSaving)
         {
-            if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+            if (!String.IsNullOrEmpty(uploadFileWarning))
             {
-                bool? dialogResult = true;
-                IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>("Проверка файла шаблона отчёта", new Dictionary
-                        <string, object>
-                 () { { "ReportTemplateFilePath", fileFullPath.HideSlash() },
+                if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+                {
+                    bool? dialogResult = true;
+                    IsLoading = false;
+                    dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>("Проверка файла шаблона отчёта", new Dictionary
+                            <string, object>
+                     () { { "ReportTemplateFilePath", fileFullPath.HideSlash() },
                                  { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
                                  { "ForSave", true}}
-                        , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
-                if (dialogResult == false)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
+                            , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
+                    if (dialogResult == false)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
         }
