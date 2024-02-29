@@ -412,6 +412,12 @@
                     return;
                 }
 
+                if (await ReportTemplateFileSaveAborded(TempFilePath + customParameter + ".xlsx"))
+                {
+                    IsSubmited = false;
+                    return;
+                }
+
                 ActiveReportTemplateDTO.Description = "Шаблон типа: \"" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "\" c вых данными: \"" +
                     ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "\" для производства: \"" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "\"";
 
@@ -477,7 +483,11 @@
 
                 ActiveReportTemplateDTO.TemplateFileName = ActiveReportTemplateDTO.Id + ".xlsx";
 
-                //!!!
+                if (await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx"))
+                {
+                    IsSubmited = false;
+                    return;
+                }
 
                 if (!String.IsNullOrEmpty(uploadFileWarning))
                 {
@@ -623,9 +633,10 @@
             dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>("Проверка файла шаблона отчёта", new Dictionary
                     <string, object>
                     () { { "ReportTemplateFilePath", filepath.HideSlash() },
-                         { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()} }
-                    , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh" });
-            await this.OnAfterRenderAsync(true);
+                         { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
+                         { "ForSave", false } }
+                    , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
+            //await this.OnAfterRenderAsync(true);
         }
         IsLoading = false;
     }
@@ -748,5 +759,34 @@
             return true;
         else
             return false;
+    }
+
+
+
+    private async Task<bool> ReportTemplateFileSaveAborded(string fileFullPath)
+    {
+        if (!String.IsNullOrEmpty(uploadFileWarning))
+        {
+            if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+            {
+                bool? dialogResult = true;
+                IsLoading = false;
+                dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>("Проверка файла шаблона отчёта", new Dictionary
+                        <string, object>
+                 () { { "ReportTemplateFilePath", fileFullPath.HideSlash() },
+                                 { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
+                                 { "ForSave", true}}
+                        , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
+                if (dialogResult == false)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 }

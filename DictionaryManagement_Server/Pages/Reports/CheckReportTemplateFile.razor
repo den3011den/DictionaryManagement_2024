@@ -31,18 +31,37 @@
     }
     else
     {
-        @* <RadzenRow Gap="1rem"> *@
-        @* <RadzenStack> *@
-        @* <RadzenCard Style="width: 100%; height: 70vh"> *@
-        <EventConsole @ref=@console MinHeight="2rem" MaxHeight="200rem" Height="70vh" />
-        @* </RadzenCard> *@
-        @* </RadzenStack> *@
-        @* </RadzenRow> *@
-        <div class="form-group py-2">
-            <div class="row h-100 justify-content-center align-items-center">
-                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-info">Закрыть</NavLink>
+        <EventConsole @ref=@console MinHeight="2rem" MaxHeight="200rem" Height="70vh" InProgressFlag = "@CheckIsInProgress" />
+
+        @if (ForSave)
+        {
+            <div class="form-group py-2">
+                <button class="@SaveButtonStyle" @onclick="(() => OnClickSave().GetAwaiter().GetResult())"
+                        disabled=@(CheckIsInProgress)>
+                    @SaveButtonTitle
+                </button>
+
+                <button class="btn btn-secondary" @onclick="(() => OnClickAbordSaving())"
+                        disabled=@(CheckIsInProgress)>
+                    Отмена
+                </button>
+
+                @* <NavLink @onclick="(() => OnClickAbordSaving())" class="btn btn-secondary" disabled=@(CheckIsInProgress)>Отмена</NavLink> *@
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="form-group py-2">
+                <div class="row h-100 justify-content-center align-items-center">
+                    <button class="btn btn-info" @onclick="(() => OnClickCancel())"
+                            disabled=@(CheckIsInProgress)>
+                        Закрыть
+                    </button>
+
+                    @* <NavLink @onclick="(() => OnClickCancel())" class="btn btn-info" disabled=@(CheckIsInProgress)>Закрыть</NavLink> *@
+                </div>
+            </div>
+        }
     }
 }
 
@@ -59,6 +78,11 @@
     public string ReportTemplateFilePath { get; set; }
     [Parameter]
     public string ReportTemplateTypeName { get; set; }
+    [Parameter]
+    public bool ForSave { get; set; } = false;
+
+    public string SaveButtonTitle = "Сохранить";
+    public string SaveButtonStyle = "btn btn-primary";
 
     XLWorkbook? workbook = null;
 
@@ -68,6 +92,8 @@
     public AdminMode IsAdmin { get; set; }
 
     public bool resultFlag { get; set; } = false;
+
+    public bool CheckIsInProgress { get; set; } = true;
 
     private string Title { get; set; } = "Проверка файла шаблона отчёта";
 
@@ -100,6 +126,20 @@
                 await InvokeAsync(StateHasChanged);
 
                 resultFlag = await CheckReportTemplate();
+                if (resultFlag == true)
+                {
+                    SaveButtonTitle = "Сохранить";
+                    SaveButtonStyle = "btn btn-primary";
+                }
+                else
+                {
+                    SaveButtonStyle = "btn btn-danger";
+                    SaveButtonTitle = "Есть ошибки. Всё равно сохранить ?";
+                }
+
+                CheckIsInProgress = false;
+                await Task.Delay(10);
+                await InvokeAsync(StateHasChanged);
             }
             else
                 _navigationManager.NavigateTo("/reports/ReportTemplate");
@@ -221,7 +261,7 @@
                             }
                             else
                             {
-                                await LogConsole($"!!! Проверка заголовков на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                await LogConsole($"!!! Проверка заголовков на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
                                 retFlag = false;
                             }
 
@@ -250,7 +290,7 @@
                                 }
                                 else
                                 {
-                                    await LogConsole($"!!! Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                    await LogConsole($"!!! Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
                                     retFlag = false;
                                 }
                             }
@@ -279,7 +319,7 @@
                                 }
                                 else
                                 {
-                                    await LogConsole($"!!! Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                    await LogConsole($"!!! Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
                                     retFlag = false;
                                 }
                             }
@@ -308,7 +348,7 @@
                                 }
                                 else
                                 {
-                                    await LogConsole($"!!! Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Success);
+                                    await LogConsole($"!!! Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
                                     retFlag = false;
                                 }
                             }
@@ -340,6 +380,7 @@
         {
             await LogConsole($"<-- Результат проверки: Неудачно.", AlertStyle.Danger);
         }
+
         return retFlag;
     }
 
@@ -352,7 +393,17 @@
 
     private async Task OnClickCancel()
     {
-        _dialogService.Close(resultFlag);
+        _dialogService.Close(null);
+    }
+
+    private async Task OnClickAbordSaving()
+    {
+        _dialogService.Close(false);
+    }
+
+    private async Task OnClickSave()
+    {
+        _dialogService.Close(true);
     }
 }
 
