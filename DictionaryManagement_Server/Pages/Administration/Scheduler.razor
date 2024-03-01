@@ -39,7 +39,9 @@
                                AllowVirtualization="true"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedScheduler
+                               RowDoubleClick="() => EditRow(selectedScheduler.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SchedulerDTO" Property="Id" Title="Ид записи" Width="70px">
                     </RadzenDataGridColumnApp>
@@ -86,6 +88,8 @@
     IEnumerable<SchedulerDTO>? schedulerDTOs;
 
     RadzenDataGrid<SchedulerDTO> schedulerDTOGrid;
+
+    IList<SchedulerDTO>? selectedScheduler;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
