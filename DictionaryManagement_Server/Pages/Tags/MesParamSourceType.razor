@@ -37,7 +37,9 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableMesParamSourceType
+                               RowDoubleClick="() => EditRow(selectedTableMesParamSourceType.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesParamSourceTypeDTO" Property="Id" Title="Ид записи" Width="100px" />
                     <RadzenDataGridColumnApp TItem="MesParamSourceTypeDTO" Property="Name" Title="Наименование" Width="300px">
@@ -104,6 +106,8 @@
 
     MesParamSourceTypeDTO mesParamSourceTypeDTOToInsert;
     MesParamSourceTypeDTO mesParamSourceTypeDTOToUpdate;
+
+    IList<MesParamSourceTypeDTO>? selectedTableMesParamSourceType;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }

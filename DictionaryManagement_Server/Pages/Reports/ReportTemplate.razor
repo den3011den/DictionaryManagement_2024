@@ -39,13 +39,17 @@
                                AllowColumnReorder="true"
                                AllowColumnResize="true"
                                AllowColumnPicking="true"
+                               SelectionMode="DataGridSelectionMode.Single"
+                               AllowRowSelectOnRowClick=true
                                ColumnWidth="200px"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
                                Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
                                ShowCleanGridSortsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSettingsHeaderButton="false">
+                               ShowCleanGridSettingsHeaderButton="false"
+                               @bind-Value=@selectedTableReportTemplates
+                               RowDoubleClick="() => EditRow(selectedTableReportTemplates.FirstOrDefault())">
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -252,6 +256,8 @@
     IEnumerable<ReportTemplateDTO>? reportTemplateDTOs;
 
     RadzenDataGrid<ReportTemplateDTO> reportTemplateDTOGrid;
+
+    IList<ReportTemplateDTO>? selectedTableReportTemplates;
 
     IEnumerable<string> selectedReportTemplates;
     IEnumerable<string> selectedDestDataTypes;

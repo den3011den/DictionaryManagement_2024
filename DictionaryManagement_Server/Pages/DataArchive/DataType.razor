@@ -38,7 +38,9 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableDataType
+                               RowDoubleClick="() => EditRow(selectedTableDataType.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Name" Title="Наименование" Width="200px">
@@ -125,6 +127,8 @@
     RadzenDataGrid<DataTypeDTO> dataTypeDTOGrid;
 
     IEnumerable<DataTypeDTO> dataTypeDTOs;
+
+    IList<DataTypeDTO>? selectedTableDataType;
 
     DataTypeDTO dataTypeDTOToInsert;
     DataTypeDTO dataTypeDTOToUpdate;

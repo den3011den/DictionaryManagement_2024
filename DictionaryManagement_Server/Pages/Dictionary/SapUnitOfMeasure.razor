@@ -38,7 +38,9 @@
                                FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableSapUnitOfMeasure
+                               RowDoubleClick="() => EditRow(selectedTableSapUnitOfMeasure.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Name" Title="Наименование">
@@ -112,6 +114,8 @@
 
     SapUnitOfMeasureDTO sapUnitOfMeasureDTOToInsert;
     SapUnitOfMeasureDTO sapUnitOfMeasureDTOToUpdate;
+
+    IList<SapUnitOfMeasureDTO>? selectedTableSapUnitOfMeasure;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }

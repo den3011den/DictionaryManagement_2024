@@ -35,7 +35,9 @@
                                AllowColumnResize="false"
                                FilterMode="FilterMode.Advanced"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableSapEquipment
+                               RowDoubleClick="() => EditRow(selectedTableSapEquipment.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="ErpPlantId" Title="Код завода SAP" Width="130px">
@@ -129,6 +131,7 @@
 
     SapEquipmentDTO sapEquipmentDTOToInsert;
     SapEquipmentDTO sapEquipmentDTOToUpdate;
+    IList<SapEquipmentDTO>? selectedTableSapEquipment;
     //    SapEquipmentDTO OldSapEquipmentDTOToUpdate;
 
     public bool IsLoading { get; set; } = true;
