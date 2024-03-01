@@ -86,7 +86,7 @@
                                                 <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
                                             </div>
                                             <div class="col-4 float-right">
-                                                <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.CurrentFile, ReportTemplateId))" class="btn btn-outline-success">Проверить действующий шаблон</NavLink>
+                                                <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.CurrentFile, ActiveReportTemplateDTO))" class="btn btn-outline-success">Проверить действующий шаблон</NavLink>
                                             </div>
                                         </div>
                                     }
@@ -121,7 +121,7 @@
                                                         <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
                                                     </div>
                                                     <div class="col-4 float-right">
-                                                        <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.LoadFile, ActiveReportTemplateDTO.Id))" class="btn btn-outline-success">Проверить загружаемый шаблон</NavLink>
+                                                        <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.LoadFile, ActiveReportTemplateDTO))" class="btn btn-outline-success">Проверить загружаемый шаблон</NavLink>
                                                     </div>
                                                 </div>
                                             }
@@ -596,7 +596,7 @@
     }
 
 
-    private async Task OnClickCheckCurrentReportTemplate(ReportTemplateFile reportTemplateFile, Guid reportTemplateId)
+    private async Task OnClickCheckCurrentReportTemplate(ReportTemplateFile reportTemplateFile, ReportTemplateDTO reportTemplateDTO)
     {
         IsLoading = true;
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -633,7 +633,7 @@
                 return;
             }
 
-            string filepath = reportTemplateFilePath + reportTemplateId.ToString() + ".xlsx";
+            string filepath = reportTemplateFilePath + reportTemplateDTO.Id.ToString() + ".xlsx";
 
             if (!System.IO.File.Exists(filepath))
             {
@@ -643,7 +643,9 @@
 
             bool? dialogResult = true;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>("Проверка файла шаблона отчёта", new Dictionary
+            dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+                    "Проверка файла шаблона отчёта - " + reportTemplateDTO.Id.ToString() + " - " + reportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + reportTemplateDTO.MesDepartmentDTOFK.Name,
+                    new Dictionary
                     <string, object>
                     () { { "ReportTemplateFilePath", filepath.HideSlash() },
                          { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
@@ -786,7 +788,10 @@
                 {
                     bool? dialogResult = true;
                     IsLoading = false;
-                    dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>("Проверка файла шаблона отчёта", new Dictionary
+                    
+                    dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+                        "Проверка файла шаблона отчёта - " + ActiveReportTemplateDTO.Id.ToString() + " - " + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name
+                        , new Dictionary
                             <string, object>
                      () { { "ReportTemplateFilePath", fileFullPath.HideSlash() },
                                  { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
