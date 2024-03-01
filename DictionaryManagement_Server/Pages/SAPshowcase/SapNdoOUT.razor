@@ -61,7 +61,8 @@
                                Style=@(iconMenuActive ? "height:calc(100vh - 160px); width:calc(100vw - 120px)" : "height:calc(100vh - 160px); width:calc(100vw - 280px);")
                                ColumnWidth="200px"
                                AllowColumnPicking="true"
-                               GridLines="DataGridGridLines.Both">
+                               GridLines="DataGridGridLines.Both"
+                               @bind-Value=@selectedTableSapNdoOUT>                
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapNdoOUTDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
                                              FilterProperty="Id" SortProperty="Id">
@@ -174,6 +175,8 @@
     IEnumerable<SapNdoOUTDTO>? sapNdoOUTDTOs;
 
     RadzenDataGrid<SapNdoOUTDTO> sapNdoOUTDTOGrid;
+
+    IList<SapNdoOUTDTO>? selectedTableSapNdoOUT;
 
     DateTime? startDate = DateTime.Today;
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);

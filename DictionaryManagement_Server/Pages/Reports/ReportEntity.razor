@@ -55,7 +55,9 @@
                                Style="height:calc(100vh - 160px)"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSortsHeaderButton="false">
+                               ShowCleanGridSortsHeaderButton="false"
+                               @bind-Value=@selectedTableReportEntity
+                               RowDoubleClick="() => ShowReportEntityDetails(selectedTableReportEntity.FirstOrDefault())">
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -249,6 +251,8 @@
     List<string> distinctReportTemplateTypesInList = new List<string>();
     List<string> distinctDownloadUsersInList = new List<string>();
     List<string> distinctUploadUsersInList = new List<string>();
+
+    IList<ReportEntityDTO>? selectedTableReportEntity;
 
     RadzenDataGrid<ReportEntityDTO> reportEntityDTOGrid;
     DateTime? startDate = DateTime.Today.AddDays(-6);

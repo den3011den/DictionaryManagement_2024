@@ -51,7 +51,8 @@
                                Style="height:calc(100vh - 160px)"
                                ShowCleanGridSortsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSettingsHeaderButton="false">
+                               ShowCleanGridSettingsHeaderButton="false"
+                               @bind-Value=@selectedTableLogEvent>
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -218,6 +219,8 @@
     IEnumerable<LogEventDTO>? logEventDTOs;
 
     RadzenDataGrid<LogEventDTO> logEventDTOGrid;
+
+    IList<LogEventDTO>? selectedTableLogEvent;
 
     IEnumerable<string> selectedLogEventTypes;
     IEnumerable<string> selectedUsers;

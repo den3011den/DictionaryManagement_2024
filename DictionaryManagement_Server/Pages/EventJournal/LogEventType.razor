@@ -38,7 +38,9 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableLogEventType
+                               RowDoubleClick="() => EditRow(selectedTableLogEventType.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="LogEventTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="LogEventTypeDTO" Property="Name" Title="Наименование">
@@ -107,6 +109,8 @@
     RadzenDataGrid<LogEventTypeDTO> logEventTypeDTOGrid;
 
     IEnumerable<LogEventTypeDTO> logEventTypeDTOs;
+
+    IList<LogEventTypeDTO>? selectedTableLogEventType;
 
     LogEventTypeDTO logEventTypeDTOToInsert;
     LogEventTypeDTO logEventTypeDTOToUpdate;
