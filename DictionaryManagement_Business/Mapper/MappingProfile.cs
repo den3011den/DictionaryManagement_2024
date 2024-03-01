@@ -286,6 +286,15 @@ namespace DictionaryManagement_Business.Mapper
                 .ForMember(dest => dest.ReportTemplateFK, opt => opt.MapFrom(src => src.ReportTemplateDTOFK))
                 .ForMember(dest => dest.AddUserFK, opt => opt.MapFrom(src => src.AddUserDTOFK));
 
+            CreateMap<CorrectionReasonToReportTemplateTypeAndDataType, CorrectionReasonToReportTemplateTypeAndDataTypeDTO>()
+                .ForMember(dest => dest.CorrectionReasonDTOFK, opt => opt.MapFrom(src => src.CorrectionReasonFK))
+                .ForMember(dest => dest.ReportTemplateTypeDTOFK, opt => opt.MapFrom(src => src.ReportTemplateTypeFK))
+                .ForMember(dest => dest.DataTypeDTOFK, opt => opt.MapFrom(src => src.DataTypeFK));
+
+            CreateMap<CorrectionReasonToReportTemplateTypeAndDataTypeDTO, CorrectionReasonToReportTemplateTypeAndDataType>()
+                .ForMember(dest => dest.CorrectionReasonFK, opt => opt.MapFrom(src => src.CorrectionReasonDTOFK))
+                .ForMember(dest => dest.ReportTemplateTypeFK, opt => opt.MapFrom(src => src.ReportTemplateTypeDTOFK))
+                .ForMember(dest => dest.DataTypeFK, opt => opt.MapFrom(src => src.DataTypeDTOFK));
         }
     }
 }

@@ -57,6 +57,8 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
 
         public DbSet<ReportTemplateFileHistory> ReportTemplateFileHistory { get; set; }
 
+        public DbSet<CorrectionReasonToReportTemplateTypeAndDataType> CorrectionReasonToReportTemplateTypeAndDataType { get; set; }
+
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
         //    base.OnModelCreating(modelBuilder);
