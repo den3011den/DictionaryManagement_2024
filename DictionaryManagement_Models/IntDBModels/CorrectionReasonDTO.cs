@@ -20,5 +20,10 @@ namespace DictionaryManagement_Models.IntDBModels
         [ForLogAttribute(NameProperty = "поле \"Архив\"")]
         [Display(Name = "В архиве")]
         public bool IsArchive { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
     }
 }

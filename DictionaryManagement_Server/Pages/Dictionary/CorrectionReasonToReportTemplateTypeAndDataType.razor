@@ -65,7 +65,8 @@
 
                 <Columns>
                     <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
-                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Property="CorrectionReasonDTOFK.Name" FilterProperty="CorrectionReasonDTOFK.Name" Title="Причина корректировки" Width="280px" Filterable="true">
+                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Title="Причина корректировки" Property="CorrectionReasonDTOFK.Name" Type="typeof(IEnumerable<string>)" Width="280px" Filterable="true"
+                                             FilterValue="@selectedCorrectionReasons" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedCorrectionReasons
                                             Change=OnSelectedCorrectionReasonsChange Data="@(distinctCorrectionReasonsInList)" AllowClear="true" Multiple="true"
@@ -74,7 +75,6 @@
                                             Chips="true"
                                             OpenOnFocus="true"
                                             FilterPlaceholder="Поиск..."
-                                            @* FilterAsYouType=false *@
                                             MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -84,16 +84,16 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Property="ReportTemplateTypeDTOFK.Name" Title="Тип шаблона отчёта" Width="280px" FilterProperty="ReportTemplateTypeDTOFK.Name" Filterable="true">
+                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Title="Тип шаблона отчёта" Property="ReportTemplateTypeDTOFK.Name" Type="typeof(IEnumerable<string>)" Width="280px" Filterable="true"
+                                             FilterValue="@selectedReportTemplateTypes" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedReportTemplateTypes
                                             Change=OnSelectedReportTemplateTypesChange Data="@(distinctReportTemplateTypesInList)" AllowClear="true" Multiple="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw;; font-size:0.75rem"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             PopupStyle="max-height:40vh"
                                             Chips="true"
                                             OpenOnFocus="true"
                                             FilterPlaceholder="Поиск..."
-                                            @* FilterAsYouType=false *@
                                             MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -103,7 +103,8 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Property="DataTypeDTOFK.Name" Title="Тип данных" Width="150px" FilterProperty="DataTypeDTOFK.Name" Filterable="true">
+                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Title="Тип данных" Property="DataTypeDTOFK.Name" Type="typeof(IEnumerable<string>)" Width="150px" Filterable="true"
+                                             FilterValue="@selectedDataTypes" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value=@selectedDataTypes
                                             Change=OnSelectedDataTypesChange Data="@(distinctDataTypesInList)" AllowClear="true" Multiple="true"
@@ -113,8 +114,8 @@
                                             OpenOnFocus="true"
                                             FilterPlaceholder="Поиск..."
                                             MaxSelectedLabels="10"
-                                            @* FilterAsYouType=false *@
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                            @* FilterAsYouType=false *@
                         </FilterTemplate>
                         <EditTemplate Context="сorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenDropDown Data="@dataTypeDTOs" @bind-Value="сorrectionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK" Style="width:100%; display: block;" Name="DatType" />
@@ -122,7 +123,7 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="true" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenButton Icon="edit" Disabled="@(IsAdmin != AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
@@ -132,7 +133,7 @@
                         <EditTemplate Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenButton Disabled="@(IsAdmin != AdminMode.IsAdmin)" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))">
                             </RadzenButton>
-                            <RadzenButton Disabled=true Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))">
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))">
                             </RadzenButton>
                             <RadzenButton Disabled="@(IsAdmin != AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))">
                             </RadzenButton>
@@ -239,7 +240,7 @@
     private async Task SaveStateAsync()
     {
         await Task.CompletedTask;
-        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('CorrectionReasonGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings)}')");
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings)}')");
         await SD.SetPageSettingsVersion("CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings", _jsRuntime);
     }
 
@@ -267,8 +268,8 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
                 correctionReasonToReportTemplateTypeAndDataTypeDTOs = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.GetAll();
-                correctionReasonDTOs = await _correctionReasonRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
-                reportTemplateTypeDTOs = await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+                correctionReasonDTOs = (await _correctionReasonRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.Name);
+                reportTemplateTypeDTOs = (await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.Name);
                 dataTypeDTOs = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
 
                 List<string> distinctDepartmentsInList = new List<string>();
@@ -411,6 +412,8 @@
         {
             correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = new CorrectionReasonToReportTemplateTypeAndDataTypeDTO();
             await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.InsertRow(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert);
+            // if(correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.View.Count() <=0)
+            //     await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.Reload();
         }
     }
 
@@ -420,9 +423,9 @@
         if (IsAdmin == AdminMode.IsAdmin)
         {
             var forCheck = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.GetByCorrectionReasonIdAndReportTemplateTypeIdAndDataType(
-                correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonId,
-                correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeId,
-                correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeId);
+                correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK.Id,
+                correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK.Id,
+                correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK.Id);
 
             if (forCheck != null)
             {

@@ -42,9 +42,9 @@ namespace DictionaryManagement_Business.Repository
             try
             {
                 var objToGet = _db.CorrectionReasonToReportTemplateTypeAndDataType
-                    .Include("CorrectionReason")
-                    .Include("ReportTemplateType")
-                    .Include("DataType")
+                    .Include("CorrectionReasonFK")
+                    .Include("ReportTemplateTypeFK")
+                    .Include("DataTypeFK")
                         .FirstOrDefaultWithNoLock(u => u.CorrectionReasonId == correctionReasonId && u.ReportTemplateTypeId == reportTemplateTypeId
                             && u.DataTypeId == dataTypeId);
                 if (objToGet != null)
@@ -61,9 +61,9 @@ namespace DictionaryManagement_Business.Repository
             try
             {
                 var objToGet = _db.CorrectionReasonToReportTemplateTypeAndDataType
-                    .Include("CorrectionReason")
-                    .Include("ReportTemplateType")
-                    .Include("DataType")
+                    .Include("CorrectionReasonFK")
+                    .Include("ReportTemplateTypeFK")
+                    .Include("DataTypeFK")
                                 .FirstOrDefaultWithNoLock(u => u.Id == id);
                 if (objToGet != null)
                 {
@@ -75,18 +75,21 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>?> GetAll()
+        public async Task<IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>> GetAll()
         {
             try
             {
                 var hhh = _db.CorrectionReasonToReportTemplateTypeAndDataType
-                    .Include("CorrectionReason")
-                    .Include("ReportTemplateType")
-                    .Include("DataType");
-                return _mapper.Map<IEnumerable<CorrectionReasonToReportTemplateTypeAndDataType>, IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>>(hhh);
+                    .Include("CorrectionReasonFK")
+                    .Include("ReportTemplateTypeFK")
+                    .Include("DataTypeFK")
+                    .ToListWithNoLock();
+
+                if (hhh != null)
+                    return _mapper.Map<IEnumerable<CorrectionReasonToReportTemplateTypeAndDataType>, IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>>(hhh);
             }
             catch { };
-            return null;
+            return new List<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>();
         }
 
         public async Task<IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>?> GetByCorrectionReasonId(int correctionReasonId)
@@ -94,9 +97,9 @@ namespace DictionaryManagement_Business.Repository
             try
             {
                 var hhh = _db.CorrectionReasonToReportTemplateTypeAndDataType
-                    .Include("CorrectionReason")
-                    .Include("ReportTemplateType")
-                    .Include("DataType")
+                    .Include("CorrectionReasonFK")
+                    .Include("ReportTemplateTypeFK")
+                    .Include("DataTypeFK")
                     .Where(u => u.CorrectionReasonId == correctionReasonId)
                     .ToListWithNoLock();
                 return _mapper.Map<IEnumerable<CorrectionReasonToReportTemplateTypeAndDataType>, IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>>(hhh);
@@ -110,9 +113,9 @@ namespace DictionaryManagement_Business.Repository
             try
             {
                 var objectToUpdate = _db.CorrectionReasonToReportTemplateTypeAndDataType
-                        .Include("CorrectionReason")
-                        .Include("ReportTemplateType")
-                        .Include("DataType")
+                        .Include("CorrectionReasonFK")
+                        .Include("ReportTemplateTypeFK")
+                        .Include("DataTypeFK")
                         .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
                 if (objectToUpdate != null)
                 {
