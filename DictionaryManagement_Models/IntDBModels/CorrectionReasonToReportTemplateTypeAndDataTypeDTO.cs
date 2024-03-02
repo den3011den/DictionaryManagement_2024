@@ -1,7 +1,7 @@
-﻿using DictionaryManagement_Models.IntDBModels;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DictionaryManagement_DataAccess.Data.IntDB
+namespace DictionaryManagement_Models.IntDBModels
 {
     public class CorrectionReasonToReportTemplateTypeAndDataTypeDTO
     {
@@ -39,6 +39,25 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         [Display(Name = "Тип данных")]
         [Required(ErrorMessage = "Тип данных обязателен для заполнения")]
         public DataTypeDTO? DataTypeDTOFK { get; set; }
+
+        [NotMapped]
+        [Display(Name = "ИД")]
+        public string ToStringId
+        {
+            get
+            {
+                return Id.ToString();
+            }
+            set
+            {
+                ToStringId = value;
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"Причина: \"{CorrectionReasonDTOFK.Name}\" Тип шаблона отчёта: \"{ReportTemplateTypeDTOFK.Name}\" Тип данных: \"{DataTypeDTOFK.Name}\""; ;
+        }
 
     }
 

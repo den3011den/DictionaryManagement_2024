@@ -1,4 +1,4 @@
-﻿using DictionaryManagement_DataAccess.Data.IntDB;
+﻿using DictionaryManagement_Models.IntDBModels;
 
 namespace DictionaryManagement_Business.Repository.IRepository
 {
