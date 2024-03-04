@@ -169,7 +169,7 @@
     RadzenDataGrid<CorrectionReasonToReportTemplateTypeAndDataTypeDTO> correctionReasonToReportTemplateTypeAndDataTypeDTOGrid;
 
     IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO> correctionReasonToReportTemplateTypeAndDataTypeDTOs;
-    IEnumerable<CorrectionReasonDTO> correctionReasonDTOs;
+    IEnumerable<CorrectionReasonDTO> correctionReasonDTOs;    
     IEnumerable<ReportTemplateTypeDTO> reportTemplateTypeDTOs;
     IEnumerable<DataTypeDTO> dataTypeDTOs;
 
@@ -291,8 +291,8 @@
     async Task EditRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
     {
         if (IsAdmin == AdminMode.IsAdmin)
-        {
-            correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = correctionReasonToReportTemplateTypeAndDataTypeDTO;
+        {            
+            correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = correctionReasonToReportTemplateTypeAndDataTypeDTO;         
             await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.EditRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
         }
     }
@@ -318,6 +318,7 @@
                     correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.DataTypeDTOFK = await _dataTypeRepository.Get(correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.DataTypeId);
                     await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.UpdateRow(correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate);
                     correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = null;
+                    correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
                     return;
                 }
             }
@@ -335,6 +336,7 @@
 
             CorrectionReasonToReportTemplateTypeAndDataTypeDTO? newCorrectionReasonToReportTemplateTypeAndDataTypeDTO = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.Update(correctionReasonToReportTemplateTypeAndDataTypeDTO);
             await _logEventRepository.ToLog<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>(oldObject: oldCorrectionReasonToReportTemplateTypeAndDataTypeDTO, newObject: newCorrectionReasonToReportTemplateTypeAndDataTypeDTO, "Изменение привязки причины корректировки", "Связка: ", _authorizationRepository);
+            correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
         }
 
     }
@@ -342,14 +344,14 @@
     async Task SaveRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
     {
         if (IsAdmin == AdminMode.IsAdmin)
-        {
+        {            
             await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.UpdateRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
         }
     }
 
     void CancelEdit(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
     {
-
+        correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
         if (correctionReasonToReportTemplateTypeAndDataTypeDTO == correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert)
         {
             correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = null;
@@ -409,11 +411,11 @@
     async Task InsertRow()
     {
         if (IsAdmin == AdminMode.IsAdmin)
-        {
+        {   
+            correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = false;
             correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = new CorrectionReasonToReportTemplateTypeAndDataTypeDTO();
-            await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.InsertRow(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert);
-            // if(correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.View.Count() <=0)
-            //     await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.Reload();
+            await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.InsertRow(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert);            
+                 // await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.Reload();
         }
     }
 
