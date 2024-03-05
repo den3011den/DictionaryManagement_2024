@@ -66,7 +66,7 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType)
         {
-            var mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString().Trim()).Skip(1).ToList();
+            var mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
             switch (checkReportTemplateTagsType)
             {
                 case CheckReportTemplateTagsType.IsDuplicate:
