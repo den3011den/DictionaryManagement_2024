@@ -2223,6 +2223,8 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование (Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Неизменяемый (Immutable)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;
 
@@ -2239,6 +2241,8 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.Id.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.Name;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.Immutable == true ? "Да" : "";
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.IsArchive == true ? "Да" : "";
 
@@ -2337,6 +2341,8 @@ namespace DictionaryManagement_Business.Repository
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД записи (Id)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование (Name)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Неизменяемый (Immutable)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;

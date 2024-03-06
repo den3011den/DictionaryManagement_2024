@@ -25,7 +25,10 @@ namespace DictionaryManagement_Business.Mapper
             CreateMap<DataTypeDTO, DataType>()
                 .ForMember(dest => dest.IsAutoCalcDestDataType, opt => opt.MapFrom(src => src.IsAutoCalcDestDataType == null ? false : src.IsAutoCalcDestDataType));
 
-            CreateMap<DataSource, DataSourceDTO>().ReverseMap();
+            CreateMap<DataSource, DataSourceDTO>()
+                    .ForMember(dest => dest.Immutable, opt => opt.MapFrom(src => src.Immutable == null ? false : src.Immutable));
+            CreateMap<DataSourceDTO, DataSource>()
+                .ForMember(dest => dest.Immutable, opt => opt.MapFrom(src => src.Immutable == null ? false : src.Immutable));
 
             CreateMap<ReportTemplateType, ReportTemplateTypeDTO>()
                 .ForMember(dest => dest.NeedAutoCalc, opt => opt.MapFrom(src => src.NeedAutoCalc == null ? false : src.NeedAutoCalc))

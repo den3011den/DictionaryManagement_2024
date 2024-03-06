@@ -92,6 +92,7 @@ namespace DictionaryManagement_Common
         public static string UsersLoadFromExcelReportTemplateTypeNameSettingName = "UsersLoadFromExcelReportTemplateTypeName";
         public static string ADGroupsLoadFromExcelReportTemplateTypeNameSettingName = "ADGroupsLoadFromExcelReportTemplateTypeName";
         public static string ControlMesParamSourceTypeImmutableSettingName = "ControlMesParamSourceTypeImmutable";
+        public static string ControlDataSourceImmutableSettingName = "ControlDataSourceImmutable";
         public static int SqlCommandConnectionTimeout = 180;
 
         public static string EmbReportTemplateTypeName = "Отчёт ЭМБ";
