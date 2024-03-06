@@ -20,5 +20,8 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public bool IsArchive { get; set; }
 
         public bool? IsAutoCalcDestDataType { get; set; }
+
+        public bool? CantChangeName { get; set; }
+
     }
 }

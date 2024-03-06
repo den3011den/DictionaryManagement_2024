@@ -2284,6 +2284,8 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Является типом результирующих данных авторасчётов (IsAutoCalcDestDataType)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Нельзя переименовывать (CantChangeName)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;
 
@@ -2305,6 +2307,8 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = dataTypeDTO.IsAutoCalcDestDataType == true ? "Да" : "";
                     excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = dataTypeDTO.CantChangeName == true ? "Да" : "";
+                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = dataTypeDTO.IsArchive == true ? "Да" : "";
 
                     excelRowNum++;
@@ -2322,7 +2326,6 @@ namespace DictionaryManagement_Business.Repository
             }
             return fullfilepath;
         }
-
 
         public async Task<string> GenerateExcelDataSource(string filename, IEnumerable<DataSourceDTO> data)
         {

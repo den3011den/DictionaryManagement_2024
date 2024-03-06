@@ -21,9 +21,11 @@ namespace DictionaryManagement_Business.Mapper
                 .ForMember(dest => dest.Immutable, opt => opt.MapFrom(src => src.Immutable == null ? false : src.Immutable));
 
             CreateMap<DataType, DataTypeDTO>()
-                .ForMember(dest => dest.IsAutoCalcDestDataType, opt => opt.MapFrom(src => src.IsAutoCalcDestDataType == null ? false : src.IsAutoCalcDestDataType));
+                .ForMember(dest => dest.IsAutoCalcDestDataType, opt => opt.MapFrom(src => src.IsAutoCalcDestDataType == null ? false : src.IsAutoCalcDestDataType))
+                .ForMember(dest => dest.CantChangeName, opt => opt.MapFrom(src => src.CantChangeName == null ? false : src.CantChangeName));
             CreateMap<DataTypeDTO, DataType>()
-                .ForMember(dest => dest.IsAutoCalcDestDataType, opt => opt.MapFrom(src => src.IsAutoCalcDestDataType == null ? false : src.IsAutoCalcDestDataType));
+                .ForMember(dest => dest.IsAutoCalcDestDataType, opt => opt.MapFrom(src => src.IsAutoCalcDestDataType == null ? false : src.IsAutoCalcDestDataType))
+                .ForMember(dest => dest.CantChangeName, opt => opt.MapFrom(src => src.CantChangeName == null ? false : src.CantChangeName));
 
             CreateMap<DataSource, DataSourceDTO>()
                     .ForMember(dest => dest.Immutable, opt => opt.MapFrom(src => src.Immutable == null ? false : src.Immutable));
