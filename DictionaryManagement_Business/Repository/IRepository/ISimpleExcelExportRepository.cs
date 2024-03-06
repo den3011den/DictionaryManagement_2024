@@ -25,6 +25,7 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<string> GenerateExcelSapUnitOfMeasure(string filename, IEnumerable<SapUnitOfMeasureDTO> data);
         public Task<string> GenerateExcelMesUnitOfMeasure(string filename, IEnumerable<MesUnitOfMeasureDTO> data);
         public Task<string> GenerateExcelCorrectionReason(string filename, IEnumerable<CorrectionReasonDTO> data);
+        public Task<string> GenerateExcelCorrectionReasonToReportTemplateTypeAndDataType(string filename, IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO> data);
         public Task<string> GenerateExcelMesParamSourceType(string filename, IEnumerable<MesParamSourceTypeDTO> data);
         public Task<string> GenerateExcelDataType(string filename, IEnumerable<DataTypeDTO> data);
         public Task<string> GenerateExcelDataSource(string filename, IEnumerable<DataSourceDTO> data);

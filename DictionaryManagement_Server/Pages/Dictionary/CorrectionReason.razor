@@ -37,7 +37,10 @@
                                FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               SelectionMode="DataGridSelectionMode.Single"
+                               @bind-Value=@selectedTableCorrectionReason
+                               RowDoubleClick="() => EditRow(selectedTableCorrectionReason.FirstOrDefault())">                
                 <Columns>
                     <RadzenDataGridColumnApp TItem="CorrectionReasonDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="CorrectionReasonDTO" Property="Name" Title="Наименование" Width="320px">
@@ -109,6 +112,8 @@
 
     CorrectionReasonDTO correctionReasonDTOToInsert;
     CorrectionReasonDTO correctionReasonDTOToUpdate;
+
+    IList<CorrectionReasonDTO>? selectedTableCorrectionReason;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }

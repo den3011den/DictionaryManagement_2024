@@ -5,6 +5,12 @@ namespace DictionaryManagement_Common
 {
     public static class SD
     {
+        public enum CheckReportTemplateTagsType
+        {
+            IsDuplicate,
+            IsNotInBase,
+            IsInArchive
+        }
         public enum SelectDictionaryScope
         {
             All,
@@ -86,6 +92,282 @@ namespace DictionaryManagement_Common
         public static string UsersLoadFromExcelReportTemplateTypeNameSettingName = "UsersLoadFromExcelReportTemplateTypeName";
         public static string ADGroupsLoadFromExcelReportTemplateTypeNameSettingName = "ADGroupsLoadFromExcelReportTemplateTypeName";
         public static int SqlCommandConnectionTimeout = 180;
+
+        public static string EmbReportTemplateTypeName = "Отчёт ЭМБ";
+        public static string CorrectionReportTemplateTypeName = "Корректировки";
+        public static string NdoReportTemplateTypeName = "Ручной ввод НДО";
+        public static string TebReportTemplateTypeName = "Форма по Энергетике";
+        public static string NeedCheckReportTemplateBeforeSaving = "NeedCheckReportTemplateBeforeSaving";
+
+        public record SheetHeader
+        {
+            public string SheetHeaderColumnName { get; set; }
+            public int SheetHeaderColumnNumber { get; set; }
+        }
+
+        public class SheetTemplate
+        {
+            public string SheetName { get; set; }
+            public List<SheetHeader> SheetHeaderList { get; set; }
+            public bool NeedCheckIsDuplicateTags { get; set; }
+            public bool NeedCheckIsNotInBaseTags { get; set; }
+            public bool NeedCheckIsInArchiveTags { get; set; }
+            public bool NeedCheckSheetHeaders { get; set; }
+        }
+
+        public static List<SheetTemplate> EmbSheetsList = new List<SheetTemplate>
+        {
+            new SheetTemplate {SheetName = "StartEndDate", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "StartDate", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "EndDate", SheetHeaderColumnNumber = 2}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "Measured", SheetHeaderColumnNumber = 3},
+                new SheetHeader { SheetHeaderColumnName = "MeasuredUpdated", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "Reconciled", SheetHeaderColumnNumber = 5},
+                new SheetHeader { SheetHeaderColumnName = "GoneToSAPValue", SheetHeaderColumnNumber = 6},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 7},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 8},
+                new SheetHeader { SheetHeaderColumnName = "AddUserNAME", SheetHeaderColumnNumber = 9}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "Value", SheetHeaderColumnNumber = 3},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 5}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = true,
+            NeedCheckIsInArchiveTags = true,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "ReasonLibrary", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonName", SheetHeaderColumnNumber = 2}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "Отчет матрица", SheetHeaderList = new List<SheetHeader>(),
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = false
+            },
+            new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1}
+            },
+            NeedCheckIsDuplicateTags = true,
+            NeedCheckIsNotInBaseTags = true,
+            NeedCheckIsInArchiveTags = true,
+            NeedCheckSheetHeaders = true
+            }
+        };
+
+        public static List<SheetTemplate> TebSheetsList = new List<SheetTemplate>
+        {
+            new SheetTemplate {SheetName = "StartEndDate", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "StartDate", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "EndDate", SheetHeaderColumnNumber = 2}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "Measured", SheetHeaderColumnNumber = 3},
+                new SheetHeader { SheetHeaderColumnName = "MeasuredUpdated", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "Reconciled", SheetHeaderColumnNumber = 5},
+                new SheetHeader { SheetHeaderColumnName = "GoneToSAPValue", SheetHeaderColumnNumber = 6},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 7},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 8},
+                new SheetHeader { SheetHeaderColumnName = "AddUserNAME", SheetHeaderColumnNumber = 9}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "Value", SheetHeaderColumnNumber = 3},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 5}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = true,
+            NeedCheckIsInArchiveTags = true,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "ReasonLibrary", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonName", SheetHeaderColumnNumber = 2}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "Отчет матрица", SheetHeaderList = new List<SheetHeader>(),
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = false
+            },
+            new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1}
+            },
+            NeedCheckIsDuplicateTags = true,
+            NeedCheckIsNotInBaseTags = true,
+            NeedCheckIsInArchiveTags = true,
+            NeedCheckSheetHeaders = true
+            }
+        };
+
+        public static List<SheetTemplate> CorrectionSheetsList = new List<SheetTemplate>
+        {
+            new SheetTemplate {SheetName = "StartEndDate", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "StartDate", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "EndDate", SheetHeaderColumnNumber = 2}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "Measured", SheetHeaderColumnNumber = 3},
+                new SheetHeader { SheetHeaderColumnName = "MeasuredUpdated", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "Reconciled", SheetHeaderColumnNumber = 5},
+                new SheetHeader { SheetHeaderColumnName = "GoneToSAPValue", SheetHeaderColumnNumber = 6},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 7},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 8},
+                new SheetHeader { SheetHeaderColumnName = "AddUserNAME", SheetHeaderColumnNumber = 9}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "Value", SheetHeaderColumnNumber = 3},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 4},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 5}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = true,
+            NeedCheckIsInArchiveTags = true,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "ReasonLibrary", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "CorrectionReasonName", SheetHeaderColumnNumber = 2}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "Форма корректировок", SheetHeaderList = new List<SheetHeader>(),
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = false
+            },
+            new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1}
+            },
+            NeedCheckIsDuplicateTags = true,
+            NeedCheckIsNotInBaseTags = true,
+            NeedCheckIsInArchiveTags = true,
+            NeedCheckSheetHeaders = true
+            }
+        };
+
+
+        public static List<SheetTemplate> NdoSheetsList = new List<SheetTemplate>
+        {
+            new SheetTemplate {SheetName = "StartEndDate", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "StartDate", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "EndDate", SheetHeaderColumnNumber = 2}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "Value", SheetHeaderColumnNumber = 3},
+                new SheetHeader { SheetHeaderColumnName = "ValueDifference", SheetHeaderColumnNumber = 4}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "MesParamCode", SheetHeaderColumnNumber = 1},
+                new SheetHeader { SheetHeaderColumnName = "ValueTime", SheetHeaderColumnNumber = 2},
+                new SheetHeader { SheetHeaderColumnName = "ValueDifference", SheetHeaderColumnNumber = 3}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = true
+            },
+            new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
+            {
+                new SheetHeader { SheetHeaderColumnName = "СписокТеговСИР", SheetHeaderColumnNumber = 1}
+            },
+            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsNotInBaseTags = false,
+            NeedCheckIsInArchiveTags = false,
+            NeedCheckSheetHeaders = false
+            }
+        };
 
         public static String RemoveInvalidCharsFromFilename(this String file_name, int? maxFileNameLength = 200)
         {

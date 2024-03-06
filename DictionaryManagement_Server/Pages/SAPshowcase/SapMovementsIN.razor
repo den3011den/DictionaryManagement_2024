@@ -65,7 +65,8 @@
                                GridLines="DataGridGridLines.Both"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSortsHeaderButton="false">
+                               ShowCleanGridSortsHeaderButton="false"
+                               @bind-Value=@selectedTableSapMovementsIN>
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -448,6 +449,8 @@
     IEnumerable<string> selectedSapUnitOfMeasure;
     List<string> distinctMoveTypesInList = new List<string>();
     List<string> distinctSapUnitOfMeasureInList = new List<string>();
+
+    IList<SapMovementsINDTO>? selectedTableSapMovementsIN;
 
     DateTime? startDate = DateTime.Today;
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);

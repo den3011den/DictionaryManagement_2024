@@ -80,7 +80,8 @@
                                Style="height:calc(100vh - 160px)"
                                MesDepartmentCount="@mesDepartmentCount"
                                SelectionMode="DataGridSelectionMode.Single"
-                               @bind-Value=@selectedDepartments>
+                               @bind-Value=@selectedDepartments
+                               RowDoubleClick="() => EditRow(selectedDepartments.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesDepartmentDTO" Property="Name" Title="Наименование" Frozen="true" Width="200px"
                                              FilterOperator="FilterOperator.Contains" SortProperty="Name" FilterProperty="Name">

@@ -1302,6 +1302,10 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Тип (DataType.Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Время значения (ValueTime)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Значение (Value)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД экземпляра отчёта (ReportGuid)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД записи в витрине SAP (выход) (SapMovementOutId)";
@@ -1355,6 +1359,10 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.DataSourceDTOFK == null ? "" : mesMovementsDTO.DataSourceDTOFK.Name;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.DataTypeDTOFK == null ? "" : mesMovementsDTO.DataTypeDTOFK.Name;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.ValueTime.ToString("dd.MM.yyyy HH:mm:ss.fff");
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.Value.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesMovementsDTO.ReportGuid == null ? "" : mesMovementsDTO.ReportGuid.ToString();
                     excelColNum++;
@@ -2099,6 +2107,75 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = correctionReasonDTO.Name;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = correctionReasonDTO.IsArchive == true ? "Да" : "";
+
+                    excelRowNum++;
+                }
+
+                for (var j = 1; j <= excelColNum; j++)
+                    ws.Column(j).AdjustToContents();
+
+                var range = ws.Range(ws.Cell(1, 1).Address, ws.Cell(excelRowNum, excelColNum).Address);
+                range.SetAutoFilter();
+
+                wbook.SaveAs(fullfilepath);
+                if (wbook != null)
+                    wbook.Dispose();
+            }
+            return fullfilepath;
+        }
+
+        public async Task<string> GenerateExcelCorrectionReasonToReportTemplateTypeAndDataType(string filename, IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO> data)
+        {
+
+            string pathVar = (await _settingsRepository.GetByName("TempFilePath")).Value;
+            string fullfilepath = System.IO.Path.Combine(pathVar, filename);
+
+            using var wbook = new XLWorkbook();
+            {
+
+                var ws = wbook.AddWorksheet("CorrectionReasonToRPTAndDT");
+
+                int excelRowNum = 1;
+                int excelColNum = 1;
+
+                ws.Cell(excelRowNum, excelColNum).Value = "ИД записи (Id)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "ИД причины корректировки (CorrectionReasonId)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Наименование причины корректировки (CorrectionReason.Name)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "ИД типа шаблона отчёта (ReportTemplateTypeId)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Наименование типа шаблона отчёта (ReportTemplateType.Name)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "ИД типа данных (DataTypeId)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Наименование типа данных (DataType.Name)";
+                excelColNum++;
+
+                ws.Row(excelRowNum).Style.Font.SetBold(true);
+                ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;
+
+                ws.SheetView.FreezeRows(excelRowNum);
+
+                excelRowNum = 2;
+                foreach (CorrectionReasonToReportTemplateTypeAndDataTypeDTO objDTO in data)
+                {
+                    excelColNum = 1;
+
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.Id.ToString();
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.CorrectionReasonId.ToString();
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.CorrectionReasonDTOFK.Name;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeId.ToString();
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeDTOFK.Name;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeId.ToString();
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeDTOFK.Name;
 
                     excelRowNum++;
                 }

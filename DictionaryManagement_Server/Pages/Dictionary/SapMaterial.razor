@@ -36,7 +36,9 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableSapMaterial
+                               RowDoubleClick="() => EditRow(selectedTableSapMaterial.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapMaterialDTO" Property="Code" Title="Код материала" Width="120px">
@@ -127,6 +129,8 @@
 
     SapMaterialDTO sapMaterialDTOToInsert;
     SapMaterialDTO sapMaterialDTOToUpdate;
+
+    IList<SapMaterialDTO>? selectedTableSapMaterial;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }

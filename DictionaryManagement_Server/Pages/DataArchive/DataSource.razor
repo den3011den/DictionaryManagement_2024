@@ -40,7 +40,9 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableDataSource
+                               RowDoubleClick="() => EditRow(selectedTableDataSource.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="DataSourceDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="DataSourceDTO" Property="Name" Title="Наименование" Width="320px">
@@ -104,6 +106,8 @@
     RadzenDataGrid<DataSourceDTO> dataSourceDTOGrid;
 
     IEnumerable<DataSourceDTO> dataSourceDTOs;
+
+    IList<DataSourceDTO>? selectedTableDataSource;
 
     DataSourceDTO dataSourceDTOToInsert;
     DataSourceDTO dataSourceDTOToUpdate;

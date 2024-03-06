@@ -40,7 +40,9 @@
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableADGroup
+                               RowDoubleClick="() => EditRow(selectedTableADGroup.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="ADGroupDTO" Property="ToStringId" Title="Ид группы" Width="40px"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
@@ -111,6 +113,8 @@
     IEnumerable<ADGroupDTO>? adGroupDTOs;
 
     RadzenDataGrid<ADGroupDTO> adGroupDTOGrid;
+
+    IList<ADGroupDTO>? selectedTableADGroup;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }

@@ -39,7 +39,9 @@
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedUser
+                               RowDoubleClick="() => EditRow(selectedUser.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="ToStringId" Title="Ид пользователя" Width="30px"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
@@ -135,6 +137,8 @@
     _Dialogs? _dialogs { get; set; }
 
     IEnumerable<UserDTO>? userDTOs;
+
+    IList<UserDTO>? selectedUser;
 
     RadzenDataGrid<UserDTO> userDTOGrid;
 

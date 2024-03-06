@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DictionaryManagement_DataAccess.Data.IntDB
@@ -24,6 +25,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
 
         [Required]
         [Range(0.0001, 1000000000, ErrorMessage = "Значение должно быть между {1} and {2}")]
+        [Precision(10, 4)]
         public decimal SapToMesTransformKoef { get; set; } = decimal.One;
 
     }

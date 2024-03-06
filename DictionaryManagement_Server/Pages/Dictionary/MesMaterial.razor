@@ -37,7 +37,9 @@
                                AllowColumnResize="false"
                                FilterMode="FilterMode.Advanced"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedTableMesMaterial
+                               RowDoubleClick="() => EditRow(selectedTableMesMaterial.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesMaterialDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="MesMaterialDTO" Property="Code" Title="Код материала" Width="120px">
@@ -133,6 +135,8 @@
 
     MesMaterialDTO mesMaterialDTOToInsert;
     MesMaterialDTO mesMaterialDTOToUpdate;
+
+    IList<MesMaterialDTO>? selectedTableMesMaterial;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }

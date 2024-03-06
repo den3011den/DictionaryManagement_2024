@@ -113,7 +113,8 @@ builder.Services.AddScoped<ILogEventRepository, LogEventRepository>();
 builder.Services.AddScoped<ILoadFromExcelRepository, LoadFromExcelRepository>();
 builder.Services.AddScoped<IReportEntityResendDatesRepository, ReportEntityResendDatesRepository>();
 builder.Services.AddScoped<IReportTemplateFileHistoryRepository, ReportTemplateFileHistoryRepository>();
-
+builder.Services.AddScoped<ICheckReportTemplateRepository, CheckReportTemplateRepository>();
+builder.Services.AddScoped<ICorrectionReasonToReportTemplateTypeAndDataTypeRepository, CorrectionReasonToReportTemplateTypeAndDataTypeRepository>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<DialogService>();

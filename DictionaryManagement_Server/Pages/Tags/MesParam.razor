@@ -48,7 +48,9 @@
                                GridLines="DataGridGridLines.Both"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSortsHeaderButton="false">
+                               ShowCleanGridSortsHeaderButton="false"
+                               @bind-Value=@selectedTableMesParam
+                               RowDoubleClick="() => EditRow(selectedTableMesParam.FirstOrDefault(), SD.EditMode.Edit)">
 
                 @* Style="width: 100vw - document.querySelector('.navNenuDiv').getBoundingClientRect().width; height:79.5vh" *@
                 @* Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px") *@
@@ -349,6 +351,8 @@
     List<string> distinctMesParamSourceTypeInList = new List<string>();
     List<string> distinctMesDepartmentInList = new List<string>();
     List<string> distinctSapUnitOfMeasureInList = new List<string>();
+
+    IList<MesParamDTO>? selectedTableMesParam;
 
     RadzenDataGrid<MesParamDTO> mesParamDTOGrid;
     RadzenButton xlxButton;

@@ -78,7 +78,22 @@
                                     <RadzenFormField Text="Имя Файла" Variant="@variant" Style="width: 100%;">
                                         <RadzenTextBox @bind-Value="@ActiveReportTemplateDTO.TemplateFileName" ReadOnly="true" />
                                     </RadzenFormField>
-                                    <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
+
+                                    @if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+                                    {
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
+                                            </div>
+                                            <div class="col-4 float-right">
+                                                <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.CurrentFile, ActiveReportTemplateDTO))" class="btn btn-outline-success">Проверить действующий шаблон</NavLink>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
+                                    }
                                 }
 
                                 <RadzenCard Style="width: 100%;">
@@ -98,8 +113,23 @@
                                         }
                                         else
                                         {
-                                            <p>@loadedFileName</p>
-                                            <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                            @if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+                                            {
+                                                <div class="row">
+                                                    <div class="col-8">
+                                                        <p>@loadedFileName</p>
+                                                        <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                                    </div>
+                                                    <div class="col-4 float-right">
+                                                        <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.LoadFile, ActiveReportTemplateDTO))" class="btn btn-outline-success">Проверить загружаемый шаблон</NavLink>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <p>@loadedFileName</p>
+                                                <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
+                                            }
                                         }
                                     }
                                 </RadzenCard>
@@ -215,6 +245,12 @@
     [Parameter]
     public Guid ReportTemplateId { get; set; }
 
+    enum ReportTemplateFile
+    {
+        CurrentFile,
+        LoadFile
+    }
+
     bool IsSubmited = false;
 
     public string ReportTemplatePath;
@@ -230,6 +266,8 @@
     public AdminMode IsAdmin { get; set; }
     public bool isUploadFileError { get; set; } = false;
     public string uploadFileErrorString { get; set; } = "";
+
+    public bool NeedCheckReportTemplateBeforeSaving { get; set; } = false;
 
     string uploadFileWarning = "";
 
@@ -277,9 +315,20 @@
         }
 
         ReportTemplatePath = (await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName)).Value;
-        IsLoading = false;
-        await Task.Delay(100);
-        await InvokeAsync(StateHasChanged);
+        string? needCheckReportTemplateBeforeSaving = (await _settingsRepository.GetByName(SD.NeedCheckReportTemplateBeforeSaving))?.Value;
+
+        NeedCheckReportTemplateBeforeSaving = false;
+        if (needCheckReportTemplateBeforeSaving != null)
+        {
+            if (needCheckReportTemplateBeforeSaving.Trim() == "1" || needCheckReportTemplateBeforeSaving.Trim().ToUpper() == "ДА"
+                 || needCheckReportTemplateBeforeSaving.Trim().ToUpper() == "TRUE")
+            {
+                NeedCheckReportTemplateBeforeSaving = true;
+            }
+        }
+        // IsLoading = false;
+        // await Task.Delay(100);
+        // await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -341,7 +390,7 @@
                 return;
             }
 
-            TempFilePath = (await _settingsRepository.GetByName("TempFilePath")).Value;
+            TempFilePath = (await _settingsRepository.GetByName(SD.TempFilePathSettingName)).Value;
 
             if (String.IsNullOrEmpty(TempFilePath))
             {
@@ -372,6 +421,12 @@
                 {
                     await _jsRuntime.ToastrError("Уже есть шаблон отчёта с типом: '" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "' Типом вых данных: '"
                     + ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "' для производства: '" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "'");
+                    IsSubmited = false;
+                    return;
+                }
+
+                if (await ReportTemplateFileSaveAborded(TempFilePath + customParameter + ".xlsx"))
+                {
                     IsSubmited = false;
                     return;
                 }
@@ -441,7 +496,11 @@
 
                 ActiveReportTemplateDTO.TemplateFileName = ActiveReportTemplateDTO.Id + ".xlsx";
 
-                //!!!
+                if (await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx"))
+                {
+                    IsSubmited = false;
+                    return;
+                }
 
                 if (!String.IsNullOrEmpty(uploadFileWarning))
                 {
@@ -535,6 +594,68 @@
         upload.Dispose();
         _dialogService.Close(null);
     }
+
+
+    private async Task OnClickCheckCurrentReportTemplate(ReportTemplateFile reportTemplateFile, ReportTemplateDTO reportTemplateDTO)
+    {
+        IsLoading = true;
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            string? reportTemplateFilePath = "";
+            switch (reportTemplateFile)
+            {
+                case ReportTemplateFile.CurrentFile:
+                    {
+                        reportTemplateFilePath = (await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName)).Value;
+                        break;
+                    }
+                case ReportTemplateFile.LoadFile:
+                    {
+                        reportTemplateFilePath = (await _settingsRepository.GetByName(SD.TempFilePathSettingName)).Value;
+                        break;
+                    }
+                default:
+                    {
+                        await _jsRuntime.ToastrError("Не предусмотренный параметр \"ReportTemplateFile.CurrentFile\" = " + reportTemplateFile.ToString());
+                        return;
+                    }
+            }
+
+            if (String.IsNullOrEmpty(reportTemplateFilePath))
+            {
+                await _jsRuntime.ToastrError("Не удалось определить путь нахождения файла");
+                return;
+            }
+
+            if (!System.IO.Directory.Exists(reportTemplateFilePath))
+            {
+                await _jsRuntime.ToastrError("Не существует путь: " + reportTemplateFilePath);
+                return;
+            }
+
+            string filepath = reportTemplateFilePath + reportTemplateDTO.Id.ToString() + ".xlsx";
+
+            if (!System.IO.File.Exists(filepath))
+            {
+                await _jsRuntime.ToastrError("Не найден файл: " + filepath);
+                return;
+            }
+
+            bool? dialogResult = true;
+            IsLoading = false;
+            dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+                    "Проверка файла шаблона отчёта - " + reportTemplateDTO.Id.ToString() + " - " + reportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + reportTemplateDTO.MesDepartmentDTOFK.Name,
+                    new Dictionary
+                    <string, object>
+                    () { { "ReportTemplateFilePath", filepath.HideSlash() },
+                         { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
+                         { "ForSave", false } }
+                    , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
+            //await this.OnAfterRenderAsync(true);
+        }
+        IsLoading = false;
+    }
+
 
     private async Task OnClickSave()
     {
@@ -642,5 +763,51 @@
         isUploadFileError = true;
         uploadFileErrorString = args.Message;
         var dialogResult = _dialogService.OpenAsync<CustomError>("", new Dictionary<string, object>() { { "ErrorString", uploadFileErrorString } }, new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
+    }
+
+    private async Task<bool> CanCheckReportTemplateFile()
+    {
+        if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.TebReportTemplateTypeName.Trim().ToUpper()
+                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
+                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.NdoReportTemplateTypeName.Trim().ToUpper())
+            return true;
+        else
+            return false;
+    }
+
+
+
+    private async Task<bool> ReportTemplateFileSaveAborded(string fileFullPath)
+    {
+        if (NeedCheckReportTemplateBeforeSaving)
+        {
+            if (!String.IsNullOrEmpty(uploadFileWarning))
+            {
+                if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
+                {
+                    bool? dialogResult = true;
+                    IsLoading = false;
+                    
+                    dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+                        "Проверка файла шаблона отчёта - " + ActiveReportTemplateDTO.Id.ToString() + " - " + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name
+                        , new Dictionary
+                            <string, object>
+                     () { { "ReportTemplateFilePath", fileFullPath.HideSlash() },
+                                 { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
+                                 { "ForSave", true}}
+                            , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
+                    if (dialogResult == false)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

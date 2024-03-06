@@ -84,23 +84,6 @@
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveMesParamDTO.SapEquipmentIdDest"></ValidationMessage>
 
-                                @*                                 @if (SD.AppFactoryMode == SD.FactoryMode.NKNH)
-                        {
-                        <RadzenFormField Text="Материал MES" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                        <RadzenDropDown @ref=@mesMaterialDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
-                        Data=@MesMaterialDTOList ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.MesMaterialId" Style="width: 100%; max-width: 900px;" />
-                        </RadzenFormField>
-                        <ValidationMessage For="()=>ActiveMesParamDTO.MesMaterialId"></ValidationMessage>
-
-                        <RadzenFormField Text="Ед.изм. MES" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                        <RadzenDropDown @ref=@mesUnitOfMeasureDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
-                        Data=@MesUnitOfMeasureDTOList TextProperty="ShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.MesUnitOfMeasureId" Style="width: 100%; max-width: 900px;" />
-                        </RadzenFormField>
-                        <ValidationMessage For="()=>ActiveMesParamDTO.MesUnitOfMeasureId"></ValidationMessage>
-                        }
-
-                        @if (SD.AppFactoryMode == SD.FactoryMode.KOS)
-                        { *@
                                 <RadzenFormField Text="Материал SAP" Variant="@variant" Style="width: 100%; max-width: 900px;">
                                     <RadzenDropDown @ref=@sapMaterialDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
                                                     Data=@SapMaterialDTOList ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesParamDTO.SapMaterialId" Style="width: 100%; max-width: 900px;" />

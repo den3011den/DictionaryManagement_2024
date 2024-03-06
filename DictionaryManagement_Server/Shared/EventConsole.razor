@@ -2,13 +2,29 @@
 @using Radzen
 @using System.Text.Json
 @inject IJSRuntime JSRuntime
+
+@* <div class="col-4 float-right">
+    <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.CurrentFile, ReportTemplateId))" class="btn btn-outline-success">Проверить действующий шаблон</NavLink>
+</div> *@
 <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" Class="rz-mt-4 rz-p-4 rz-border-radius-1" @attributes=@Attributes Style="border: var(--rz-grid-cell-border)">
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
         <RadzenText TextStyle="TextStyle.Subtitle1" Class="rz-m-0">Лог процесса:</RadzenText>
-        <RadzenButton Click=@OnClearClick Text="Очистить лог" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" />
+        @if (ShowOnlyErrorsButtonFlag)
+        {
+            <RadzenButton class="btn-outline-success" Click=@OnShowOrHideErrorsClick Text="@ShowOnlyErrorsText" Variant="Variant.Flat" Size="ButtonSize.Small" Disabled="@(!ActiveErrorsButtonFlag || InProgressFlag)" />
+        }
+        <RadzenButton Click=@OnClearClick Text="Очистить лог" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Disabled="@(InProgressFlag)" />
     </RadzenStack>
-    <RadzenStack Orientation="Orientation.Vertical" Gap="0" ID="event-console" Class="rz-pt-1" Style="border-top: var(--rz-grid-cell-border); min-height: 2rem; max-height: 32rem; height:300px; overflow: auto;">
-        @foreach (var message in messages)
+    <RadzenStack Orientation="Orientation.Vertical" Gap="0" ID="event-console" Class="rz-pt-1" Style=@("border-top: var(--rz-grid-cell-border); min-height: " + MinHeight + "; max-height: " + MaxHeight + "; height: " + Height + "; overflow: auto;")>
+        @if (ShowOnlyErrorsFlag == true)
+        {
+            messagesForShow = messages.Where(u => u.IsError == true).ToList();
+        }
+        else
+        {
+            messagesForShow = messages;
+        }
+        @foreach (var message in messagesForShow)
         {
             <RadzenAlert ShowIcon="false" Variant="Variant.Flat" AlertStyle="@message.MessageStyle" Size="AlertSize.ExtraSmall" Shade="Shade.Lighter" AllowClose="false" Style="font-size: 0.75rem">
                 <span Style="opacity: 0.6;">@message.Date.ToString("dd.MM.yyyy HH:mm:ss.fff"): </span>
@@ -32,11 +48,26 @@
         public string Text { get; set; }
         public AlertStyle MessageStyle { get; set; } = AlertStyle.Info;
         public string Link { get; set; }
+        public bool IsError { get; set; } = false;
     }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object> Attributes { get; set; }
     IList<Message> messages = new List<Message>();
+    IList<Message> messagesForShow = new List<Message>();
+    [Parameter]
+    public string MinHeight { get; set; } = "2rem";
+    [Parameter]
+    public string MaxHeight { get; set; } = "32rem";
+    [Parameter]
+    public string Height { get; set; } = "300px";
+    [Parameter]
+    public bool InProgressFlag { get; set; } = false;
+
+    public bool ShowOnlyErrorsFlag { get; set; } = false;
+    public string ShowOnlyErrorsText { get; set; } = "Показать только ошибки";
+    public bool ActiveErrorsButtonFlag { get; set; } = false;
+    public bool ShowOnlyErrorsButtonFlag { get; set; } = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -49,18 +80,42 @@
     void OnClearClick()
     {
         Clear();
+        ShowOnlyErrorsButtonFlag = false;
+        ActiveErrorsButtonFlag = false;
+        ShowOnlyErrorsFlag = false;
+        ShowOnlyErrorsText = "Показать только ошибки";
     }
 
     public void Clear()
     {
         messages.Clear();
-
         InvokeAsync(StateHasChanged);
     }
 
+    public void OnShowOrHideErrorsClick()
+    {
+        if (ShowOnlyErrorsFlag)
+        {
+            ShowOnlyErrorsFlag = false;
+            ShowOnlyErrorsText = "Показать только ошибки";
+        }
+        else
+        {
+            ShowOnlyErrorsFlag = true;
+            ShowOnlyErrorsText = "Показать все события";
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+
     public void Log(string message, AlertStyle alertStyle = AlertStyle.Info, string link = "")
     {
-        messages.Add(new Message { Date = DateTime.Now, Text = message, MessageStyle = alertStyle, Link = link });
+        ActiveErrorsButtonFlag = true;
+        messages.Add(new Message { Date = DateTime.Now, Text = message, MessageStyle = alertStyle, Link = link,
+                IsError = alertStyle == AlertStyle.Danger ? true : false});
+
+        if(alertStyle == AlertStyle.Danger)
+            ShowOnlyErrorsButtonFlag = true;
 
         InvokeAsync(StateHasChanged);
     }

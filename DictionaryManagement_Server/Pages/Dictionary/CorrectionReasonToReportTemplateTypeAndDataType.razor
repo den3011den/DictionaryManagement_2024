@@ -1,0 +1,609 @@
+﻿@page "/dictionary/CorrectionReasonToReportTemplateTypeAndDataType"
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using Microsoft.EntityFrameworkCore;
+@using System.Text.Json
+
+@inject DialogService _dialogService
+@inject IJSRuntime _jsRuntime
+@inject ICorrectionReasonRepository _correctionReasonRepository
+@inject ICorrectionReasonToReportTemplateTypeAndDataTypeRepository _correctionReasonToReportTemplateTypeAndDataTypeRepository
+@inject IReportTemplateTypeRepository _reportTemplateTypeRepository
+@inject IDataTypeRepository _dataTypeRepository
+@inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ILogEventRepository _logEventRepository
+
+
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+{
+    <_Dialogs @ref="_dialogs"></_Dialogs>
+
+    <div class="row">
+
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/dictionary/CorrectionReasonToReportTemplateTypeAndDataType">Справочники</a> - <a href="/dictionary/MesMaterial">Причины корректировок - привязка к типам шаблонов отчётов и типам данных</a></h6>
+        </div>
+
+        @if (IsLoading != true)
+        {
+            <RadzenRow AlignItems="AlignItems.Start">
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую привязку"
+                              Click="@InsertRow" Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            </RadzenRow>
+            <RadzenDataGridApp @ref="correctionReasonToReportTemplateTypeAndDataTypeDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                               @bind-Settings="@CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings" SettingsName="CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings"
+                               Data="@correctionReasonToReportTemplateTypeAndDataTypeDTOs" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                               FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               FilterMode="FilterMode.Advanced"
+                               AllowColumnResize="false"
+                               GridLines="DataGridGridLines.Both"
+                               Style="height:calc(100vh - 155px)"
+                               SelectionMode="DataGridSelectionMode.Single"
+                               ShowCleanGridSettingsHeaderButton="false"
+                               ShowCleanGridFiltersHeaderButton="false"
+                               ShowCleanGridSortsHeaderButton="false"
+                               @bind-Value=@selectedTableCorrectionReasonToReportTemplateTypeAndDataType
+                               RowDoubleClick="() => EditRow(selectedTableCorrectionReasonToReportTemplateTypeAndDataType.FirstOrDefault())">
+                <HeaderTemplate>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
+                    </RadzenButton>
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все фильтры" Icon="filter_alt"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllFiltersCustom()">
+                    </RadzenButton>
+
+                    <RadzenButton Size="ButtonSize.Small" Text="Очистить все сортировки" Icon="swap_vert"
+                                  ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanAllOrdersCustom()">
+                    </RadzenButton>
+                    <RadzenButton Style="text-transform:none" Size="ButtonSize.Small" Text=@("Записей с учётом фильтров "+ @correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.View.Count().ToString()+" из " + (correctionReasonToReportTemplateTypeAndDataTypeDTOs == null ? "0" : correctionReasonToReportTemplateTypeAndDataTypeDTOs.Count().ToString())+" в выборке")
+                                  ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text">
+                    </RadzenButton>
+                </HeaderTemplate>
+
+                <Columns>
+                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
+                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Title="Причина корректировки" Property="CorrectionReasonDTOFK.Name" Type="typeof(IEnumerable<string>)" Width="280px" Filterable="true"
+                                             FilterValue="@selectedCorrectionReasons" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedCorrectionReasons
+                                            Change=OnSelectedCorrectionReasonsChange Data="@(distinctCorrectionReasonsInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw;; font-size:0.75rem"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <EditTemplate Context="сorrectionReasonToReportTemplateTypeAndDataTypeDTO">
+                            <RadzenDropDown Data="@correctionReasonDTOs" @bind-Value="сorrectionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK" Style="width:100%; display: block;" Name="CorReas" />
+                            <RadzenRequiredValidator Text="Причина корректировки обязательна к выбору" Component="CorReas" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Title="Тип шаблона отчёта" Property="ReportTemplateTypeDTOFK.Name" Type="typeof(IEnumerable<string>)" Width="280px" Filterable="true"
+                                             FilterValue="@selectedReportTemplateTypes" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedReportTemplateTypes
+                                            Change=OnSelectedReportTemplateTypesChange Data="@(distinctReportTemplateTypesInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                        </FilterTemplate>
+                        <EditTemplate Context="сorrectionReasonToReportTemplateTypeAndDataTypeDTO">
+                            <RadzenDropDown Data="@reportTemplateTypeDTOs" @bind-Value="сorrectionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK" Style="width:100%; display: block;" Name="RepTempType" />
+                            <RadzenRequiredValidator Text="Тип шаблона отчёта обязателен к выбору" Component="RepTempType" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Title="Тип данных" Property="DataTypeDTOFK.Name" Type="typeof(IEnumerable<string>)" Width="150px" Filterable="true"
+                                             FilterValue="@selectedDataTypes" FilterOperator="FilterOperator.Contains" LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <FilterTemplate>
+                            <RadzenDropDown @bind-Value=@selectedDataTypes
+                                            Change=OnSelectedDataTypesChange Data="@(distinctDataTypesInList)" AllowClear="true" Multiple="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw;; font-size:0.75rem"
+                                            PopupStyle="max-height:40vh"
+                                            Chips="true"
+                                            OpenOnFocus="true"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="10"
+                                            SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                            @* FilterAsYouType=false *@
+                        </FilterTemplate>
+                        <EditTemplate Context="сorrectionReasonToReportTemplateTypeAndDataTypeDTO">
+                            <RadzenDropDown Data="@dataTypeDTOs" @bind-Value="сorrectionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK" Style="width:100%; display: block;" Name="DatType" />
+                            <RadzenRequiredValidator Text="Тип данных обязателен к выбору" Component="DatType" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                        <Template Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO">
+                            <RadzenButton Icon="edit" Disabled="@(IsAdmin != AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton Disabled="@(IsAdmin != AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                        <EditTemplate Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO">
+                            <RadzenButton Disabled="@(IsAdmin != AdminMode.IsAdmin)" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))">
+                            </RadzenButton>
+                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))">
+                            </RadzenButton>
+                            <RadzenButton Disabled="@(IsAdmin != AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))">
+                            </RadzenButton>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        else
+        {
+            <Loading IsLoading="@IsLoading" />
+        }
+    </div>
+}
+
+<style>
+    .rz-dropdown-item, .rz-menuitem, .rz-autocomplete-list-item, .rz-multiselect-item, .rz-dropdown-items li, .rz-autocomplete-items li, .rz-multiselect-items li {
+        font-size: 0.75rem;
+    }
+
+    .rz-calendar .rz-inputtext {
+        font-size: 14px !important;
+        max-height: 1.9rem;
+    }
+</style>
+
+@code {
+
+    _Dialogs? _dialogs { get; set; }
+    public string DeleteMessage { get; set; } = "";
+
+    RadzenDataGrid<CorrectionReasonToReportTemplateTypeAndDataTypeDTO> correctionReasonToReportTemplateTypeAndDataTypeDTOGrid;
+
+    IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO> correctionReasonToReportTemplateTypeAndDataTypeDTOs;
+    IEnumerable<CorrectionReasonDTO> correctionReasonDTOs;    
+    IEnumerable<ReportTemplateTypeDTO> reportTemplateTypeDTOs;
+    IEnumerable<DataTypeDTO> dataTypeDTOs;
+
+    IEnumerable<string> selectedCorrectionReasons;
+    IEnumerable<string> selectedReportTemplateTypes;
+    IEnumerable<string> selectedDataTypes;
+
+    List<string> distinctCorrectionReasonsInList = new List<string>();
+    List<string> distinctReportTemplateTypesInList = new List<string>();
+    List<string> distinctDataTypesInList = new List<string>();
+
+    CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert;
+    CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate;
+
+    IList<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>? selectedTableCorrectionReasonToReportTemplateTypeAndDataType;
+
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+    public bool excelExportFlag { get; set; } = false;
+
+    DataGridSettings _correctionReasonToReportTemplateTypeAndDataTypeGridSettings;
+    public DataGridSettings CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings
+    {
+        get
+        {
+            return _correctionReasonToReportTemplateTypeAndDataTypeGridSettings;
+        }
+        set
+        {
+            if (_correctionReasonToReportTemplateTypeAndDataTypeGridSettings != value)
+            {
+                _correctionReasonToReportTemplateTypeAndDataTypeGridSettings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+        if (!(await SD.CheckPageSettingsVersion("CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings", _jsRuntime)))
+            return;
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.getItem", "CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings");
+        if (!string.IsNullOrEmpty(result))
+        {
+            _correctionReasonToReportTemplateTypeAndDataTypeGridSettings = JsonSerializer.Deserialize<DataGridSettings>(result);
+
+            if (_correctionReasonToReportTemplateTypeAndDataTypeGridSettings != null)
+            {
+                var col_var = _correctionReasonToReportTemplateTypeAndDataTypeGridSettings.Columns.Where(c => c.Property == "CorrectionReasonDTOFK.Name").FirstOrDefault();
+                if (col_var.FilterValue != null)
+                {
+                    selectedCorrectionReasons = JsonSerializer.Deserialize<List<string>>(col_var.FilterValue.ToString());
+                }
+                var col_var2 = _correctionReasonToReportTemplateTypeAndDataTypeGridSettings.Columns.Where(c => c.Property == "ReportTemplateTypeDTOFK.Name").FirstOrDefault();
+                if (col_var2.FilterValue != null)
+                {
+                    selectedReportTemplateTypes = JsonSerializer.Deserialize<List<string>>(col_var2.FilterValue.ToString());
+                }
+                var col_var3 = _correctionReasonToReportTemplateTypeAndDataTypeGridSettings.Columns.Where(c => c.Property == "DataTypeDTOFK.Name").FirstOrDefault();
+                if (col_var3.FilterValue != null)
+                {
+                    selectedDataTypes = JsonSerializer.Deserialize<List<string>>(col_var3.FilterValue.ToString());
+                }
+            }
+        }
+    }
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+        await _jsRuntime.InvokeVoidAsync("eval", $@"window.localStorage.setItem('CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings', '{JsonSerializer.Serialize<DataGridSettings>(CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings)}')");
+        await SD.SetPageSettingsVersion("CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings", _jsRuntime);
+    }
+
+
+    void Reset()
+    {
+        correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = null;
+        correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+            if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+            {
+                await LoadStateAsync();
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
+                correctionReasonToReportTemplateTypeAndDataTypeDTOs = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.GetAll();
+                correctionReasonDTOs = (await _correctionReasonRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.Name);
+                reportTemplateTypeDTOs = (await _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.Name);
+                dataTypeDTOs = await _dataTypeRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
+
+                List<string> distinctDepartmentsInList = new List<string>();
+                List<string> distinctReportTemplateTypesInList = new List<string>();
+                List<string> distinctDownloadUsersInList = new List<string>();
+                List<string> distinctUploadUsersInList = new List<string>();
+
+                await GetDistincts();
+
+                IsLoading = false;
+                await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+                _navigationManager.NavigateTo("/dictionary");
+        }
+    }
+
+    async Task EditRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
+    {
+        if (IsAdmin == AdminMode.IsAdmin)
+        {            
+            correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = correctionReasonToReportTemplateTypeAndDataTypeDTO;         
+            await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.EditRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+        }
+    }
+
+    async Task OnUpdateRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
+    {
+        if (IsAdmin == AdminMode.IsAdmin)
+        {
+            if ((correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonId != correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK.Id)
+                || (correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeId != correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK.Id)
+                || (correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeId != correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK.Id))
+            {
+                var forCheck = _correctionReasonToReportTemplateTypeAndDataTypeRepository.GetByCorrectionReasonIdAndReportTemplateTypeIdAndDataType
+                        (correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK.Id, correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK.Id,
+                        correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK.Id).Result;
+                if (forCheck != null)
+                {
+                    if (forCheck.Id != correctionReasonToReportTemplateTypeAndDataTypeDTO.Id)
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть такая связка (ИД записи: " + forCheck.Id.ToString() + ")");
+
+                    correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.CorrectionReasonDTOFK = await _correctionReasonRepository.Get(correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.CorrectionReasonId);
+                    correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.ReportTemplateTypeDTOFK = await _reportTemplateTypeRepository.Get(correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.ReportTemplateTypeId);
+                    correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.DataTypeDTOFK = await _dataTypeRepository.Get(correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate.DataTypeId);
+                    await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.UpdateRow(correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate);
+                    correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = null;
+                    correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
+                    return;
+                }
+            }
+
+            if (correctionReasonToReportTemplateTypeAndDataTypeDTO == correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert)
+            {
+                correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = null;
+            }
+            correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = null;
+
+            CorrectionReasonToReportTemplateTypeAndDataTypeDTO? oldCorrectionReasonToReportTemplateTypeAndDataTypeDTO = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.GetById(correctionReasonToReportTemplateTypeAndDataTypeDTO.Id);
+            correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonId = correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK.Id;
+            correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeId = correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK.Id;
+            correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeId = correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK.Id;
+
+            CorrectionReasonToReportTemplateTypeAndDataTypeDTO? newCorrectionReasonToReportTemplateTypeAndDataTypeDTO = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.Update(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+            await _logEventRepository.ToLog<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>(oldObject: oldCorrectionReasonToReportTemplateTypeAndDataTypeDTO, newObject: newCorrectionReasonToReportTemplateTypeAndDataTypeDTO, "Изменение привязки причины корректировки", "Связка: ", _authorizationRepository);
+            correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
+        }
+
+    }
+
+    async Task SaveRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
+    {
+        if (IsAdmin == AdminMode.IsAdmin)
+        {            
+            await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.UpdateRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+        }
+    }
+
+    void CancelEdit(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
+    {
+        correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
+        if (correctionReasonToReportTemplateTypeAndDataTypeDTO == correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert)
+        {
+            correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = null;
+        }
+
+        correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = null;
+
+        correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.CancelEditRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+
+    }
+
+    async Task DeleteRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
+    {
+
+
+        if (IsAdmin == AdminMode.IsAdmin)
+        {
+            if (_dialogs != null)
+            {
+                bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление связки", "Удалить связку Причина : \"" + correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK.Name +
+                                "\" Тип шаблона отчёта: \" " + correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK.Name + "\"" +
+                                " Тип данных: \"" + correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK.Name + "\" ? ", "Удалить", "Отмена");
+                if (selectionResult == false)
+                {
+                    await _jsRuntime.ToastrSuccess("Отмена удаления");
+                    return;
+                }
+            }
+
+            if (correctionReasonToReportTemplateTypeAndDataTypeDTO == correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert)
+            {
+                correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = null;
+            }
+
+            if (correctionReasonToReportTemplateTypeAndDataTypeDTO == correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate)
+            {
+                correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate = null;
+            }
+
+            if (correctionReasonToReportTemplateTypeAndDataTypeDTOs.Contains(correctionReasonToReportTemplateTypeAndDataTypeDTO))
+            {
+                Guid addedUserId = (await _authorizationRepository.GetCurrentUserDTO()).Id;
+                await _logEventRepository.AddRecord("Удаление привязки причины корректировки", addedUserId, "", "", false, "Удаление связки: " + correctionReasonToReportTemplateTypeAndDataTypeDTO.ToString());
+                await _correctionReasonToReportTemplateTypeAndDataTypeRepository.Delete(correctionReasonToReportTemplateTypeAndDataTypeDTO.Id);
+                correctionReasonToReportTemplateTypeAndDataTypeDTOs = correctionReasonToReportTemplateTypeAndDataTypeDTOs.Where(u => (u.Id != correctionReasonToReportTemplateTypeAndDataTypeDTO.Id));
+                await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.Reload();
+            }
+            else
+            {
+                correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.CancelEditRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+                await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.Reload();
+            }
+            await _jsRuntime.ToastrSuccess("Удаление выполнено");
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (IsAdmin == AdminMode.IsAdmin)
+        {   
+            correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = false;
+            correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = new CorrectionReasonToReportTemplateTypeAndDataTypeDTO();
+            await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.InsertRow(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert);            
+                 // await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.Reload();
+        }
+    }
+
+    async Task OnCreateRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO correctionReasonToReportTemplateTypeAndDataTypeDTO)
+    {
+
+        if (IsAdmin == AdminMode.IsAdmin)
+        {
+            var forCheck = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.GetByCorrectionReasonIdAndReportTemplateTypeIdAndDataType(
+                correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK.Id,
+                correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK.Id,
+                correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK.Id);
+
+            if (forCheck != null)
+            {
+                correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = null;
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть такая связка. ИД записи: " + forCheck.Id.ToString());
+                await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.Reload();
+                return;
+            }
+
+            correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonId = correctionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK.Id;
+            correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeId = correctionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK.Id;
+            correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeId = correctionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK.Id;
+
+            var newDTO = await _correctionReasonToReportTemplateTypeAndDataTypeRepository.Create(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+            await _logEventRepository.ToLog<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>(oldObject: null, newObject: newDTO, "Добавление привязки причины корректировки", "Привязка : ", _authorizationRepository);
+
+            correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert = null;
+            await OnAfterRenderAsync(true);
+        }
+    }
+
+    async Task ExcelExport()
+    {
+        excelExportFlag = true;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            string userLogin = await _authorizationRepository.GetCurrentUser(SD.MessageBoxMode.Off, SD.LoginReturnMode.LoginOnly);
+            string filename = "CorrectionReasonToReportTemplateTypeAndDataType_Export_" + userLogin.Replace("\\", "_") + "_" + DateTime.Now.ToString().Replace(":", "_") + ".xlsx";
+            await _simpleExcelExportRepository.GenerateExcelCorrectionReasonToReportTemplateTypeAndDataType(filename, (IEnumerable<CorrectionReasonToReportTemplateTypeAndDataTypeDTO>)correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.View);
+            await _jsRuntime.InvokeVoidAsync("open", "DownloadFileController/SimpleExcelExport/" + filename, "_blank");
+        }
+        excelExportFlag = false;
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    void OnSelectedCorrectionReasonsChange(object value)
+    {
+        if (selectedCorrectionReasons != null && !selectedCorrectionReasons.Any())
+        {
+            selectedCorrectionReasons = null;
+        }
+    }
+
+    void OnSelectedReportTemplateTypesChange(object value)
+    {
+        if (selectedReportTemplateTypes != null && !selectedReportTemplateTypes.Any())
+        {
+            selectedReportTemplateTypes = null;
+        }
+    }
+
+    void OnSelectedDataTypesChange(object value)
+    {
+        if (selectedDataTypes != null && !selectedDataTypes.Any())
+        {
+            selectedDataTypes = null;
+        }
+    }
+
+    private async Task CleanPageSettingsCustom()
+    {
+        await Task.CompletedTask;
+        var selectionResult = await _dialogService.Confirm("Будут очищены пользовательские настройки страницы: упорядочивания, применённые фильтры", "Сбросить настройки интерфейса страницы",
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        var result = await _jsRuntime.InvokeAsync<string>("window.localStorage.removeItem", "CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings");
+
+        if (CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings != null)
+        {
+            foreach (var c in CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings.Columns)
+            {
+                c.SortOrder = null;
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+                c.Visible = true;
+                c.OrderIndex = 0;
+            }
+        }
+
+        selectedCorrectionReasons = null;
+        selectedReportTemplateTypes = null;
+        selectedDataTypes = null;
+
+        if (correctionReasonToReportTemplateTypeAndDataTypeDTOs != null)
+        {
+            await GetDistincts();
+        }
+        await SaveStateAsync();
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task CleanAllFiltersCustom()
+    {
+        var selectionResult = await _dialogService.Confirm("Будут очищены все фильтры", "Очистить фильтры",
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings != null)
+        {
+            foreach (var c in CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings.Columns)
+            {
+                c.FilterValue = null;
+                c.SecondFilterValue = null;
+            }
+        }
+
+        selectedCorrectionReasons = null;
+        selectedReportTemplateTypes = null;
+        selectedDataTypes = null;
+
+        if (correctionReasonToReportTemplateTypeAndDataTypeDTOs != null)
+        {
+            await GetDistincts();
+        }
+
+        await InvokeAsync(SaveStateAsync);
+        await Task.Delay(200);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task CleanAllOrdersCustom()
+    {
+
+        var selectionResult = await _dialogService.Confirm("Будут очищены все сортировки", "Очистить сортировки",
+                new ConfirmOptions { OkButtonText = "Очистить", CancelButtonText = "Отмена", Left = "30vw" });
+
+        if (selectionResult != true)
+        {
+            await InvokeAsync(SaveStateAsync);
+            return;
+        }
+
+        if (CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings != null)
+        {
+            foreach (var c in CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings.Columns)
+            {
+                c.SortOrder = null;
+            }
+            await InvokeAsync(SaveStateAsync);
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    async Task GetDistincts()
+    {
+        if (correctionReasonToReportTemplateTypeAndDataTypeDTOs != null)
+        {
+            distinctCorrectionReasonsInList = (List<string>)correctionReasonToReportTemplateTypeAndDataTypeDTOs.Where(u => u.CorrectionReasonDTOFK != null)
+                    .OrderBy(u => u.CorrectionReasonDTOFK.Name)
+                    .Select(u => u.CorrectionReasonDTOFK.Name).Distinct().ToList();
+            distinctReportTemplateTypesInList = (List<string>)correctionReasonToReportTemplateTypeAndDataTypeDTOs.Where(u => u.ReportTemplateTypeDTOFK != null)
+                    .OrderBy(u => u.ReportTemplateTypeDTOFK.Name)
+                    .Select(u => u.ReportTemplateTypeDTOFK.Name).Distinct().ToList();
+            distinctDataTypesInList = (List<string>)correctionReasonToReportTemplateTypeAndDataTypeDTOs.Where(u => u.DataTypeDTOFK != null)
+                    .OrderBy(u => u.DataTypeDTOFK.Name)
+                    .Select(u => u.DataTypeDTOFK.Name).Distinct().ToList();
+        }
+    }
+
+}
+
+

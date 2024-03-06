@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DictionaryManagement_DataAccess.Data.IntDB
@@ -21,6 +22,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public DateTime ValueTime { get; set; }
 
         [Required]
+        [Precision(18, 6)]
         public decimal Value { get; set; } = decimal.Zero;
 
         [Required]

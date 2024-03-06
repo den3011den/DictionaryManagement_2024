@@ -55,7 +55,9 @@
                                Style="height:calc(100vh - 160px)"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSortsHeaderButton="false">
+                               ShowCleanGridSortsHeaderButton="false"
+                               @bind-Value=@selectedTableReportEntity
+                               RowDoubleClick="() => ShowReportEntityDetails(selectedTableReportEntity.FirstOrDefault())">
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -94,6 +96,7 @@
                                             Chips="true"
                                             OpenOnFocus="true"
                                             FilterPlaceholder="Поиск..."
+                                          
                                             MaxSelectedLabels="6"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
@@ -112,7 +115,7 @@
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             PopupStyle="max-height:40vh"
                                             Chips="true"
-                                            OpenOnFocus="true"
+                                            OpenOnFocus="true"                                           
                                             FilterPlaceholder="Поиск..."
                                             MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
@@ -137,7 +140,7 @@
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw;; font-size:0.75rem"
                                             PopupStyle="max-height:40vh"
                                             Chips="true"
-                                            OpenOnFocus="true"
+                                            OpenOnFocus="true"                                           
                                             FilterPlaceholder="Поиск..."
                                             MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
@@ -168,7 +171,7 @@
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true" Style="width: 30vw; font-size:0.75rem"
                                             PopupStyle="max-height:40vh"
                                             Chips="true"
-                                            OpenOnFocus="true"
+                                            OpenOnFocus="true"                                           
                                             FilterPlaceholder="Поиск..."
                                             MaxSelectedLabels="10"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
@@ -249,6 +252,8 @@
     List<string> distinctReportTemplateTypesInList = new List<string>();
     List<string> distinctDownloadUsersInList = new List<string>();
     List<string> distinctUploadUsersInList = new List<string>();
+
+    IList<ReportEntityDTO>? selectedTableReportEntity;
 
     RadzenDataGrid<ReportEntityDTO> reportEntityDTOGrid;
     DateTime? startDate = DateTime.Today.AddDays(-6);

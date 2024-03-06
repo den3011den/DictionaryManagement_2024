@@ -62,7 +62,8 @@
                                GridLines="DataGridGridLines.Both"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
-                               ShowCleanGridSortsHeaderButton="false">
+                               ShowCleanGridSortsHeaderButton="false"
+                               @bind-Value=@selectedTableMesMovements>
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -393,6 +394,8 @@
     List<string> distinctDataSourcesInList = new List<string>();
     List<string> distinctDataTypesInList = new List<string>();
     List<string> distinctCorrectionReasonsInList = new List<string>();
+
+    IList<MesMovementsDTO>? selectedTableMesMovements;
 
     RadzenDataGrid<MesMovementsDTO> mesMovementsDTOGrid;
 

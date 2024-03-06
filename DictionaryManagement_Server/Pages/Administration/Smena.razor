@@ -37,7 +37,9 @@
                                AllowVirtualization="true"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)">
+                               Style="height:calc(100vh - 155px)"
+                               @bind-Value=@selectedSmena
+                               RowDoubleClick="() => EditRow(selectedSmena.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SmenaDTO" Property="Id" Title="Ид записи" Width="70px">
                     </RadzenDataGridColumnApp>
@@ -87,6 +89,8 @@
     _Dialogs? _dialogs { get; set; }
 
     IEnumerable<SmenaDTO>? smenaDTOs;
+
+    IList<SmenaDTO>? selectedSmena;
 
     RadzenDataGrid<SmenaDTO> smenaDTOGrid;
 
