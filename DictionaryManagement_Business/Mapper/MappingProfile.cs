@@ -15,7 +15,11 @@ namespace DictionaryManagement_Business.Mapper
             CreateMap<SapUnitOfMeasure, SapUnitOfMeasureDTO>().ReverseMap();
             CreateMap<CorrectionReason, CorrectionReasonDTO>().ReverseMap();
 
-            CreateMap<MesParamSourceType, MesParamSourceTypeDTO>().ReverseMap();
+            CreateMap<MesParamSourceType, MesParamSourceTypeDTO>()
+                .ForMember(dest => dest.Immutable, opt => opt.MapFrom(src => src.Immutable == null ? false : src.Immutable));
+            CreateMap<MesParamSourceTypeDTO, MesParamSourceType>()
+                .ForMember(dest => dest.Immutable, opt => opt.MapFrom(src => src.Immutable == null ? false : src.Immutable));
+
             CreateMap<DataType, DataTypeDTO>()
                 .ForMember(dest => dest.IsAutoCalcDestDataType, opt => opt.MapFrom(src => src.IsAutoCalcDestDataType == null ? false : src.IsAutoCalcDestDataType));
             CreateMap<DataTypeDTO, DataType>()
