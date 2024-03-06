@@ -2400,9 +2400,15 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование (Name)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
-                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Требует авторасчёта (NeedAutoCalc)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Нельзя переименовать (CantChangeName)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Имя файла Vba-скрипта (VbaScriptFileName)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Имя файла-образца шаблона (SampleFileName)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;
 
 
@@ -2420,9 +2426,15 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.Name;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.IsArchive == true ? "Да" : "";
-                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.NeedAutoCalc == true ? "Да" : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.CantChangeName == true ? "Да" : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = String.IsNullOrEmpty(reportTemplateTypeDTO.VbaScriptFileName) ? reportTemplateTypeDTO.VbaScriptFileName : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = String.IsNullOrEmpty(reportTemplateTypeDTO.SampleFileName) ? reportTemplateTypeDTO.SampleFileName : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.IsArchive == true ? "Да" : "";
 
                     excelRowNum++;
                 }

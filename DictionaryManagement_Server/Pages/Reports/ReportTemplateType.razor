@@ -50,8 +50,9 @@
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Name" Title="Наименование" Width="250px">
                         <EditTemplate Context="reportTemplateTypeDTO">
-                            <RadzenTextBox @bind-Value="reportTemplateTypeDTO.Name" Style="width:100%; display: block" Name="Name" />
-                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
+                            <RadzenTextBox @bind-Value="reportTemplateTypeDTO.Name" Style="width:100%; display: block" Name="Name"
+                                           Disabled="@(ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.OldCantChangeName == true)" />
+                            <RadzenRequiredValidator Text="Наименование обязательно к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
@@ -69,6 +70,20 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
+                    <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="CantChangeName" Title="Нельзя переименовать" Width="150px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.CantChangeName ReadOnly="true" TriState="false" TValue="bool?" />
+                        </Template>
+                        <EditTemplate Context="data">
+                            <strong>
+                                @((ControlReportTemplateTypeCantChangeName == true && data.OldCantChangeName == true) ? "" : "|")
+                                <RadzenCheckBox @bind-Value=data.CantChangeName TriState="false" TValue="bool?"
+                                                Disabled="@(ControlReportTemplateTypeCantChangeName == true && data.OldCantChangeName == true)" />
+                                @((ControlReportTemplateTypeCantChangeName == true && data.OldCantChangeName == true) ? "" : "|")
+                            </strong>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="80px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="true" TValue="bool" />
@@ -82,19 +97,21 @@
                             <RadzenButton title="Загрузить/скачать образец файла-шаблона" Icon="text_snippet" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => LoadUploadFile(reportTemplateTypeDTO, "xlsx"))" @onclick:stopPropagation="true">
                             </RadzenButton>
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title = "Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!reportTemplateTypeDTO.IsArchive)
                             {
-                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true"
+                                              Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.CantChangeName == true))">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true"
+                                              Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.CantChangeName == true))">
                                 </RadzenButton>
                             }
                         </Template>
@@ -104,8 +121,9 @@
                             </RadzenButton>
                             <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(reportTemplateTypeDTO))">
                             </RadzenButton>
-                            <RadzenButton title="Удалить" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                          Click="@(args => DeleteRow(reportTemplateTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                            <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(reportTemplateTypeDTO))"
+                                          Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.CantChangeName == true))">
                             </RadzenButton>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
@@ -139,6 +157,9 @@
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
+
+    public bool ControlReportTemplateTypeCantChangeName { get; set; } = true;
+    public bool CantChangeName { get; set; } = true;
 
     DataGridSettings _reportTemplateTypeGridSettings;
     public DataGridSettings ReportTemplateTypeGridSettings
@@ -200,6 +221,21 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
                 reportTemplateTypeDTOs = _reportTemplateTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                if (reportTemplateTypeDTOs != null)
+                {
+                    foreach (var item in reportTemplateTypeDTOs)
+                        item.OldCantChangeName = item.CantChangeName;
+                }
+                var tmpSetting = await _settingsRepository.GetByName(SD.ControlReportTemplateTypeCantChangeNameSettingName);
+                if (tmpSetting == null)
+                {
+                    ControlReportTemplateTypeCantChangeName = true;
+                }
+                else
+                {
+                    ControlReportTemplateTypeCantChangeName = tmpSetting.Value.Trim() == "1" ? true : false;
+                }
+
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -213,6 +249,7 @@
     {
         if (IsAdmin == AdminMode.IsAdmin)
         {
+            reportTemplateTypeDTO.OldCantChangeName = reportTemplateTypeDTO.CantChangeName;
             reportTemplateTypeDTOToUpdate = reportTemplateTypeDTO;
             await reportTemplateTypeDTOGrid.EditRow(reportTemplateTypeDTO);
         }
@@ -240,6 +277,8 @@
                     reportTemplateTypeDTO.Name = objectForRestore.Name;
                     reportTemplateTypeDTO.NeedAutoCalc = objectForRestore.NeedAutoCalc;
                     reportTemplateTypeDTO.CanAutoCalc = objectForRestore.CanAutoCalc;
+                    reportTemplateTypeDTO.CantChangeName = objectForRestore.CantChangeName;
+                    reportTemplateTypeDTO.OldCantChangeName = objectForRestore.CantChangeName;
                     await reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTO);
                     await reportTemplateTypeDTOGrid.Reload();
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись типа шаблона отчётов с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
@@ -298,7 +337,7 @@
                                     {
                                         item.AutoCalcOrder = 1;
                                     }
-                                }
+                                }                                
                                 await _reportTemplateRepository.Update(item);
                             }
                         }
@@ -412,6 +451,8 @@
             reportTemplateTypeDTO.Name = objectForRestore.Name;
             reportTemplateTypeDTO.NeedAutoCalc = objectForRestore.NeedAutoCalc;
             reportTemplateTypeDTO.CanAutoCalc = objectForRestore.CanAutoCalc;
+            reportTemplateTypeDTO.CantChangeName = objectForRestore.CantChangeName;
+            reportTemplateTypeDTO.OldCantChangeName = objectForRestore.CantChangeName;
             reportTemplateTypeDTOGrid.UpdateRow(reportTemplateTypeDTO);
         }
         reportTemplateTypeDTOGrid.Reload();
@@ -493,6 +534,8 @@
             reportTemplateTypeDTOToInsert = new ReportTemplateTypeDTO();
             reportTemplateTypeDTOToInsert.NeedAutoCalc = false;
             reportTemplateTypeDTOToInsert.CanAutoCalc = false;
+            reportTemplateTypeDTOToInsert.CantChangeName = false;
+            reportTemplateTypeDTOToInsert.OldCantChangeName = false;
             await reportTemplateTypeDTOGrid.InsertRow(reportTemplateTypeDTOToInsert);
         }
     }

@@ -22,5 +22,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public bool? CanAutoCalc { get; set; }
         public string? VbaScriptFileName { get; set; } = string.Empty;
         public string? SampleFileName { get; set; } = string.Empty;
+
+        public bool? CantChangeName { get; set; }
     }
 }

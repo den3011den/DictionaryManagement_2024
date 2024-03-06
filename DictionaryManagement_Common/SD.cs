@@ -94,6 +94,7 @@ namespace DictionaryManagement_Common
         public static string ControlMesParamSourceTypeImmutableSettingName = "ControlMesParamSourceTypeImmutable";
         public static string ControlDataSourceImmutableSettingName = "ControlDataSourceImmutable";
         public static string ControlDataTypeCantChangeNameSettingName = "ControlDataTypeCantChangeName";
+        public static string ControlReportTemplateTypeCantChangeNameSettingName = "ControlReportTemplateTypeCantChangeName";
 
         public static int SqlCommandConnectionTimeout = 180;
 
