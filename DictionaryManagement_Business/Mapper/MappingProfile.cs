@@ -273,10 +273,12 @@ namespace DictionaryManagement_Business.Mapper
                 .ForMember(dest => dest.CorrectionReasonFK, opt => opt.MapFrom(src => src.CorrectionReasonDTOFK));
 
             CreateMap<ReportEntityResendDates, ReportEntityResendDatesDTO>()
-                .ForMember(dest => dest.ReportEntityDTOFK, opt => opt.MapFrom(src => src.ReportEntityFK));
+                .ForMember(dest => dest.ReportEntityDTOFK, opt => opt.MapFrom(src => src.ReportEntityFK))
+                .ForMember(dest => dest.ResendDateSIR, opt => opt.MapFrom(src => src.ResendDate));
 
             CreateMap<ReportEntityResendDatesDTO, ReportEntityResendDates>()
-                .ForMember(dest => dest.ReportEntityFK, opt => opt.MapFrom(src => src.ReportEntityDTOFK));
+                .ForMember(dest => dest.ReportEntityFK, opt => opt.MapFrom(src => src.ReportEntityDTOFK))
+                .ForMember(dest => dest.ResendDate, opt => opt.MapFrom(src => src.ResendDateSIR));
 
             CreateMap<ReportTemplateFileHistory, ReportTemplateFileHistoryDTO>()
                 .ForMember(dest => dest.ReportTemplateDTOFK, opt => opt.MapFrom(src => src.ReportTemplateFK))

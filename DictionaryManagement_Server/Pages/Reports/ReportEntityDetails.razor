@@ -78,61 +78,61 @@
                                             </RadzenButton>
                                             <RadzenFormField Text="Скачанный файл на сервере" Variant="@variant" Style="width: 92%; max-width: 900px;">
                                                 <RadzenTextBox @bind-Value="@fileDownloadFullPath" ReadOnly />
-                                             </RadzenFormField>
-                                         </div>
+                                            </RadzenFormField>
+                                        </div>
 
-                                     </RadzenStack>
-                                 </RadzenFieldset>
-                             </RadzenStack>
-                         </RadzenColumn>
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            </RadzenStack>
+                        </RadzenColumn>
 
-                         <RadzenColumn Size="12" SizeMD="6">
+                        <RadzenColumn Size="12" SizeMD="6">
 
-                             <RadzenStack>
-                                 <RadzenFieldset Text="Информация о шаблоне отчёта" Style="font-weight: bold;">
-                                     <RadzenStack Gap="1rem">
-
-
-                                         <RadzenFormField Text="ИД шаблона отчёта" Variant="@variant" Style="width: 100%; max-width: 940px;">
-                                             <RadzenTextBox Value="@ActiveReportEntityDTO.ReportTemplateId.ToString()" ReadOnly="true" />
-                                         </RadzenFormField>
-
-                                         <RadzenFormField Text="Тип шаблона отчёта" Variant="@variant" Style="width: 100%; max-width: 940px;">
-                                             <RadzenTextBox Value="@ActiveReportEntityDTO.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name" ReadOnly="true" />
-                                         </RadzenFormField>
-
-                                         <RadzenFormField Text="Производство" Variant="@variant" Style="width: 100%; max-width: 940px;">
-                                             <RadzenTextBox Value="@ActiveReportEntityDTO.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName" ReadOnly="true" />
-                                         </RadzenFormField>
-
-                                         <RadzenFormField Text="Наименование шаблона отчёта" Variant="@variant" Style="width: 100%; max-width: 940px;">
-                                             <RadzenTextArea Value="@ActiveReportEntityDTO.ReportTemplateDTOFK.Description" ReadOnly="true" />
-                                         </RadzenFormField>
-
-                                     </RadzenStack>
-                                 </RadzenFieldset>
-                             </RadzenStack>
+                            <RadzenStack>
+                                <RadzenFieldset Text="Информация о шаблоне отчёта" Style="font-weight: bold;">
+                                    <RadzenStack Gap="1rem">
 
 
-                             <RadzenStack>
-                                 <RadzenFieldset Text="Информация о загрузке отчёта" Style="font-weight: bold;">
-                                     <RadzenStack Gap="1rem">
-                                         <RadzenFormField Text="Время загрузки файла" Variant="@variant" Style="width: 100%; max-width: 940px;">
-                                             <RadzenDatePicker ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" @bind-Value="@ActiveReportEntityDTO.UploadTime" ReadOnly="true" />
-                                         </RadzenFormField>
+                                        <RadzenFormField Text="ИД шаблона отчёта" Variant="@variant" Style="width: 100%; max-width: 940px;">
+                                            <RadzenTextBox Value="@ActiveReportEntityDTO.ReportTemplateId.ToString()" ReadOnly="true" />
+                                        </RadzenFormField>
 
-                                         @if (ActiveReportEntityDTO.UploadUserDTOFK != null)
+                                        <RadzenFormField Text="Тип шаблона отчёта" Variant="@variant" Style="width: 100%; max-width: 940px;">
+                                            <RadzenTextBox Value="@ActiveReportEntityDTO.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name" ReadOnly="true" />
+                                        </RadzenFormField>
+
+                                        <RadzenFormField Text="Производство" Variant="@variant" Style="width: 100%; max-width: 940px;">
+                                            <RadzenTextBox Value="@ActiveReportEntityDTO.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName" ReadOnly="true" />
+                                        </RadzenFormField>
+
+                                        <RadzenFormField Text="Наименование шаблона отчёта" Variant="@variant" Style="width: 100%; max-width: 940px;">
+                                            <RadzenTextArea Value="@ActiveReportEntityDTO.ReportTemplateDTOFK.Description" ReadOnly="true" />
+                                        </RadzenFormField>
+
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            </RadzenStack>
+
+
+                            <RadzenStack>
+                                <RadzenFieldset Text="Информация о загрузке отчёта" Style="font-weight: bold;">
+                                    <RadzenStack Gap="1rem">
+                                        <RadzenFormField Text="Время загрузки файла" Variant="@variant" Style="width: 100%; max-width: 940px;">
+                                            <RadzenDatePicker ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" @bind-Value="@ActiveReportEntityDTO.UploadTime" ReadOnly="true" />
+                                        </RadzenFormField>
+
+                                        @if (ActiveReportEntityDTO.UploadUserDTOFK != null)
                                         {
                                             <RadzenFormField Text="Кто загружал файл" Variant="@variant" Style="width: 100%; max-width: 940px;">
                                                 <RadzenTextBox @bind-Value="@ActiveReportEntityDTO.UploadUserDTOFK.UserName"
-                                                                      ReadOnly />
-                                             </RadzenFormField>
+                                                               ReadOnly />
+                                            </RadzenFormField>
                                         }
                                         else
                                         {
                                             <RadzenFormField Text="Кто загружал файл" Variant="@variant" Style="width: 100%; max-width: 940px;">
                                                 <RadzenTextBox ReadOnly />
-                                             </RadzenFormField>
+                                            </RadzenFormField>
                                         }
 
                                         <div class="rz-text-align-left">
@@ -146,20 +146,20 @@
 
                                             <RadzenFormField Text="Загруженный файл на сервере" Variant="@variant" Style="width: 92%; max-width: 900px;">
                                                 <RadzenTextBox @bind-Value="@fileUploadFullPath"
-                                                                          ReadOnly />
-                                             </RadzenFormField>
-                                         </div>
-                                     </RadzenStack>
-                                 </RadzenFieldset>
-                             </RadzenStack>
+                                                               ReadOnly />
+                                            </RadzenFormField>
+                                        </div>
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            </RadzenStack>
 
 
-                         </RadzenColumn>
-                     </RadzenRow>
-                 </RadzenTabsItem>
-                 <RadzenTabsItem Text="Лист (TagLibrary)">
-                     <div class="row">
-                         @if (IsLoading != true)
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Лист (TagLibrary)">
+                    <div class="row">
+                        @if (IsLoading != true)
                         {
                             <ShowExcelSheetData gridSettings="TagLibrarySheetWithSirTagsGridSettings" gridRef="tagExcelSheetWithSirTagsDTOGrid" gridData="tagLibraryExcelSheetWithSirTagsDTOList"></ShowExcelSheetData>
 
@@ -625,12 +625,12 @@
                 </RadzenTabsItem>
                 @if (ActiveReportEntityDTO.ResendMode == true)
                 {
-                    <RadzenTabsItem Text="Даты переотправки в SAP">
+                    <RadzenTabsItem Text="Даты отправки в SAP">
                         <div class="row">
                             @if (IsLoading != true)
                             {
                                 <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="false" EditMode="DataGridEditMode.Single"
-                                                   Data="@(ActiveReportEntityDTO.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))" TItem="ReportEntityResendDatesDTO"
+                                                   Data="@(ActiveReportEntityDTO.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDateSIR))" TItem="ReportEntityResendDatesDTO"
                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                                    FilterMode="FilterMode.Advanced"
                                                    Density=Density.Compact
@@ -645,12 +645,22 @@
                                                    ShowCleanGridFiltersHeaderButton="false"
                                                    ShowCleanGridSortsHeaderButton="false">
                                     <Columns>
-                                        <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDate" Title="Дата переотправки в SAP" TextAlign="TextAlign.Center"
-                                                                 Width="200px" Filterable="true" Sortable="true">
+                                        <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDateSIR" Title="Дата СИР" TextAlign="TextAlign.Center"
+                                                                 Width="200px" Filterable="true" Sortable="true" FilterProperty="ResendDateSIR" SortProperty="ResendDateSIR">
                                             <Template Context="data1">
                                                 <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                                     <strong>
-                                                        @data1.ResendDate.ToString("dd.MM.yyyy")
+                                                        @data1.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss")
+                                                    </strong>
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDateUser" Title="Пользовательская дата" TextAlign="TextAlign.Center"
+                                                                 Width="200px" Filterable="true" Sortable="true" FilterProperty="ResendDateUser" SortProperty="ResendDateUser">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    <strong>
+                                                        @data1.ResendDateUser.ToString("dd.MM.yyyy")
                                                     </strong>
                                                 </div>
                                             </Template>

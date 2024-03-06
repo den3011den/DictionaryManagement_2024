@@ -70,7 +70,9 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Загружен в СИР в режиме переотправки в SAP (ResendMode)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Даты переотправки в SAP (ReportEntityResendDates)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Даты отправки в SAP - СИР (ReportEntityResendDates)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Даты отправки в SAP - Пользователь (ReportEntityResendDates)";
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
                 ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;
@@ -110,24 +112,30 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = reportEntity.ResendMode == true ? "Да" : "";
 
-                    string reportEntityResendDatesListString = "";
+                    string reportEntityResendDatesSIRListString = "";
+                    string reportEntityResendDatesUserListString = "";
                     if (reportEntity.ReportEntityResendDatesListDTO != null)
                     {
                         int datesInRowCount = 1;
-                        foreach (ReportEntityResendDatesDTO reportEntityResendDatesDTO in reportEntity.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))
+                        foreach (ReportEntityResendDatesDTO reportEntityResendDatesDTO in reportEntity.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDateSIR))
                         {
-                            if (String.IsNullOrEmpty(reportEntityResendDatesListString))
-                                reportEntityResendDatesListString = reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                            if (String.IsNullOrEmpty(reportEntityResendDatesSIRListString))
+                            {
+                                reportEntityResendDatesSIRListString = reportEntityResendDatesDTO.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss");
+                                reportEntityResendDatesUserListString = reportEntityResendDatesDTO.ResendDateUser.ToString("dd.MM.yyyy");
+                            }
                             else
                             {
                                 if (datesInRowCount % 4 == 0)
                                 {
-                                    reportEntityResendDatesListString = reportEntityResendDatesListString + "\n" + reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                                    reportEntityResendDatesSIRListString = reportEntityResendDatesSIRListString + "\n" + reportEntityResendDatesDTO.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss");
+                                    reportEntityResendDatesUserListString = reportEntityResendDatesUserListString + "\n" + reportEntityResendDatesDTO.ResendDateUser.ToString("dd.MM.yyyy");
                                     datesInRowCount = 1;
                                 }
                                 else
                                 {
-                                    reportEntityResendDatesListString = reportEntityResendDatesListString + "     " + reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                                    reportEntityResendDatesSIRListString = reportEntityResendDatesSIRListString + "     " + reportEntityResendDatesDTO.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss");
+                                    reportEntityResendDatesUserListString = reportEntityResendDatesUserListString + "     " + reportEntityResendDatesDTO.ResendDateUser.ToString("dd.MM.yyyy");
                                 }
                             }
                             datesInRowCount++;
@@ -135,7 +143,11 @@ namespace DictionaryManagement_Business.Repository
                     }
 
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = reportEntityResendDatesListString;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportEntityResendDatesSIRListString;
+                    ws.Cell(excelRowNum, excelColNum).Style.Alignment.WrapText = true;
+
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportEntityResendDatesUserListString;
                     ws.Cell(excelRowNum, excelColNum).Style.Alignment.WrapText = true;
 
                     excelRowNum++;

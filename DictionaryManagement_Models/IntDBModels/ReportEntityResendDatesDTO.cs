@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DictionaryManagement_Models.IntDBModels
 {
@@ -18,10 +19,24 @@ namespace DictionaryManagement_Models.IntDBModels
         [Required(ErrorMessage = "Экземпляр отчёта обязателен")]
         public ReportEntityDTO ReportEntityDTOFK { get; set; }
 
-        [Display(Name = "Дата")]
+        [Display(Name = "Дата СИР")]
         [Required(ErrorMessage = "Дата обязательна")]
-        public DateTime ResendDate { get; set; }
+        public DateTime ResendDateSIR { get; set; }
 
+        [NotMapped]
+        [Display(Name = "Пользовательская дата")]
+        [Required(ErrorMessage = "Дата обязательна")]
+        public DateTime ResendDateUser
+        {
+            get
+            {
+                return ResendDateSIR.AddDays(-1);
+            }
+            set
+            {
+                ResendDateUser = value;
+            }
+        }
     }
 }
 
