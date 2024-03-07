@@ -103,7 +103,7 @@ namespace DictionaryManagement_Models.IntDBModels
         }
 
         [NotMapped]
-        [Display(Name = "Sap забрал")]
+        [Display(Name = "Sap обработал")]
         public bool SapGoneBool
         {
             get

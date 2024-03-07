@@ -233,7 +233,7 @@ namespace DictionaryManagement_Models.IntDBModels
         private bool _sapGoneBool;
 
         [NotMapped]
-        [Display(Name = "Sap забрал")]
+        [Display(Name = "Sap обработал")]
         public bool SapGoneBool
         {
             get

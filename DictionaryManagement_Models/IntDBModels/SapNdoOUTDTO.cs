@@ -30,12 +30,12 @@ namespace DictionaryManagement_Models.IntDBModels
         [Required(ErrorMessage = "Значение обязательно")]
         public decimal Value { get; set; } = decimal.Zero;
 
-        [ForLogAttribute(NameProperty = "поле \"Забрал SAP\"")]
+        [ForLogAttribute(NameProperty = "поле \"SAP обработал\"")]
         [Display(Name = "Признак передачи в SAP")]
         [Required(ErrorMessage = "Признак передачи в SAP обязателен")]
         public bool SapGone { get; set; } = false;
 
-        [ForLogAttribute(NameProperty = "поле \"Когда Sap забрал\"")]
+        [ForLogAttribute(NameProperty = "поле \"Когда Sap обработал\"")]
         [Display(Name = "Признак передачи в SAP")]
         public DateTime? SapGoneTime { get; set; }
 

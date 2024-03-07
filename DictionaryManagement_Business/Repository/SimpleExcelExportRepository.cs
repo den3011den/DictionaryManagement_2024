@@ -1142,9 +1142,9 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Значение в витрине (SapNdoOUT.Value)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Sap забрал значение (SapNdoOUT.SapGone)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Sap обработал значение (SapNdoOUT.SapGone)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap забрал значение (SapNdoOUT.SapGoneTime)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap обработал значение (SapNdoOUT.SapGoneTime)";
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
                 ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;
@@ -1236,9 +1236,9 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Значение (Value)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Sap забрал значение (SapGone)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Sap обработал значение (SapGone)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap забрал значение (SapGoneTime)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap обработал значение (SapGoneTime)";
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
                 ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;

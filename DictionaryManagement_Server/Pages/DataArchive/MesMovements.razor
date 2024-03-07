@@ -283,13 +283,13 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapGoneBool" Title="Sap забрал" Filterable="true" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapGoneBool" Title="Sap обработал" Filterable="true" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.SapGoneBool ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapMovementsOUTDTOFK.SapGoneTime" Title="Время Sap забрал" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapMovementsOUTDTOFK.SapGoneTime" Title="Время Sap обработал" TextAlign="TextAlign.Center"
                                              FilterProperty="SapMovementsOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Equals" SortProperty="SapMovementsOUTDTOFK.SapGoneTime">
                         <Template Context="data1">
                             @if (data1.SapMovementOutId != null)
@@ -303,6 +303,22 @@
                                     </div>
                                 }
                             }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapErrorBool" Title="Ошибка обработки Sap" Filterable="true" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.SapErrorBool ReadOnly="true" TriState="false" TValue="bool" />
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesMovementsDTO" Property="SapErrorMessage" Title="Сообщение ошибки обработки Sap" TextAlign="TextAlign.Center"
+                                             Filterable=true FilterProperty="SapErrorMessage" FilterOperator="FilterOperator.Contains" SortProperty="SapErrorMessage"
+                                             Width="300px">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 9px">
+                                @(data1.SapErrorMessage)
+                            </div>
                         </Template>
                     </RadzenDataGridColumnApp>
 

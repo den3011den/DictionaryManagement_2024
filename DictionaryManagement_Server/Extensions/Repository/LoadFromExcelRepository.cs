@@ -2761,7 +2761,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 catch (Exception ex)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap забрал\"). Не удалось получить Когда Sap забрал." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap обработал\"). Не удалось получить Когда Sap обработал." +
                                         " Изменения не применялись. Сообщение ошибки: " + ex.Message;
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
                                     rowNumber++;
@@ -2778,8 +2778,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 || (changedSapNdoOUTDTO.SapGone != true && changedSapNdoOUTDTO.SapGoneTime == null)))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap забрал\", \"Когда Sap забрал\"). Если \"Sap забрал\" равно \"Да\" время \"Когда Sap забрал\" должно быть заполнено."
-                                    + " Если \"Sap забрал\" равно \"Нет\" или пусто, то время \"Когда Sap забрал\" должно быть пустым."
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap обработал\", \"Когда Sap обработал\"). Если \"Sap обработал\" равно \"Да\" время \"Когда Sap обработал\" должно быть заполнено."
+                                    + " Если \"Sap обработал\" равно \"Нет\" или пусто, то время \"Когда Sap обработал\" должно быть пустым."
                                     + " Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 8, 9 }, resultString);
                                 rowNumber++;
@@ -2964,7 +2964,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 catch (Exception ex)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap забрал\"). Не удалось получить Когда Sap забрал." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap обработал\"). Не удалось получить Когда Sap обработал." +
                                         " Изменения не применялись. Сообщение ошибки: " + ex.Message;
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
                                     rowNumber++;
@@ -2981,8 +2981,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 || (changedSapNdoOUTDTO.SapGone != true && changedSapNdoOUTDTO.SapGoneTime == null)))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap забрал\", \"Когда Sap забрал\"). Если \"Sap забрал\" равно \"Да\" время \"Когда Sap забрал\" должно быть заполнено."
-                                    + " Если \"Sap забрал\" равно \"Нет\" или пусто, то время \"Когда Sap забрал\" должно быть пустым."
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap обработал\", \"Когда Sap обработал\"). Если \"Sap обработал\" равно \"Да\" время \"Когда Sap обработал\" должно быть заполнено."
+                                    + " Если \"Sap обработал\" равно \"Нет\" или пусто, то время \"Когда Sap обработал\" должно быть пустым."
                                     + " Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 8, 9 }, resultString);
                                 rowNumber++;
@@ -6410,7 +6410,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 catch (Exception ex)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 28 (\"Время SAP забрал\"). Не удалось получить Время SAP забрал." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 28 (\"Время SAP обработал\"). Не удалось получить Время SAP обработал." +
                                         " Изменения не применялись. Сообщение ошибки: " + ex.Message;
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 28 }, resultString);
                                     rowNumber++;
@@ -6429,8 +6429,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     || (changedSapMovementsOUTDTO.SapGone != true && changedSapMovementsOUTDTO.SapGoneTime == null)))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 27, 28 (\"SAP забрал\", \"Время SAP забрал\"). Если \"Sap забрал\" равно \"Да\", то \"Время SAP забрал\" должно быть заполнено."
-                                    + " Если \"SAP забрал\" равно \"Нет\" или пусто, то \"Время SAP забрал\" должно быть пустым."
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 27, 28 (\"SAP обработал\", \"Время SAP обработал\"). Если \"Sap обработал\" равно \"Да\", то \"Время SAP обработал\" должно быть заполнено."
+                                    + " Если \"SAP обработал\" равно \"Нет\" или пусто, то \"Время SAP обработал\" должно быть пустым."
                                     + " Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 27, 28 }, resultString);
                                 rowNumber++;
