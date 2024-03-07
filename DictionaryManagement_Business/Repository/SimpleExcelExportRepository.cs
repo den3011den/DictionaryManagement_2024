@@ -1519,7 +1519,12 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapMaterialCode;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapMaterialDTOFK.Name;
+                    //ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapMaterialDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ToStringSapMaterialDTOFK;
+                    if (sapMovementsOUTDTO.ToStringSapMaterialDTOFK.Equals("НЕ НАЙДЕН"))
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.Code;
                     excelColNum++;
@@ -1530,8 +1535,14 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpPlantIdSource == null ? "" : sapMovementsOUTDTO.ErpPlantIdSource;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpIdSource == null ? "" : sapMovementsOUTDTO.ErpIdSource;
+                    //excelColNum++;
+                    //ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentSourceDTOFK.Name;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentSourceDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ToStringSapEquipmentSourceDTOFK;
+                    if (sapMovementsOUTDTO.ToStringSapEquipmentSourceDTOFK.Equals("НЕ НАЙДЕН"))
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.IsWarehouseSource == true ? "Да" : "";
                     excelColNum++;
@@ -1539,7 +1550,12 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpIdDest == null ? "" : sapMovementsOUTDTO.ErpIdDest;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentDestDTOFK.Name;
+                    //ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentDestDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ToStringSapEquipmentDestDTOFK;
+                    if (sapMovementsOUTDTO.ToStringSapEquipmentDestDTOFK.Equals("НЕ НАЙДЕН"))
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.IsWarehouseDest == true ? "Да" : "";
                     excelColNum++;
@@ -1685,17 +1701,33 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialCode;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "" : sapMovementsINDTO.SapMaterialDTOFK.Id.ToString();
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapMaterialDTOFK.Id.ToString();
+                    if (sapMovementsINDTO.SapMaterialDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "" : sapMovementsINDTO.SapMaterialDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapMaterialDTOFK.Name;
+                    if (sapMovementsINDTO.SapMaterialDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.ErpPlantIdSource;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.ErpIdSource;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Id.ToString();
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Id.ToString();
+                    if (sapMovementsINDTO.SapEquipmentSourceDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Name;
+                    if (sapMovementsINDTO.SapEquipmentSourceDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.IsWarehouseSource == true ? "Да" : "";
                     excelColNum++;
@@ -1703,9 +1735,17 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.ErpIdDest;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentDestDTOFK.Id.ToString();
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentDestDTOFK.Id.ToString();
+                    if (sapMovementsINDTO.SapEquipmentDestDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentDestDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentDestDTOFK.Name;
+                    if (sapMovementsINDTO.SapEquipmentDestDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.IsWarehouseDest == true ? "Да" : "";
                     excelColNum++;

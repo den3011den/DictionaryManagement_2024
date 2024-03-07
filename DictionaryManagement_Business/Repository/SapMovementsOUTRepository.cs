@@ -110,28 +110,38 @@ namespace DictionaryManagement_Business.Repository
             if (draftDbSapMovementsOUTSelection != null)
             {
                 dbSapMovementsOUTSelection = (from draftDbSapMovementsOUTSelectionAlias in draftDbSapMovementsOUTSelection
-                                              join SM in _db.SapMaterial.AsNoTracking().ToListWithNoLock() on
-                                                  draftDbSapMovementsOUTSelectionAlias.SapMaterialCode equals SM.Code
-                                              join SESource in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
+                                              join SM_prom1 in _db.SapMaterial.AsNoTracking().ToListWithNoLock() on
+                                                  draftDbSapMovementsOUTSelectionAlias.SapMaterialCode equals SM_prom1.Code
+                                              into SM_prom2
+                                              from SM in SM_prom2.DefaultIfEmpty()
+                                              join SESource_prom1 in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
                                               {
-                                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdSource.ToString(),
-                                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdSource.ToString()
+                                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdSource == null ? "Пусто" : draftDbSapMovementsOUTSelectionAlias.ErpPlantIdSource.ToString(),
+                                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdSource == null ? "Пусто" : draftDbSapMovementsOUTSelectionAlias.ErpIdSource.ToString()
                                               }
                                                   equals new
                                                   {
-                                                      ErpPlantIdSource = SESource.ErpPlantId.ToString(),
-                                                      ErpIdSource = SESource.ErpId.ToString()
+                                                      ErpPlantIdSource = SESource_prom1.ErpPlantId.ToString(),
+                                                      ErpIdSource = SESource_prom1.ErpId.ToString()
                                                   }
-                                              join SEDest in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
+                                              into SESource_prom2
+                                              from SESource in SESource_prom2.DefaultIfEmpty()
+                                              join SEDest_prom1 in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
                                               {
-                                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdDest.ToString(),
-                                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdDest.ToString()
+                                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdDest == null ? "Пусто" : draftDbSapMovementsOUTSelectionAlias.ErpPlantIdDest.ToString(),
+                                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdDest == null ? "Пусто" : draftDbSapMovementsOUTSelectionAlias.ErpIdDest.ToString()
                                               }
-                                              equals new
-                                              {
-                                                  ErpPlantIdSource = SEDest.ErpPlantId.ToString(),
-                                                  ErpIdSource = SEDest.ErpId.ToString()
-                                              }
+                                               equals new
+                                               {
+                                                   ErpPlantIdSource = SEDest_prom1.ErpPlantId.ToString(),
+                                                   ErpIdSource = SEDest_prom1.ErpId.ToString()
+                                               }
+                                              into SEDest_prom2
+                                              from SEDest in SEDest_prom2.DefaultIfEmpty()
+                                              join SUOM_prom1 in _db.SapUnitOfMeasure.AsNoTracking().ToListWithNoLock() on
+                                                     draftDbSapMovementsOUTSelectionAlias.SapUnitOfMeasure.Trim().ToUpper() equals SUOM_prom1.ShortName.Trim().ToUpper()
+                                              into SUOM_prom2
+                                              from SUOM in SUOM_prom2.DefaultIfEmpty()
 
                                               select
                                                           new SapMovementsOUT
@@ -165,6 +175,63 @@ namespace DictionaryManagement_Business.Repository
                                                               PreviousRecordId = draftDbSapMovementsOUTSelectionAlias.PreviousRecordId,
                                                               PreviousRecordFK = draftDbSapMovementsOUTSelectionAlias.PreviousRecordFK
                                                           }).ToList();
+
+                //dbSapMovementsOUTSelection = (from draftDbSapMovementsOUTSelectionAlias in draftDbSapMovementsOUTSelection
+                //                              join SM in _db.SapMaterial.AsNoTracking().ToListWithNoLock() on
+                //                                  draftDbSapMovementsOUTSelectionAlias.SapMaterialCode equals SM.Code
+                //                              join SESource in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
+                //                              {
+                //                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdSource.ToString(),
+                //                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdSource.ToString()
+                //                              }
+                //                                  equals new
+                //                                  {
+                //                                      ErpPlantIdSource = SESource.ErpPlantId.ToString(),
+                //                                      ErpIdSource = SESource.ErpId.ToString()
+                //                                  }
+                //                              join SEDest in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
+                //                              {
+                //                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdDest.ToString(),
+                //                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdDest.ToString()
+                //                              }
+                //                              equals new
+                //                              {
+                //                                  ErpPlantIdSource = SEDest.ErpPlantId.ToString(),
+                //                                  ErpIdSource = SEDest.ErpId.ToString()
+                //                              }
+
+                //                              select
+                //                                          new SapMovementsOUT
+                //                                          {
+                //                                              Id = draftDbSapMovementsOUTSelectionAlias.Id,
+                //                                              AddTime = draftDbSapMovementsOUTSelectionAlias.AddTime,
+                //                                              BatchNo = draftDbSapMovementsOUTSelectionAlias.BatchNo,
+                //                                              SapMaterialCode = draftDbSapMovementsOUTSelectionAlias.SapMaterialCode,
+                //                                              SapMaterialFK = SM,
+                //                                              ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdSource,
+                //                                              ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdSource,
+                //                                              SapEquipmentSourceFK = SESource,
+                //                                              IsWarehouseSource = draftDbSapMovementsOUTSelectionAlias.IsWarehouseSource,
+                //                                              ErpPlantIdDest = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdDest,
+                //                                              ErpIdDest = draftDbSapMovementsOUTSelectionAlias.ErpIdDest,
+                //                                              SapEquipmentDestFK = SEDest,
+                //                                              IsWarehouseDest = draftDbSapMovementsOUTSelectionAlias.IsWarehouseDest,
+                //                                              ValueTime = draftDbSapMovementsOUTSelectionAlias.ValueTime,
+                //                                              Value = draftDbSapMovementsOUTSelectionAlias.Value,
+                //                                              Correction2Previous = draftDbSapMovementsOUTSelectionAlias.Correction2Previous,
+                //                                              IsReconciled = draftDbSapMovementsOUTSelectionAlias.IsReconciled,
+                //                                              SapUnitOfMeasure = draftDbSapMovementsOUTSelectionAlias.SapUnitOfMeasure,
+                //                                              SapGone = draftDbSapMovementsOUTSelectionAlias.SapGone,
+                //                                              SapGoneTime = draftDbSapMovementsOUTSelectionAlias.SapGoneTime,
+                //                                              SapError = draftDbSapMovementsOUTSelectionAlias.SapError,
+                //                                              SapErrorMessage = draftDbSapMovementsOUTSelectionAlias.SapErrorMessage,
+                //                                              MesMovementId = draftDbSapMovementsOUTSelectionAlias.MesMovementId,
+                //                                              MesMovementsFK = draftDbSapMovementsOUTSelectionAlias.MesMovementsFK,
+                //                                              MesParamId = draftDbSapMovementsOUTSelectionAlias.MesParamId,
+                //                                              MesParamFK = draftDbSapMovementsOUTSelectionAlias.MesParamFK,
+                //                                              PreviousRecordId = draftDbSapMovementsOUTSelectionAlias.PreviousRecordId,
+                //                                              PreviousRecordFK = draftDbSapMovementsOUTSelectionAlias.PreviousRecordFK
+                //                                          }).ToList();
             }
             else
             {

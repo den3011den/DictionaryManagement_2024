@@ -152,15 +152,6 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    @*                     <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="IsWarehouseSource" Title="Источник в SAP является складом" Filterable="true" TextAlign="TextAlign.Center">
-            <Template Context="data">
-            @if (data.IsWarehouseSource != null)
-            {
-            <RadzenCheckBox @bind-Value=data.IsWarehouseSource ReadOnly="true" TriState="false" TValue="bool?" />
-            }
-            </Template>
-            </RadzenDataGridColumnApp>
-            *@
                     <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="ToStringSapEquipmentSourceDTOFK" Title="Источник в СИР" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                         <Template Context="data1">
@@ -205,12 +196,6 @@
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
-
-                    @*                     <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="IsWarehouseDest" Title="Приёмник в SAP является складом" Filterable="true" TextAlign="TextAlign.Center">
-            <Template Context="data">
-            <RadzenCheckBox @bind-Value=data.IsWarehouseDest ReadOnly="true" TriState="false" TValue="bool?" />
-            </Template>
-            </RadzenDataGridColumnApp> *@
 
                     <RadzenDataGridColumnApp TItem="SapMovementsINDTO" Property="ToStringSapEquipmentDestDTOFK" Title="Приёмник в СИР" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
