@@ -146,7 +146,8 @@ namespace DictionaryManagement_Models.IntDBModels
         {
             get
             {
-                return _toStringCorrection2Previous.ToString();
+                _toStringCorrection2Previous = Correction2Previous.ToString();
+                return _toStringCorrection2Previous;
             }
             set
             {
