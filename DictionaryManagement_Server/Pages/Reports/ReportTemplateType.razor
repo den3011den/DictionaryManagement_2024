@@ -55,8 +55,13 @@
                             </div>
                         </Template>
                         <EditTemplate Context="reportTemplateTypeDTO">
-                            <RadzenTextBox @bind-Value="reportTemplateTypeDTO.Name" Style="width:100%; display: block;" Name="Name"
+@*                             <RadzenTextBox @bind-Value="reportTemplateTypeDTO.Name" Style="width:100%; display: block;" Name="Name"
                                            Disabled="@(ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.OldCantChangeName == true)" />
+ *@
+                            <RadzenTextBox @bind-Value="reportTemplateTypeDTO.Name"
+                                           Style="@("width:100%; display: block;" + (reportTemplateTypeDTO.CantChangeName == true ? " color:darkgrey;":""))" Name="Name"
+                                           Disabled="@(reportTemplateTypeDTO.CantChangeName == true)" />
+
                             <RadzenRequiredValidator Text="Наименование обязательно к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
                         </EditTemplate>

@@ -51,8 +51,13 @@
                             </div>
                         </Template>
                         <EditTemplate Context="dataTypeDTO">
-                            <RadzenTextBox @bind-Value="dataTypeDTO.Name" Style="width:100%; display: block" Name="Name"
+@*                             <RadzenTextBox @bind-Value="dataTypeDTO.Name" Style="width:100%; display: block" Name="Name"
                                            Disabled="@(ControlDataTypeCantChangeName == true && dataTypeDTO.OldCantChangeName == true)" />
+                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" /> *@
+
+                            <RadzenTextBox @bind-Value="dataTypeDTO.Name"
+                                           Style="@("width:100%; display: block;" + (dataTypeDTO.CantChangeName == true ? " color:darkgrey;":""))" Name="Name"
+                                           Disabled="@(dataTypeDTO.CantChangeName == true)" />
                             <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
                         </EditTemplate>
