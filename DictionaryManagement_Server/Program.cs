@@ -115,6 +115,7 @@ builder.Services.AddScoped<IReportEntityResendDatesRepository, ReportEntityResen
 builder.Services.AddScoped<IReportTemplateFileHistoryRepository, ReportTemplateFileHistoryRepository>();
 builder.Services.AddScoped<ICheckReportTemplateRepository, CheckReportTemplateRepository>();
 builder.Services.AddScoped<ICorrectionReasonToReportTemplateTypeAndDataTypeRepository, CorrectionReasonToReportTemplateTypeAndDataTypeRepository>();
+builder.Services.AddScoped<IReportTemplateToMesParamRepository, ReportTemplateToMesParamRepository>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<DialogService>();
