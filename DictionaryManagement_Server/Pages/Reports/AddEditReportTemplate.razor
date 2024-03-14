@@ -1,6 +1,7 @@
 ﻿@page "/reports/ReportTemplate/AddEditReportTemplate/{ReportTemplateId}"
 @attribute [Authorize]
 
+@using ClosedXML.Excel
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 @inject IReportTemplateRepository _reportTemplateRepository
@@ -425,7 +426,14 @@
                     return;
                 }
 
-                if (await ReportTemplateFileSaveAborded(TempFilePath + customParameter + ".xlsx"))
+                IXLWorkbook? xLWorkbook = null;
+                bool reportTemplateFileSaveAbordedResult = false;
+                Tuple<IXLWorkbook?, bool> tmpVar = await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+
+                xLWorkbook = tmpVar.Item1;
+                reportTemplateFileSaveAbordedResult = tmpVar.Item2;
+
+                if (reportTemplateFileSaveAbordedResult)
                 {
                     IsSubmited = false;
                     return;
@@ -496,7 +504,14 @@
 
                 ActiveReportTemplateDTO.TemplateFileName = ActiveReportTemplateDTO.Id + ".xlsx";
 
-                if (await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx"))
+                IXLWorkbook? xLWorkbook = null;
+                bool reportTemplateFileSaveAbordedResult = false;
+                Tuple<IXLWorkbook?, bool> tmpVar = await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+
+                xLWorkbook = tmpVar.Item1;
+                reportTemplateFileSaveAbordedResult = tmpVar.Item2;
+
+                if (reportTemplateFileSaveAbordedResult)
                 {
                     IsSubmited = false;
                     return;
@@ -778,7 +793,7 @@
 
 
 
-    private async Task<bool> ReportTemplateFileSaveAborded(string fileFullPath)
+    private async Task<Tuple<IXLWorkbook?, bool>> ReportTemplateFileSaveAborded(string fileFullPath)
     {
         if (NeedCheckReportTemplateBeforeSaving)
         {
@@ -786,10 +801,11 @@
             {
                 if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
                 {
-                    bool? dialogResult = true;
+                    bool dialogResult = true;
+                    Tuple<IXLWorkbook?, bool?> dialogReturnVar;
                     IsLoading = false;
-                    
-                    dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+
+                    dialogReturnVar = await _dialogService.OpenAsync<CheckReportTemplateFile>(
                         "Проверка файла шаблона отчёта - " + ActiveReportTemplateDTO.Id.ToString() + " - " + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name
                         , new Dictionary
                             <string, object>
@@ -797,17 +813,12 @@
                                  { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
                                  { "ForSave", true}}
                             , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
-                    if (dialogResult == false)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    
+                    dialogResult = dialogReturnVar.Item2 == false ? true : false;                    
+                    return new Tuple<IXLWorkbook?, bool>(dialogReturnVar.Item1, dialogResult);
                 }
             }
         }
-        return false;
+        return new Tuple<IXLWorkbook?, bool>(null, false);        
     }
 }

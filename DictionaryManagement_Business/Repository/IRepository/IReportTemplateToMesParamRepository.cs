@@ -16,6 +16,7 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetByMesParamIdOrAndMesParamCode(int? mesParamId, string? mesParamCode);
         public Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetByReportTemplateIdAndMesParamIdAndSheetName(Guid reportTemplateTypeId, int mesParamId, string sheetName);
         public Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetReportTemplateIdAndMesParamCodeAndSheetName(Guid reportTemplateTypeId, string mesParamCode, string sheetName);
-
+        public Task<int> DeleteAllByReportTemplateId(Guid reportTemplateId);
+        public Task<int> CreateByList(IEnumerable<ReportTemplateToMesParamDTO> listToAddDTO);
     }
 }

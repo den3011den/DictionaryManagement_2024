@@ -280,5 +280,46 @@ namespace DictionaryManagement_Business.Repository
             catch { };
             return null;
         }
+
+        public async Task<int> DeleteAllByReportTemplateId(Guid reportTemplateid)
+        {
+            if (reportTemplateid != Guid.Empty)
+            {
+                try
+                {
+                    var listForDelete = _db.ReportTemplateToMesParam.Where(u => u.ReportTemplateId == reportTemplateid).ToList();
+                    if (listForDelete != null)
+                    {
+                        foreach (var item in listForDelete)
+                        {
+                            _db.ReportTemplateToMesParam.Remove(item);
+                            return _db.SaveChanges();
+                        }
+                    }
+                }
+                catch { };
+            }
+            return 0;
+        }
+
+        public async Task<int> CreateByList(IEnumerable<ReportTemplateToMesParamDTO> listToAddDTO)
+        {
+            if (listToAddDTO.Any())
+            {
+
+                foreach (var item in listToAddDTO)
+                {
+                    ReportTemplateToMesParam objectToAdd = new ReportTemplateToMesParam();
+                    objectToAdd.Id = item.Id;
+                    objectToAdd.ReportTemplateId = item.ReportTemplateId;
+                    objectToAdd.MesParamId = item.MesParamId;
+                    objectToAdd.MesParamCode = item.MesParamCode;
+                    objectToAdd.SheetName = item.SheetName;
+                    var addedReportTemplateToMesParam = _db.ReportTemplateToMesParam.Add(objectToAdd);
+                }
+                return _db.SaveChanges();
+            }
+            return 0;
+        }
     }
 }
