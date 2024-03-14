@@ -15,26 +15,22 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public DbSet<MesMaterial> MesMaterial { get; set; }
         public DbSet<SapMaterial> SapMaterial { get; set; }
         public DbSet<CorrectionReason> CorrectionReason { get; set; }
-
         public DbSet<MesParamSourceType> MesParamSourceType { get; set; }
         public DbSet<DataType> DataType { get; set; }
         public DbSet<DataSource> DataSource { get; set; }
         public DbSet<ReportTemplateType> ReportTemplateType { get; set; }
         public DbSet<LogEventType> LogEventType { get; set; }
         public DbSet<Settings> Settings { get; set; }
-
         public DbSet<UnitOfMeasureSapToMesMapping> UnitOfMeasureSapToMesMapping { get; set; }
         public DbSet<SapToMesMaterialMapping> SapToMesMaterialMapping { get; set; }
         public DbSet<MesDepartment> MesDepartment { get; set; }
         public DbSet<MesParam> MesParam { get; set; }
-
         public DbSet<User> User { get; set; }
         public DbSet<Role> Role { get; set; }
         public DbSet<ADGroup> ADGroup { get; set; }
         public DbSet<UserToRole> UserToRole { get; set; }
         public DbSet<RoleToADGroup> RoleToADGroup { get; set; }
         public DbSet<RoleToDepartment> RoleToDepartment { get; set; }
-
         public DbSet<ReportTemplate> ReportTemplate { get; set; }
         public DbSet<ReportTemplateTypeTоRole> ReportTemplateTypeTоRole { get; set; }
         public DbSet<ReportEntity> ReportEntity { get; set; }
@@ -44,20 +40,15 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public DbSet<Scheduler> Scheduler { get; set; }
         public DbSet<MesNdoStocks> MesNdoStocks { get; set; }
         public DbSet<SapNdoOUT> SapNdoOUT { get; set; }
-
         public DbSet<MesMovements> MesMovements { get; set; }
         public DbSet<SapMovementsIN> SapMovementsIN { get; set; }
         public DbSet<SapMovementsOUT> SapMovementsOUT { get; set; }
-
         public DbSet<LogEvent> LogEvent { get; set; }
-
         public DbSet<MesMovementsComment> MesMovementsComment { get; set; }
-
         public DbSet<ReportEntityResendDates> ReportEntityResendDates { get; set; }
-
         public DbSet<ReportTemplateFileHistory> ReportTemplateFileHistory { get; set; }
-
         public DbSet<CorrectionReasonToReportTemplateTypeAndDataType> CorrectionReasonToReportTemplateTypeAndDataType { get; set; }
+        public DbSet<ReportTemplateToMesParam> ReportTemplateToMesParam { get; set; }
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
