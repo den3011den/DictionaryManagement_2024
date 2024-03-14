@@ -294,8 +294,8 @@ namespace DictionaryManagement_Business.Repository
                         foreach (var item in listForDelete)
                         {
                             _db.ReportTemplateToMesParam.Remove(item);
-                            return _db.SaveChanges();
                         }
+                        return _db.SaveChanges();
                     }
                 }
                 catch { };

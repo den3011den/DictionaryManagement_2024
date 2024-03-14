@@ -677,9 +677,8 @@
                 return;
             }
 
-            bool? dialogResult = true;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+            await _dialogService.OpenAsync<CheckReportTemplateFile>(
                     "Проверка файла шаблона отчёта - " + reportTemplateDTO.Id.ToString() + " - " + reportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + reportTemplateDTO.MesDepartmentDTOFK.Name,
                     new Dictionary
                     <string, object>
@@ -812,8 +811,6 @@
             return false;
     }
 
-
-
     private async Task<Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>>> ReportTemplateFileSaveAborded(string fileFullPath)
     {
         if (NeedCheckReportTemplateBeforeSaving)
@@ -864,6 +861,12 @@
             {
                 // добавление тэгов Отчет матрица
                 await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчет матрица", "P", mesParamListDTOPar);
+            }
+            else
+            if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper()
+                || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper())
+            {
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчёт матрица", "P", mesParamListDTOPar);
             }
             if (reportTeplateTypeName == SD.CorrectionReportTemplateTypeName.Trim().ToUpper())
             {

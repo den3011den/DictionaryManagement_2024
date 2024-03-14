@@ -88,6 +88,8 @@
 
     Variant variant = Variant.Outlined;
 
+    public bool FirstOnClickSave { get; set; } = true;
+
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
 
@@ -191,7 +193,7 @@
 
             workbookInternal = new XLWorkbook(ReportTemplateFilePath);
             await LogConsole("Проверка наличия обязательных листов ...");
-            List<string>? notExistSheetsList = await _checkReportTemplateRepository.IsNotExistSheets(workbook, sheets.Select(u => u.SheetName).ToList());
+            List<string>? notExistSheetsList = await _checkReportTemplateRepository.IsNotExistSheets(workbookInternal, sheets.Select(u => u.SheetName).ToList());
             if (notExistSheetsList != null)
             {
                 foreach (var sheet in notExistSheetsList)
@@ -395,17 +397,21 @@
 
     private async Task OnClickCancel()
     {
-        _dialogService.Close(new Tuple<IXLWorksheet?, bool?, IEnumerable<MesParamDTO>>(null, null, mesParamDTOList));
+        _dialogService.Close(new Tuple<IXLWorkbook?, bool?, IEnumerable<MesParamDTO>>(null, null, mesParamDTOList));
     }
 
     private async Task OnClickAbordSaving()
     {
-        _dialogService.Close(new Tuple<IXLWorksheet?, bool?, IEnumerable<MesParamDTO>>(null, false, mesParamDTOList));
+        _dialogService.Close(new Tuple<IXLWorkbook?, bool?, IEnumerable<MesParamDTO>>(null, false, mesParamDTOList));
     }
 
     private async Task OnClickSave()
     {
-        _dialogService.Close(new Tuple<IXLWorksheet?, bool?, IEnumerable<MesParamDTO>>((IXLWorksheet?)workbook, true, mesParamDTOList));
+        if (FirstOnClickSave)
+        {
+            FirstOnClickSave = false;
+            _dialogService.Close(new Tuple<IXLWorkbook?, bool?, IEnumerable<MesParamDTO>>(workbook, true, mesParamDTOList));
+        }
     }
 }
 
