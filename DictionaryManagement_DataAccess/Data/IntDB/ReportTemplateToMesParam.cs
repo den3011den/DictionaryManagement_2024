@@ -24,7 +24,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
 
         public string? MesParamCode { get; set; }
 
-        public string SheetName { get; set; }
+        public string SheetName { get; set; } = "";
 
     }
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ClosedXML.Excel;
 using DictionaryManagement_Business.Repository.IRepository;
 using DictionaryManagement_DataAccess.Data.IntDB;
 using DictionaryManagement_Models.IntDBModels;
@@ -320,6 +321,38 @@ namespace DictionaryManagement_Business.Repository
                 return _db.SaveChanges();
             }
             return 0;
+        }
+
+        public async Task AddFromWorksheet(Guid reportTemplateId, IXLWorkbook workbook, string sheetName, string columnName, IEnumerable<MesParamDTO> mesParamListDTO)
+        {
+            workbook.TryGetWorksheet(sheetName, out IXLWorksheet worksheet);
+            if (worksheet != null)
+            {
+                var mesParamCodeList = worksheet.Range(columnName + ":" + columnName).CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+                mesParamCodeList = mesParamCodeList.Where(u => !String.IsNullOrEmpty(u.Trim())).Distinct().ToList();
+
+
+                var returnResult = (from mesParamCodeListAlias in mesParamCodeList
+                                    join mesParamListDTOAlias in mesParamListDTO on
+                                     mesParamCodeListAlias equals mesParamListDTOAlias.Code
+                                into MP_prom2
+                                    from MP in MP_prom2.DefaultIfEmpty()
+                                    select
+                                            new ReportTemplateToMesParamDTO
+                                            {
+                                                ReportTemplateId = reportTemplateId,
+                                                MesParamId = (MP == null ? null : MP.Id),
+                                                MesParamCode = mesParamCodeListAlias,
+                                                SheetName = sheetName,
+                                            }).ToList();
+                if (returnResult != null)
+                    await CreateByList(returnResult);
+
+                //var result = sheetList.Select(u => u.Trim().ToUpper()).ToList().Except(sheets.Select(u => u.Name.Trim().ToUpper()).ToList()).ToList();
+                //// выбор тех тэгов, которые в архиве и при этом есть в базе
+                //List<string> isInArchiveList = (mesParamCodeList.Intersect(mesParamDTOList.Select(u => u.Code).ToList(), StringComparer.OrdinalIgnoreCase).ToList())
+                //    .Except(mesParamDTOList.Where(u => u.IsArchive != true).Select(u => u.Code).ToList(), StringComparer.OrdinalIgnoreCase).ToList();
+            }
         }
     }
 }

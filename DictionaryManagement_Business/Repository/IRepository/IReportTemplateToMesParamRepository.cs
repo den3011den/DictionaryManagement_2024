@@ -1,4 +1,5 @@
-﻿using DictionaryManagement_Models.IntDBModels;
+﻿using ClosedXML.Excel;
+using DictionaryManagement_Models.IntDBModels;
 
 namespace DictionaryManagement_Business.Repository.IRepository
 {
@@ -18,5 +19,6 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetReportTemplateIdAndMesParamCodeAndSheetName(Guid reportTemplateTypeId, string mesParamCode, string sheetName);
         public Task<int> DeleteAllByReportTemplateId(Guid reportTemplateId);
         public Task<int> CreateByList(IEnumerable<ReportTemplateToMesParamDTO> listToAddDTO);
+        public Task AddFromWorksheet(Guid reportTemplateId, IXLWorkbook workbook, string sheetName, string columnName, IEnumerable<MesParamDTO> mesParamListDTO);
     }
 }
