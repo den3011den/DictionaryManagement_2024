@@ -461,31 +461,30 @@
     async Task ShowReportTemplateTags(ReportTemplateDTO reportTemplateDTO)
     {
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
-        {
-            await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Пока нет");
-            // IsLoading = true;
-            // ReportTemplateDTO dialogResult = null;
-            // if (reportTemplateDTO == null)
-            // {
+        {            
+            IsLoading = true;
+             ReportTemplateDTO dialogResult = null;
+             if (reportTemplateDTO == null)
+             {
 
-            // }
-            // else
-            // {
-            //     if (reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0)
-            //     {
-            //         await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "отсутствует история изменения файла шаблона отчёта");
-            //     }
-            //     else
-            //     {
-            //         IsLoading = false;
-            //         dialogResult = await _dialogService.OpenAsync<ShowReportTemplateFileHistory>("История изменений шаблона отчёта " + reportTemplateDTO.Id.ToString(), new Dictionary
-            //                 <string, object>
-            //                 () { { "DataList", (IEnumerable<ReportTemplateFileHistoryDTO>)reportTemplateDTO.ReportTemplateFileHistoryListDTO.OrderByDescending(u => u.AddTime) } }
-            //                 , new DialogOptions() { Width = $"{70}vw", Left = "10vw" });
-            //         IsLoading = false;
-            //     }
-            // }
-            // IsLoading = false;
+             }
+             else
+             {
+                 if (reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0)
+                 {
+                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Отсутствует список тэгов шаблона отчёта");
+                 }
+                 else
+                 {
+                     IsLoading = false;
+                     dialogResult = await _dialogService.OpenAsync<ShowReportTemplateTags>("Тэги шаблона отчёта " + reportTemplateDTO.Id.ToString(), new Dictionary
+                             <string, object>
+                            () { { "DataList", (IEnumerable<ReportTemplateToMesParamDTO>)reportTemplateDTO.ReportTemplateToMesParamListDTO.OrderBy(u => u.SheetName).ThenBy(u => u.MesParamCode) } }
+                             , new DialogOptions() { Width = $"{85}vw", Left = "1vw" });
+                     IsLoading = false;
+                 }
+             }
+             IsLoading = false;
         }
     }
 

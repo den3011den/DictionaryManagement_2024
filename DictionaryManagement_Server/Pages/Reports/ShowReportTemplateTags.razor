@@ -1,0 +1,252 @@
+﻿@page "/dictionary/reports/ReportTemplate/ReportTemplateTags/{DataList}"
+
+@attribute [Authorize]
+
+@using DictionaryManagement_Business.Repository.IRepository;
+@using DictionaryManagement_Models.IntDBModels
+@using DictionaryManagement_Server.Extensions.Repository.IRepository
+@using static DictionaryManagement_Common.SD
+
+@inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
+
+@if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+{
+    <div class="row my-2">
+        <div class="col-md-12">
+            @if (IsLoading)
+            {
+                <Loading IsLoading="@IsLoading" />
+            }
+            else
+            {
+                <RadzenRow Gap="1rem">
+                    <RadzenColumn Size="12">
+                        <RadzenStack>
+                            <RadzenStack Gap="1rem">
+                                <RadzenDataGridApp AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
+                                                   Data="DataList" TItem="ReportTemplateToMesParamDTO"
+                                                   FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                   FilterMode="FilterMode.Simple"
+                                                   Density=Density.Compact
+                                                   ShowPagingSummary="true"
+                                                   Style="height:80vh"
+                                                   AllowVirtualization="true"
+                                                   AllowColumnReorder="true"
+                                                   AllowColumnResize="true"
+                                                   ColumnWidth="200px"
+                                                   GridLines="DataGridGridLines.Both"
+                                                   ShowCleanGridSettingsHeaderButton="false"
+                                                   ShowCleanGridFiltersHeaderButton="false"
+                                                   ShowCleanGridSortsHeaderButton="false">
+                                    <Columns>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringId" Title="Ид записи" Width="100px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId" />
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Title="Лист в Excel"
+                                                                 Property="SheetName" Type="typeof(IEnumerable<string>)"
+                                                                 Filterable="true" Sortable="true"
+                                                                 FilterValue="@selectedSheets" FilterOperator="FilterOperator.Contains"
+                                                                 LogicalFilterOperator="LogicalFilterOperator.Or">
+                                            <FilterTemplate>
+                                                <RadzenDropDown @bind-Value=@selectedSheets
+                                                                Change=OnSelectedSheetsChange Data="@(distinctSheetsInList)" AllowClear="true" Multiple="true"
+                                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
+                                                                Chips="true"
+                                                                OpenOnFocus="true"
+                                                                FilterPlaceholder="Поиск..."
+                                                                MaxSelectedLabels="10"
+                                                                Style="font-size:0.75rem;width: 30vw;"
+                                                                PopupStyle="max-height:40vh"
+                                                                SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
+                                            </FilterTemplate>
+                                            <Template Context="data1">
+                                                <strong>
+                                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                        @data1.SheetName
+                                                    </div>
+                                                </strong>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="MesParamCode" Title="Код тэга в Excel" TextAlign="TextAlign.Center"
+                                                                 Filterable="true" Sortable="true" Width="250px">
+                                            <Template Context="data1">
+                                                <strong>
+                                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                        @data1.MesParamCode
+                                                    </div>
+                                                </strong>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringMesParamId" Title="Ид тэга в СИР" Width="200px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringMesParamId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringMesParamId">
+                                            <Template Context="data1">
+                                                @if (!data1.ToStringMesParamId.ToUpper().Equals("НЕТ"))
+                                                {
+                                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                        @data1.ToStringMesParamId
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
+                                                        <strong>
+                                                            @data1.ToStringMesParamId
+                                                        </strong>
+                                                    </div>
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringMesParamCode" Title="Код тэга в СИР" Width="250px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringMesParamCode" FilterOperator="FilterOperator.Contains" SortProperty="ToStringMesParamCode">
+                                            <Template Context="data1">
+                                                @if (!data1.ToStringMesParamCode.ToUpper().Equals("НЕТ"))
+                                                {
+                                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                        @data1.ToStringMesParamCode
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
+                                                        <strong>
+                                                            @data1.ToStringMesParamCode
+                                                        </strong>
+                                                    </div>
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="NeedReadFromMesBool" Title="Из MES" Filterable="true" TextAlign="TextAlign.Center" Width="130px">
+                                            <Template Context="data">
+                                                <RadzenCheckBox @bind-Value=data.NeedReadFromMesBool ReadOnly="true" TriState="false" TValue="bool" />
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="NeedWriteToMesBool" Title="В MES" Filterable="true" TextAlign="TextAlign.Center" Width="130px">
+                                            <Template Context="data">
+                                                <RadzenCheckBox @bind-Value=data.NeedWriteToMesBool ReadOnly="true" TriState="false" TValue="bool" />
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="NeedReadFromSapBool" Title="Из SAP" Filterable="true" TextAlign="TextAlign.Center" Width="130px">
+                                            <Template Context="data">
+                                                <RadzenCheckBox @bind-Value=data.NeedReadFromSapBool ReadOnly="true" TriState="false" TValue="bool" />
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="NeedWriteToSapBool" Title="В SAP" Filterable="true" TextAlign="TextAlign.Center" Width="130px">
+                                            <Template Context="data">
+                                                <RadzenCheckBox @bind-Value=data.NeedWriteToSapBool ReadOnly="true" TriState="false" TValue="bool" />
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="IsArchiveBool" Title="Архив" Filterable="true" TextAlign="TextAlign.Center" Width="130px">
+                                            <Template Context="data">
+                                                <RadzenCheckBox @bind-Value=data.IsArchiveBool ReadOnly="true" TriState="false" TValue="bool" />
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringMesParamSourceType" Title="Источник тэга в СИР" Width="100px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringMesParamSourceType" FilterOperator="FilterOperator.Contains" SortProperty="ToStringMesParamSourceType">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.ToStringMesParamSourceType
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringSapEquipmentSource" Title="Источник SAP тэга в СИР" Width="250px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringSapEquipmentSource" FilterOperator="FilterOperator.Contains" SortProperty="ToStringSapEquipmentSource">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.ToStringSapEquipmentSource
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringSapEquipmentDest" Title="Приёмник SAP тэга в СИР" Width="250px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringSapEquipmentDest" FilterOperator="FilterOperator.Contains" SortProperty="ToStringSapEquipmentDest">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.ToStringSapEquipmentDest
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringSapMaterial" Title="Материал SAP тэга в СИР" Width="250px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringSapMaterial" FilterOperator="FilterOperator.Contains" SortProperty="ToStringSapMaterial">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.ToStringSapMaterial
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+
+                                        <RadzenDataGridColumnApp TItem="ReportTemplateToMesParamDTO" Property="ToStringSapUnitOfMeasure" Title="Ед.изм. SAP тэга в СИР" Width="100px" TextAlign="TextAlign.Center"
+                                                                 FilterProperty="ToStringSapUnitOfMeasure" FilterOperator="FilterOperator.Contains" SortProperty="ToStringSapUnitOfMeasure">
+                                            <Template Context="data1">
+                                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                                    @data1.ToStringSapUnitOfMeasure
+                                                </div>
+                                            </Template>
+                                        </RadzenDataGridColumnApp>
+                                    </Columns>
+                                </RadzenDataGridApp>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </div>
+    </div>
+}
+
+
+@code {
+
+    [Parameter]
+    public IEnumerable<ReportTemplateToMesParamDTO>? DataList { get; set; }
+
+    public string reportTemplatePath = "";
+    public string reportTempPath = "";
+
+    IEnumerable<string> selectedSheets;
+    List<string> distinctSheetsInList = new List<string>();
+
+    public bool haveChanges = false;
+
+    public bool IsLoading { get; set; } = true;
+    public AdminMode IsAdmin { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        IsLoading = true;
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+        IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
+        List<string> distinctSheetsInList = new List<string>();
+        await GetDistincts();
+        IsLoading = false;
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    void OnSelectedSheetsChange(object value)
+    {
+        if (selectedSheets != null && !selectedSheets.Any())
+        {
+            selectedSheets = null;
+        }
+    }
+
+    async Task GetDistincts()
+    {
+        if (DataList != null)
+        {
+            distinctSheetsInList = (List<string>)DataList.Where(u => !String.IsNullOrEmpty(u.SheetName)).OrderBy(u => u.SheetName)
+                .Select(u => u.SheetName).Distinct().ToList();
+        }
+    }
+}
