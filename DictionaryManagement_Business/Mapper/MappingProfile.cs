@@ -112,7 +112,8 @@ namespace DictionaryManagement_Business.Mapper
                 .ForMember(dest => dest.NeedAutoCalc, opt => opt.MapFrom(src => src.NeedAutoCalc == null ? false : src.NeedAutoCalc))
                 .ForMember(dest => dest.AutoCalcOrder, opt => opt.MapFrom(src => src.AutoCalcOrder == null ? 1 : src.AutoCalcOrder))
                 .ForMember(dest => dest.AutoCalcNumber, opt => opt.MapFrom(src => src.AutoCalcNumber == null ? 1 : src.AutoCalcNumber))
-                .ForMember(dest => dest.ReportTemplateFileHistoryListDTO, opt => opt.MapFrom(src => src.ReportTemplateFileHistoryList));
+                .ForMember(dest => dest.ReportTemplateFileHistoryListDTO, opt => opt.MapFrom(src => src.ReportTemplateFileHistoryList))
+                .ForMember(dest => dest.ReportTemplateToMesParamListDTO, opt => opt.MapFrom(src => src.ReportTemplateToMesParamList));
 
             CreateMap<ReportTemplateDTO, ReportTemplate>()
                     .ForMember(dest => dest.AddUserFK, opt => opt.MapFrom(src => src.AddUserDTOFK))
@@ -123,7 +124,8 @@ namespace DictionaryManagement_Business.Mapper
                     .ForMember(dest => dest.NeedAutoCalc, opt => opt.MapFrom(src => src.NeedAutoCalc == null ? false : src.NeedAutoCalc))
                     .ForMember(dest => dest.AutoCalcOrder, opt => opt.MapFrom(src => src.AutoCalcOrder == null ? 1 : src.AutoCalcOrder))
                     .ForMember(dest => dest.AutoCalcNumber, opt => opt.MapFrom(src => src.AutoCalcNumber == null ? 1 : src.AutoCalcNumber))
-                    .ForMember(dest => dest.ReportTemplateFileHistoryList, opt => opt.MapFrom(src => src.ReportTemplateFileHistoryListDTO));
+                    .ForMember(dest => dest.ReportTemplateFileHistoryList, opt => opt.MapFrom(src => src.ReportTemplateFileHistoryListDTO))
+                    .ForMember(dest => dest.ReportTemplateToMesParamList, opt => opt.MapFrom(src => src.ReportTemplateToMesParamListDTO));
 
 
             CreateMap<ReportTemplateTypeTоRole, ReportTemplateTypeTоRoleDTO>()
