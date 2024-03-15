@@ -25,7 +25,7 @@ namespace DictionaryManagement_Business.Repository
             objectToAdd.Id = objectToAddDTO.Id;
             objectToAdd.ReportTemplateId = objectToAddDTO.ReportTemplateId;
             objectToAdd.MesParamId = objectToAddDTO.MesParamId;
-            objectToAdd.MesParamCode = objectToAddDTO.MesParamCode;
+            objectToAdd.MesParamCode = objectToAddDTO.MesParamCode == null ? objectToAddDTO.MesParamCode : objectToAddDTO.MesParamCode.Substring(0, Math.Min(100, objectToAddDTO.MesParamCode.Length));
             objectToAdd.SheetName = objectToAddDTO.SheetName;
             try
             {
@@ -78,7 +78,7 @@ namespace DictionaryManagement_Business.Repository
                         objectToUpdate.MesParamFK = _mapper.Map<MesParamDTO, MesParam>(objectToUpdateDTO.MesParamDTOFK);
                     }
                     if (objectToUpdate.MesParamCode != objectToUpdateDTO.MesParamCode)
-                        objectToUpdate.MesParamCode = objectToUpdateDTO.MesParamCode;
+                        objectToUpdate.MesParamCode = objectToUpdateDTO.MesParamCode == null ? objectToUpdateDTO.MesParamCode : objectToUpdateDTO.MesParamCode.Substring(0, Math.Min(100, objectToUpdateDTO.MesParamCode.Length));
                     if (objectToUpdate.SheetName != objectToUpdateDTO.SheetName)
                         objectToUpdate.SheetName = objectToUpdateDTO.SheetName;
 
@@ -314,7 +314,7 @@ namespace DictionaryManagement_Business.Repository
                     objectToAdd.Id = item.Id;
                     objectToAdd.ReportTemplateId = item.ReportTemplateId;
                     objectToAdd.MesParamId = item.MesParamId;
-                    objectToAdd.MesParamCode = item.MesParamCode;
+                    objectToAdd.MesParamCode = item.MesParamCode == null ? item.MesParamCode : item.MesParamCode.Substring(0, Math.Min(100, item.MesParamCode.Length));
                     objectToAdd.SheetName = item.SheetName;
                     var addedReportTemplateToMesParam = _db.ReportTemplateToMesParam.Add(objectToAdd);
                 }
