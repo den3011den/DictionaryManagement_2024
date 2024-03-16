@@ -106,7 +106,7 @@
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-wrap" id="@(data1.ToStringId.ToUpper())">
                                 @data1.AddUserDTOFK.UserName
                             </div>
                         </Template>
@@ -293,6 +293,8 @@
     bool iconMenuActive { get; set; }
     _Dialogs? _dialogs { get; set; }
 
+    ReportTemplateDTO? selectedToRemember = null;
+
     IEnumerable<ReportTemplateDTO>? reportTemplateDTOs;
 
     RadzenDataGrid<ReportTemplateDTO> reportTemplateDTOGrid;
@@ -369,7 +371,6 @@
     private async Task LoadStateAsync()
     {
         await Task.CompletedTask;
-
         if (!(await SD.CheckPageSettingsVersion("ReportTemplateGridSettings", _jsRuntime)))
             return;
 
@@ -423,6 +424,7 @@
 
     async Task EditRow(ReportTemplateDTO reportTemplateDTO)
     {
+
         if ((IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly) && !LoadTagsFromAllReportTemplatesFlag)
         {
             IsLoading = true;
@@ -440,6 +442,8 @@
 
             if (dialogResult != null)
             {
+                await SetPosition(dialogResult);
+
                 IsLoading = true;
                 await LoadStateAsync();
                 await Task.Delay(100);
@@ -448,6 +452,10 @@
                 await GetDistincts();
                 IsLoading = false;
                 await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(1000);
+                await GoToPosition(selectedToRemember);
+                await Task.Delay(10);
                 await InvokeAsync(StateHasChanged);
             }
             IsLoading = false;
@@ -730,6 +738,7 @@
         {
             await Task.Delay(200);
             await InvokeAsync(StateHasChanged);
+
             bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Загрузка тэгов из шаблонов отчётов",
                 "Будут перезагружены списки тэгов для всех шаблонов отчётов в таблицу ReportTemplateToMesParam. Процедура продолжительная. Запустить загрузку ?", "Загрузить", "Отмена");
             if (selectionResult == false)
@@ -799,6 +808,8 @@
                 return;
             }
 
+            await SetPosition();
+
             IEnumerable<MesParamDTO> mesParamDTOList = await _mesParamRepository.GetAll(SelectDictionaryScope.All);
 
             int reportTemplateCount = reportTemplateListResult.Count();
@@ -823,8 +834,8 @@
                     errorFlag = true;
                     continue;
                 }
-                // try
-                // {
+                try
+                {
                     IXLWorkbook? workbook = null;
                     workbook = new XLWorkbook(reportTemplateFilePath);
 
@@ -857,12 +868,12 @@
                         // добавление тэгов Форма корректировок
                         await _reportTemplateToMesParamRepository.AddFromWorksheet(item.Id, workbook, "Форма корректировок", "N", mesParamDTOList);
                     }
-                // }
-                // catch (Exception ex)
-                // {
-                //     errorFlag = true;
-                //     await _jsRuntime.ToastrError("Ошибка: " + ex.Message);
-                // }
+                }
+                catch (Exception ex)
+                {
+                    errorFlag = true;
+                    await _jsRuntime.ToastrError("Ошибка: " + ex.Message);
+                }
             }
 
             if (errorFlag)
@@ -884,7 +895,33 @@
             IsLoading = false;
             await Task.Delay(10);
             await InvokeAsync(StateHasChanged);
+            await Task.Delay(1000);
+            await GoToPosition(selectedToRemember);
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
             return;
+        }
+    }
+
+    async Task SetPosition(ReportTemplateDTO? reportTemplateDTO = null)
+    {
+        await Task.CompletedTask;
+        if (reportTemplateDTO != null)
+            selectedToRemember = reportTemplateDTO;
+        else
+        {
+            if (selectedTableReportTemplates != null && selectedTableReportTemplates.Any())
+                selectedToRemember = selectedTableReportTemplates.First();
+        }
+    }
+
+    async Task GoToPosition(ReportTemplateDTO? reportTemplateDTO)
+    {
+        if (reportTemplateDTO != null)
+        {            
+            var selectedItem = reportTemplateDTOGrid.View.FirstOrDefault(u => u.Id == reportTemplateDTO.Id);
+            await reportTemplateDTOGrid.SelectRow(selectedItem, true);
+            await _jsRuntime.InvokeVoidAsync("eval", "(document.getElementById('" + reportTemplateDTO.ToStringId.ToUpper() + "') !==null) ? (document.getElementById('" + reportTemplateDTO.ToStringId.ToUpper() + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");
         }
     }
 }
