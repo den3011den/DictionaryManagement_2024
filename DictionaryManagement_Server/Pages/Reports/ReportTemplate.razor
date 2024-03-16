@@ -873,7 +873,16 @@
             //IsLoading = false;
             LoadTagsFromAllReportTemplatesFlag = false;
             LoadTagsFromAllReportTemplatesText = "";
-            await Task.Delay(20);
+            // await Task.Delay(20);
+            // await InvokeAsync(StateHasChanged);
+
+            await LoadStateAsync();
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+            reportTemplateDTOs = await _reportTemplateRepository.GetAll(SD.SelectDictionaryScope.All);
+            await GetDistincts();
+            IsLoading = false;
+            await Task.Delay(10);
             await InvokeAsync(StateHasChanged);
             return;
         }
