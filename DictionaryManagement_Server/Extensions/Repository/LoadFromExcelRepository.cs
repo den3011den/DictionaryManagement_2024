@@ -28,6 +28,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
         private readonly ISapMovementsOUTRepository _sapMovementsOUTRepository;
         private readonly IDataSourceRepository _dataSourceRepository;
         private readonly IDataTypeRepository _dataTypeRepository;
+        private readonly IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository;
 
         public LoadFromExcelRepository(ISapMaterialRepository sapMaterialRepository, IMesMaterialRepository mesMaterialRepository,
             ISapEquipmentRepository sapEquipmentRepository,
@@ -44,7 +45,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
             ISapMovementsINRepository sapMovementsINRepository,
             ISapMovementsOUTRepository sapMovementsOUTRepository,
             IDataSourceRepository dataSourceRepository,
-            IDataTypeRepository dataTypeRepository)
+            IDataTypeRepository dataTypeRepository,
+            IReportTemplateToMesParamRepository reportTemplateToMesParamRepository)
         {
             _sapMaterialRepository = sapMaterialRepository;
             _mesMaterialRepository = mesMaterialRepository;
@@ -64,7 +66,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             _sapMovementsOUTRepository = sapMovementsOUTRepository;
             _dataSourceRepository = dataSourceRepository;
             _dataTypeRepository = dataTypeRepository;
-
+            _reportTemplateToMesParamRepository = reportTemplateToMesParamRepository;
         }
 
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MaterialDTO>? materialList)
@@ -1664,7 +1666,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     new FieldValueWithColumnPosition(TIVarString, 24), new FieldValueWithColumnPosition(nameTIVarString, 25), new FieldValueWithColumnPosition(TMVarString, 26),
                     new FieldValueWithColumnPosition(nameTMVarString, 27), new FieldValueWithColumnPosition(mesToSirUnitOfMeasureKoefVarString, 28), new FieldValueWithColumnPosition(needWriteToSapVarString, 29),
                     new FieldValueWithColumnPosition(needReadFromSapVarString, 30), new FieldValueWithColumnPosition(needReadFromMesVarString, 31), new FieldValueWithColumnPosition(needWriteToMesVarString, 32),
-                    new FieldValueWithColumnPosition(isNdoVarString, 33), new FieldValueWithColumnPosition(isNdoVarString, 34)
+                    new FieldValueWithColumnPosition(isNdoVarString, 33), new FieldValueWithColumnPosition(isArchiveVarString, 34)
                 };
                 if ((await CheckControlSymbolsAndLeadingAndTrailingSpaces(loadFromExcelPage, worksheet, fieldValueWithColumnPosition, rowNumber, resultColumnNumber, 1)) != true)
                 {
@@ -2418,6 +2420,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 changedMesParamDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
 
                             MesParamDTO? newMesParamDTO = await _mesParamRepository.Create(changedMesParamDTO);
+                            if (newMesParamDTO != null)
+                                await _reportTemplateToMesParamRepository.UpdateEmptyMesParamIdByMesParamCode(newMesParamDTO.Code, newMesParamDTO.Id);
 
                             await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: newMesParamDTO, "Добавление тэга СИР", "Тэг СИР: ", _authorizationRepository);
 
@@ -2465,7 +2469,40 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             {
                                 changedMesParamDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
                             }
+
+
+                            if (foundMesParamDTO.Code.ToUpper() != changedMesParamDTO.Code.ToUpper() || (changedMesParamDTO.IsArchive == true && foundMesParamDTO.IsArchive == false))
+                            {
+                                var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(foundMesParamDTO.Code);
+                                if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
+                                {
+                                    string reportsStr = "|";
+                                    foreach (var item in reportTemplateListWithOldMesParamCode)
+                                        reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
+                                            + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
+                                    haveErrors = true;
+
+                                    if (foundMesParamDTO.Code.ToUpper() != changedMesParamDTO.Code.ToUpper())
+                                    {
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Нельзя менять код тэга. Код "
+                                                + foundMesParamDTO.Code + " используется в " + reportsStr + " Изменения не применялись.";
+                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                        rowNumber++;
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 34. Нельзя удалять тэг в архив. Используется в "
+                                            + reportsStr + " Изменения не применялись.";
+                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 34 }, resultString);
+                                        rowNumber++;
+                                        continue;
+                                    }
+                                }
+                            }
+
                             await _mesParamRepository.Update(changedMesParamDTO);
+                            await _reportTemplateToMesParamRepository.UpdateEmptyMesParamIdByMesParamCode(changedMesParamDTO.Code, changedMesParamDTO.Id);
 
                             if (changedMesParamDTO.IsArchive != foundMesParamDTO.IsArchive)
                             {

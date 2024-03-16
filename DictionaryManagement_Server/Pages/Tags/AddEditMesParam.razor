@@ -480,7 +480,7 @@
 
                 MesParamDTO oldMesParamDTO = await _mesParamRepository.GetById(ActiveMesParamDTO.Id);
 
-                if (oldMesParamDTO.Code != ActiveMesParamDTO.Code)
+                if (oldMesParamDTO.Code.ToUpper() != ActiveMesParamDTO.Code.ToUpper())
                 {
                     var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(oldMesParamDTO.Code);
                     if (reportTemplateListWithOldMesParamCode !=null && reportTemplateListWithOldMesParamCode.Any())
