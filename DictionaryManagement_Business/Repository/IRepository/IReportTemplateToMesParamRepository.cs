@@ -20,5 +20,7 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<int> DeleteAllByReportTemplateId(Guid reportTemplateId);
         public Task<int> CreateByList(IEnumerable<ReportTemplateToMesParamDTO> listToAddDTO);
         public Task AddFromWorksheet(Guid reportTemplateId, IXLWorkbook workbook, string sheetName, string columnName, IEnumerable<MesParamDTO> mesParamListDTO);
+        public Task<int> UpdateEmptyMesParamIdByMesParamCode(string mesParamCode, int mesParamId);
+
     }
 }

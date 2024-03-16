@@ -354,5 +354,25 @@ namespace DictionaryManagement_Business.Repository
                 //    .Except(mesParamDTOList.Where(u => u.IsArchive != true).Select(u => u.Code).ToList(), StringComparer.OrdinalIgnoreCase).ToList();
             }
         }
+
+        public async Task<int> UpdateEmptyMesParamIdByMesParamCode(string mesParamCode, int mesParamId)
+        {
+            int retCount = 0;
+            var tmpList = await GetByMesParamCode(mesParamCode);
+            if (tmpList != null && tmpList.Any())
+            {
+                var tmpList2 = tmpList.Where(u => u.MesParamId != null).ToList();
+                if (tmpList2 != null && tmpList2.Any())
+                {
+                    foreach (var item in tmpList2)
+                    {
+                        item.MesParamId = mesParamId;
+                        await Update(item);
+                        retCount++;
+                    }
+                }
+            }
+            return retCount;
+        }
     }
 }

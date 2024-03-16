@@ -13,6 +13,7 @@
 @inject IMesParamRepository _mesParamRepository
 @inject ILogEventRepository _logEventRepository
 @inject DialogService _dialogService
+@inject IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -504,6 +505,18 @@
                         await _jsRuntime.ToastrSuccess("Отмена удаления");
                         return;
                     }
+
+                    var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(mesParamDTO.Code);
+                    if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
+                    {
+                        string reportsStr = "|";
+                        foreach (var item in reportTemplateListWithOldMesParamCode)
+                            reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
+                                + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя удалять в архив тэг. Код " + mesParamDTO.Code + " используется в " + reportsStr);
+                        return;
+                    }
+
                 }
                 else
                 {

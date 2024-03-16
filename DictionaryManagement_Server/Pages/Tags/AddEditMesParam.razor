@@ -14,6 +14,7 @@
 @inject ISapUnitOfMeasureRepository _sapUnitOfMeasureRepository
 @inject IMesUnitOfMeasureRepository _mesUnitOfMeasureRepository
 @inject ILogEventRepository _logEventRepository
+@inject IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository
 @inject DialogService _dialogService
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -406,6 +407,8 @@
 
                 var addedDTO = await _mesParamRepository.Create(ActiveMesParamDTO);
 
+                await _reportTemplateToMesParamRepository.UpdateEmptyMesParamIdByMesParamCode(addedDTO.Code, addedDTO.Id);
+
                 await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: addedDTO, "Добавление тэга СИР", "Тэг: ", _authorizationRepository);
 
                 await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Name + "\" создан");
@@ -475,13 +478,29 @@
                     }
                 }
 
+                MesParamDTO oldMesParamDTO = await _mesParamRepository.GetById(ActiveMesParamDTO.Id);
+
+                if (oldMesParamDTO.Code != ActiveMesParamDTO.Code)
+                {
+                    var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(oldMesParamDTO.Code);
+                    if (reportTemplateListWithOldMesParamCode !=null && reportTemplateListWithOldMesParamCode.Any())
+                    {
+                        string reportsStr = "|";
+                        foreach (var item in reportTemplateListWithOldMesParamCode)
+                            reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
+                                + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
+
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя менять код тэга. Код " + oldMesParamDTO.Code + " используется в " + reportsStr);
+                        return;
+                    }
+                }
 
                 if (ActiveMesParamDTO.Name == null)
                     ActiveMesParamDTO.Name = "";
 
-                MesParamDTO oldMesParamDTO = await _mesParamRepository.GetById(ActiveMesParamDTO.Id);
-
                 MesParamDTO newMesParamDTO = await _mesParamRepository.Update(ActiveMesParamDTO);
+
+                await _reportTemplateToMesParamRepository.UpdateEmptyMesParamIdByMesParamCode(newMesParamDTO.Code, newMesParamDTO.Id);
 
                 await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Name + "\" изменён");
 
