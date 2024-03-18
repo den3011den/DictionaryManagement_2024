@@ -161,18 +161,33 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetByMesParamCode(string mesParamCode)
+        public async Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetByMesParamCode(string mesParamCode, bool? reportTemplateIsInArchive = null)
         {
             try
             {
-                var objToGet = _db.ReportTemplateToMesParam
-                    .Include("ReportTemplateFK")
-                    .Include("MesParamFK")
-                    .Where(u => u.MesParamCode == mesParamCode)
-                    .ToListWithNoLock();
-                if (objToGet != null)
+                if (reportTemplateIsInArchive == null)
                 {
-                    return _mapper.Map<IEnumerable<ReportTemplateToMesParam>, IEnumerable<ReportTemplateToMesParamDTO>>(objToGet);
+                    var objToGet = _db.ReportTemplateToMesParam
+                        .Include("ReportTemplateFK")
+                        .Include("MesParamFK")
+                        .Where(u => u.MesParamCode == mesParamCode)
+                        .ToListWithNoLock();
+                    if (objToGet != null)
+                    {
+                        return _mapper.Map<IEnumerable<ReportTemplateToMesParam>, IEnumerable<ReportTemplateToMesParamDTO>>(objToGet);
+                    }
+                }
+                else
+                {
+                    var objToGet = _db.ReportTemplateToMesParam
+                        .Include("ReportTemplateFK")
+                        .Include("MesParamFK")
+                        .Where(u => u.MesParamCode == mesParamCode && u.ReportTemplateFK.IsArchive == reportTemplateIsInArchive)
+                        .ToListWithNoLock();
+                    if (objToGet != null)
+                    {
+                        return _mapper.Map<IEnumerable<ReportTemplateToMesParam>, IEnumerable<ReportTemplateToMesParamDTO>>(objToGet);
+                    }
                 }
             }
             catch { };
@@ -373,6 +388,50 @@ namespace DictionaryManagement_Business.Repository
                 }
             }
             return retCount;
+        }
+
+        public async Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetTagListInOtherNotArchiveReportTemplatesBySheetName(Guid sourceReportTemplateId, string sourceSheetName, string destSheetName)
+        {
+            try
+            {
+                var sourceList = _db.ReportTemplateToMesParam
+                    .Include("ReportTemplateFK")
+                    .Include("MesParamFK")
+                    .Where(u => u.ReportTemplateId == sourceReportTemplateId && u.SheetName.ToUpper() == sourceSheetName.ToUpper())
+                    .ToListWithNoLock();
+
+                if (sourceList != null && sourceList.Any())
+                {
+                    var destList = _db.ReportTemplateToMesParam
+                        .Include("ReportTemplateFK")
+                        .Include("MesParamFK")
+                        .Where(u => u.ReportTemplateFK.IsArchive != true && u.SheetName.ToUpper() == destSheetName.ToUpper())
+                        .ToListWithNoLock();
+                    if (destList != null && destList.Any())
+                    {
+
+                        var resultList = (from destListAlias in destList
+                                          join sourceListAlias in sourceList on destListAlias.MesParamCode equals sourceListAlias.MesParamCode
+                                          select
+                                                new ReportTemplateToMesParam
+                                                {
+                                                    Id = destListAlias.Id,
+                                                    ReportTemplateId = destListAlias.ReportTemplateId,
+                                                    ReportTemplateFK = destListAlias.ReportTemplateFK,
+                                                    MesParamCode = destListAlias.MesParamCode,
+                                                    MesParamId = destListAlias.MesParamId,
+                                                    MesParamFK = destListAlias.MesParamFK,
+                                                    SheetName = destListAlias.SheetName,
+                                                }).ToList();
+                        if (resultList != null && resultList.Any())
+                        {
+                            return _mapper.Map<IEnumerable<ReportTemplateToMesParam>, IEnumerable<ReportTemplateToMesParamDTO>>(resultList);
+                        }
+                    }
+                }
+            }
+            catch { };
+            return null;
         }
     }
 }

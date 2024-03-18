@@ -506,14 +506,14 @@
                         return;
                     }
 
-                    var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(mesParamDTO.Code);
+                    var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(mesParamDTO.Code, reportTemplateIsInArchive: false);
                     if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
                     {
                         string reportsStr = "|";
                         foreach (var item in reportTemplateListWithOldMesParamCode)
                             reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
                                 + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
-                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя удалять в архив тэг. Код " + mesParamDTO.Code + " используется в " + reportsStr);
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя удалять в архив тэг. Код " + mesParamDTO.Code + " используется в не архивных шаблонах: " + reportsStr);
                         return;
                     }
 

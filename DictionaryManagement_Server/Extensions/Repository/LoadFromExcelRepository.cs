@@ -2473,7 +2473,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
 
                             if (foundMesParamDTO.Code.ToUpper() != changedMesParamDTO.Code.ToUpper() || (changedMesParamDTO.IsArchive == true && foundMesParamDTO.IsArchive == false))
                             {
-                                var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(foundMesParamDTO.Code);
+                                var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(foundMesParamDTO.Code, reportTemplateIsInArchive: false);
                                 if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
                                 {
                                     string reportsStr = "|";
@@ -2485,14 +2485,14 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     if (foundMesParamDTO.Code.ToUpper() != changedMesParamDTO.Code.ToUpper())
                                     {
                                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Нельзя менять код тэга. Код "
-                                                + foundMesParamDTO.Code + " используется в " + reportsStr + " Изменения не применялись.";
+                                                + foundMesParamDTO.Code + " используется в НЕ архивных шаблонах отчётов " + reportsStr + " Изменения не применялись.";
                                         await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
                                         rowNumber++;
                                         continue;
                                     }
                                     else
                                     {
-                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 34. Нельзя удалять тэг в архив. Используется в "
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 34. Нельзя удалять тэг в архив. Используется в НЕ архивных шаблонах отчётов "
                                             + reportsStr + " Изменения не применялись.";
                                         await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 34 }, resultString);
                                         rowNumber++;

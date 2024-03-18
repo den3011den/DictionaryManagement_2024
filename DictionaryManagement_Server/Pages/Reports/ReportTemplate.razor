@@ -546,6 +546,30 @@
                         await _jsRuntime.ToastrSuccess("Отмена восстановления");
                         return;
                     }
+
+                    var settingDTO = await _settingsRepository.GetByName(SD.ReportOutputSheetSettingName);
+
+                    if(settingDTO != null)
+                    {
+                        var mesParamCodeList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(reportTemplateDTO.Id, settingDTO.Value, settingDTO.Value); ;
+                        if (mesParamCodeList != null && mesParamCodeList.Any())
+                        {
+                            string reportsStr = "|";
+                            foreach (var item in mesParamCodeList)
+                                reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
+                                    + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " тэг: " + item.MesParamCode + " | ";
+
+                            bool selectionResult2 = await _dialogs.ShowYesOrNoDialogBox("Восстановление шаблона отчёта", "Тэги листа OutputData встречаются на листе OutputData других не архивных шаблонов отчётов: "
+                                + reportsStr + ". ВСЁ РАВНО ВОССТАНОВИТЬ?", "Восстановить", "Отмена");
+                            if (selectionResult == false)
+                            {
+                                await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                                return;
+                            }
+
+                            return;
+                        }                                                         
+                    }
                 }
             }
 

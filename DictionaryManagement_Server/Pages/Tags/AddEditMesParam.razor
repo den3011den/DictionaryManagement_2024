@@ -482,7 +482,7 @@
 
                 if (oldMesParamDTO.Code.ToUpper() != ActiveMesParamDTO.Code.ToUpper())
                 {
-                    var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(oldMesParamDTO.Code);
+                    var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(oldMesParamDTO.Code, reportTemplateIsInArchive: false);
                     if (reportTemplateListWithOldMesParamCode !=null && reportTemplateListWithOldMesParamCode.Any())
                     {
                         string reportsStr = "|";
@@ -490,7 +490,7 @@
                             reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
                                 + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
 
-                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя менять код тэга. Код " + oldMesParamDTO.Code + " используется в " + reportsStr);
+                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя менять код тэга. Код " + oldMesParamDTO.Code + " используется в не архивных шаблонах " + reportsStr);
                         return;
                     }
                 }
