@@ -38,7 +38,7 @@ window.ShowSwal = (type, message) => {
     if (type === "loading") {
         swal({
             title: "Операция выполняется ...",
-            text: message,           
+            text: message,  
             type: "info",
             icon: "/images/loading.gif",
             allowOutsideClick: false,

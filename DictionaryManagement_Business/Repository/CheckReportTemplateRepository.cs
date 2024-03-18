@@ -18,6 +18,12 @@ namespace DictionaryManagement_Business.Repository
             _mapper = mapper;
         }
 
+        public record OutputDataRecord
+        {
+            public string MesParamCode { get; set; } = "";
+            public string ValueTime { get; set; } = "";
+        }
+
         public async Task<List<string>?> IsNotExistSheets(IXLWorkbook workbook, List<string> sheetList)
         {
             var sheets = workbook.Worksheets.ToList();
@@ -66,13 +72,36 @@ namespace DictionaryManagement_Business.Repository
 
         public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType)
         {
-            var mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+            List<string> mesParamCodeList;
+            List<OutputDataRecord> outputDataList = new List<OutputDataRecord>();
+
+            mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+            if (worksheet.Name.Trim().ToUpper() == "OUTPUTDATA")
+            {
+                outputDataList = worksheet.Range("A:B").RowsUsed()
+                    .Select(c => new OutputDataRecord { MesParamCode = c.Cell(1).CachedValue.ToString(), ValueTime = c.Cell(2).CachedValue.ToString() }).Skip(1).ToList();
+            }
+            else
+            {
+                mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+            }
+
+
             switch (checkReportTemplateTagsType)
             {
                 case CheckReportTemplateTagsType.IsDuplicate:
                     {
-                        List<string> duplicateList = mesParamCodeList.GroupBy(u => u).Where(u => u.Count() > 1).Select(u => u.Key).ToList();
-                        if (duplicateList.Any())
+                        List<string> duplicateList = new List<string>();
+                        if (worksheet.Name.Trim().ToUpper() == "OUTPUTDATA")
+                        {
+                            duplicateList = outputDataList.GroupBy(u => new { u.MesParamCode, u.ValueTime }).Where(u => u.Count() > 1)
+                                .Select(u => u.Key.MesParamCode + " на дату " + u.Key.ValueTime).ToList();
+                        }
+                        else
+                        {
+                            duplicateList = mesParamCodeList.GroupBy(u => u).Where(u => u.Count() > 1).Select(u => u.Key).ToList();
+                        }
+                        if (duplicateList != null && duplicateList.Any())
                         { return duplicateList; }
                         else
                         { return null; }

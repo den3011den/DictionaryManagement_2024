@@ -158,7 +158,7 @@ namespace DictionaryManagement_Common
                 new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 4},
                 new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 5}
             },
-            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsDuplicateTags = true,
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true
@@ -227,7 +227,7 @@ namespace DictionaryManagement_Common
                 new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 4},
                 new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 5}
             },
-            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsDuplicateTags = true,
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true
@@ -296,7 +296,7 @@ namespace DictionaryManagement_Common
                 new SheetHeader { SheetHeaderColumnName = "CorrectionReasonId", SheetHeaderColumnNumber = 4},
                 new SheetHeader { SheetHeaderColumnName = "CorrectionComment", SheetHeaderColumnNumber = 5}
             },
-            NeedCheckIsDuplicateTags = false,
+            NeedCheckIsDuplicateTags = true,
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true

@@ -22,8 +22,8 @@
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/reports">Отчёты</a> - <a href="/reports/ReportTemplate">Шаблоны отчётов</a></h6>
+        <div class="col-6">            
+            <h6 class="card-title text-primary"><a href="/reports">Отчёты</a> - <a href="/reports/ReportTemplate">Шаблоны отчётов</a></h6>            
         </div>
 
         @if (IsLoading != true)
@@ -531,7 +531,7 @@
             {
                 if (reportTemplateDTO.IsArchive != true)
                 {
-                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление шаблона отчёта", "Удалить шаблон \"" + reportTemplateDTO.Description + "\" в архив ?", "Удалить", "Отмена");
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление шаблона отчёта", "<strong>Удалить</strong> шаблон:<br/>\"" + reportTemplateDTO.Description + "\"<br/><strong>в архив ?</strong>", "Удалить", "Отмена");
                     if (selectionResult == false)
                     {
                         await _jsRuntime.ToastrSuccess("Отмена удаления");
@@ -554,13 +554,12 @@
                         var mesParamCodeList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(reportTemplateDTO.Id, settingDTO.Value, settingDTO.Value); ;
                         if (mesParamCodeList != null && mesParamCodeList.Any())
                         {
-                            string reportsStr = "|";
+                            string reportsStr = "";
                             foreach (var item in mesParamCodeList)
-                                reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
-                                    + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " тэг: " + item.MesParamCode + " | ";
-
-                            bool selectionResult2 = await _dialogs.ShowYesOrNoDialogBox("Восстановление шаблона отчёта", "Тэги листа OutputData встречаются на листе OutputData других не архивных шаблонов отчётов: "
-                                + reportsStr + ". ВСЁ РАВНО ВОССТАНОВИТЬ?", "Восстановить", "Отмена");
+                                reportsStr = reportsStr + "<li>Тэг: " + item.MesParamCode +  " Шаблон: " + item.ReportTemplateDTOFK.Description + "</li><br/>" ;
+                            bool selectionResult2 = await _dialogs.ShowYesOrNoDialogBox("Восстановление шаблона отчёта",
+                                "<strong><div style=\"color:red\">Тэги листа OutputData встречаются на листе OutputData других не архивных шаблонов отчётов.</strong></div><br/>"                                
+                                +"ВСЁ РАВНО ВОССТАНОВИТЬ?", "Восстановить", "Отмена", reportsStr);
                             if (selectionResult == false)
                             {
                                 await _jsRuntime.ToastrSuccess("Отмена восстановления");

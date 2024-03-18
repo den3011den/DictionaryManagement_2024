@@ -481,16 +481,20 @@
                 MesParamDTO oldMesParamDTO = await _mesParamRepository.GetById(ActiveMesParamDTO.Id);
 
                 if (oldMesParamDTO.Code.ToUpper() != ActiveMesParamDTO.Code.ToUpper())
-                {
+                {                    
                     var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(oldMesParamDTO.Code, reportTemplateIsInArchive: false);
                     if (reportTemplateListWithOldMesParamCode !=null && reportTemplateListWithOldMesParamCode.Any())
                     {
-                        string reportsStr = "|";
+                        string reportsStr2 = "";
                         foreach (var item in reportTemplateListWithOldMesParamCode)
-                            reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
-                                + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
-
-                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя менять код тэга. Код " + oldMesParamDTO.Code + " используется в не архивных шаблонах " + reportsStr);
+                        {
+                            string str1 = "<li>Лист: \"" + item.SheetName + "\"<br/>";
+                            reportsStr2 = reportsStr2 + str1 + " Шаблон: " + (item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.Description : "") + "</li><br/>";
+                        }
+                            
+                        await _dialogs.ShowYesOrNoDialogBox("Редактирование тэга",
+                                "<strong><div style=\"color:red\">Нельзя менять код данного тэга.<br/> Код тэга " + oldMesParamDTO.Code + " встречается на листах файлов не архивных шаблонов отчётов</strong></div><br/>"
+                                , "OK", "HIDE", reportsStr2);                        
                         return;
                     }
                 }

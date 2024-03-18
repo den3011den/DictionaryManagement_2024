@@ -2,22 +2,37 @@
 
 @code {
 
-
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
     }
 
-    public async Task<dynamic> ShowYesOrNoDialogBox(string windowTitle, string windowMessage, string actionButtonText, string cancelButtonText)
+    public async Task<dynamic> ShowYesOrNoDialogBox(string windowTitle, string windowMessage, string actionButtonText, string cancelButtonText, string fullWindowMessage = "")
     {
         var result = await DialogService.OpenAsync(windowTitle, ds =>
     @<RadzenStack Gap="1.5rem" Style="justify-content: center; align-items: center;">
-        <p>@windowMessage</p>
+        <p>@((MarkupString)windowMessage)</p>
+        @if(!String.IsNullOrEmpty(fullWindowMessage))
+    {
+        <text>@("Нажмите \"Подробнее\" для деталей")</text>
+        <details>
+            <summary style="color:blue;">Подробнее</summary>
+            <div style="overflow-y:scroll; height: 40vh">
+                @((MarkupString)fullWindowMessage)
+            </div>
+        </details>
+    }
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
             <RadzenStack Orientation="Orientation.Horizontal">
-                <RadzenButton Text="@actionButtonText" Click="() => ds.Close(true)" Style="width: 170px;" />
-                <RadzenButton Text="@cancelButtonText" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                @if(actionButtonText.Trim().ToUpper() != "HIDE")
+                {
+                    <RadzenButton Text="@actionButtonText" Click="() => ds.Close(true)" Style="width: 170px;" />
+                }
+                @if(cancelButtonText.Trim().ToUpper() != "HIDE")
+                {
+                    <RadzenButton Text="@cancelButtonText" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                }
             </RadzenStack>
         </RadzenStack>
     </RadzenStack>
