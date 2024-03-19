@@ -77,10 +77,18 @@ namespace DictionaryManagement_Business.Repository
                         objectToUpdate.ReportTemplateId = objectToUpdateDTO.ReportTemplateDTOFK.Id;
                         objectToUpdate.ReportTemplateFK = _mapper.Map<ReportTemplateDTO, ReportTemplate>(objectToUpdateDTO.ReportTemplateDTOFK);
                     }
-                    if (objectToUpdate.MesParamId != objectToUpdateDTO.MesParamDTOFK.Id)
+                    if (objectToUpdateDTO.MesParamId != null)
                     {
-                        objectToUpdate.MesParamId = objectToUpdateDTO.MesParamDTOFK.Id;
-                        objectToUpdate.MesParamFK = _mapper.Map<MesParamDTO, MesParam>(objectToUpdateDTO.MesParamDTOFK);
+                        if (objectToUpdate.MesParamId != objectToUpdateDTO.MesParamId)
+                        {
+                            objectToUpdate.MesParamId = objectToUpdateDTO.MesParamId;
+                            //objectToUpdate.MesParamFK = _mapper.Map<MesParamDTO, MesParam>(objectToUpdateDTO.MesParamDTOFK);
+                        }
+                    }
+                    else
+                    {
+                        objectToUpdate.MesParamId = null;
+                        objectToUpdate.MesParamFK = null;
                     }
                     if (objectToUpdate.MesParamCode != objectToUpdateDTO.MesParamCode)
                         objectToUpdate.MesParamCode = objectToUpdateDTO.MesParamCode == null ? objectToUpdateDTO.MesParamCode : objectToUpdateDTO.MesParamCode.Substring(0, Math.Min(100, objectToUpdateDTO.MesParamCode.Length));
@@ -381,7 +389,7 @@ namespace DictionaryManagement_Business.Repository
             var tmpList = await GetByMesParamCode(mesParamCode);
             if (tmpList != null && tmpList.Any())
             {
-                var tmpList2 = tmpList.Where(u => u.MesParamId != null).ToList();
+                var tmpList2 = tmpList.Where(u => u.MesParamId == null).ToList();
                 if (tmpList2 != null && tmpList2.Any())
                 {
                     foreach (var item in tmpList2)

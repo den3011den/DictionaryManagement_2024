@@ -2476,24 +2476,26 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(foundMesParamDTO.Code, reportTemplateIsInArchive: false);
                                 if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
                                 {
-                                    string reportsStr = "|";
+                                    string reportsStr = "";
                                     foreach (var item in reportTemplateListWithOldMesParamCode)
-                                        reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
-                                            + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
+                                    {
+                                        string str1 = "\n* Лист: \"" + item.SheetName + "\"";
+                                        reportsStr = reportsStr + str1 + " Шаблон: " + (item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.Description : "") + " ";
+                                    }
                                     haveErrors = true;
 
                                     if (foundMesParamDTO.Code.ToUpper() != changedMesParamDTO.Code.ToUpper())
                                     {
                                         resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Нельзя менять код тэга. Код "
-                                                + foundMesParamDTO.Code + " используется в НЕ архивных шаблонах отчётов " + reportsStr + " Изменения не применялись.";
+                                                + foundMesParamDTO.Code + " используется в НЕ архивных шаблонах отчётов:\n " + reportsStr + "\n Изменения не применялись.";
                                         await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
                                         rowNumber++;
                                         continue;
                                     }
                                     else
                                     {
-                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 34. Нельзя удалять тэг в архив. Используется в НЕ архивных шаблонах отчётов "
-                                            + reportsStr + " Изменения не применялись.";
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 34. Нельзя удалять тэг в архив. Используется в НЕ архивных шаблонах отчётов:\n "
+                                            + reportsStr + " \nИзменения не применялись.";
                                         await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 34 }, resultString);
                                         rowNumber++;
                                         continue;

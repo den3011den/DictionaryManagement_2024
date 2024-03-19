@@ -411,7 +411,7 @@
 
                 await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: addedDTO, "Добавление тэга СИР", "Тэг: ", _authorizationRepository);
 
-                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Name + "\" создан");
+                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Code + "\" создан");
                 _dialogService.Close(ActiveMesParamDTO);
 
             }
@@ -505,7 +505,7 @@
 
                 await _reportTemplateToMesParamRepository.UpdateEmptyMesParamIdByMesParamCode(newMesParamDTO.Code, newMesParamDTO.Id);
 
-                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Name + "\" изменён");
+                await _jsRuntime.ToastrSuccess("Тэг СИР \"" + ActiveMesParamDTO.Code + "\" изменён");
 
                 await GetFKForActiveMesParamDTO();
 
