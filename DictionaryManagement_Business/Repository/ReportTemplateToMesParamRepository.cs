@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ClosedXML.Excel;
 using DictionaryManagement_Business.Repository.IRepository;
+using DictionaryManagement_Common;
 using DictionaryManagement_DataAccess.Data.IntDB;
 using DictionaryManagement_Models.IntDBModels;
 using DND.EFCoreWithNoLock.Extensions;
@@ -12,11 +13,15 @@ namespace DictionaryManagement_Business.Repository
     {
         private readonly IntDBApplicationDbContext _db;
         private readonly IMapper _mapper;
+        private readonly IReportTemplateRepository _reportTemplateRepository;
+        private readonly IReportTemplateTypeRepository _reportTemplateTypeRepository;
 
-        public ReportTemplateToMesParamRepository(IntDBApplicationDbContext db, IMapper mapper)
+        public ReportTemplateToMesParamRepository(IntDBApplicationDbContext db, IMapper mapper, IReportTemplateRepository reportTemplateRepository, IReportTemplateTypeRepository reportTemplateTypeRepository)
         {
             _db = db;
             _mapper = mapper;
+            _reportTemplateRepository = reportTemplateRepository;
+            _reportTemplateTypeRepository = reportTemplateTypeRepository;
         }
 
         public async Task<ReportTemplateToMesParamDTO?> Create(ReportTemplateToMesParamDTO objectToAddDTO)
@@ -402,10 +407,29 @@ namespace DictionaryManagement_Business.Repository
 
                 if (sourceList != null && sourceList.Any())
                 {
+                    var reportTemplateDTO = await _reportTemplateRepository.GetById(sourceReportTemplateId);
+                    int findReportTemplateTypeId1 = -999999;
+                    int findReportTemplateTypeId2 = -999999;
+                    if (reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
+                        || reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.NdoReportTemplateTypeName.Trim().ToUpper())
+                    {
+                        findReportTemplateTypeId1 = reportTemplateDTO.ReportTemplateTypeDTOFK.Id;
+                    }
+
+                    if (reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                        || reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.TebReportTemplateTypeName.Trim().ToUpper())
+                    {
+                        var dto1 = await _reportTemplateTypeRepository.GetByName(SD.EmbReportTemplateTypeName);
+                        if (dto1 != null) { findReportTemplateTypeId1 = dto1.Id; }
+                        var dto2 = await _reportTemplateTypeRepository.GetByName(SD.TebReportTemplateTypeName);
+                        if (dto2 != null) { findReportTemplateTypeId2 = dto2.Id; }
+                    }
+
                     var destList = _db.ReportTemplateToMesParam
                         .Include("ReportTemplateFK")
                         .Include("MesParamFK")
-                        .Where(u => u.ReportTemplateFK.IsArchive != true && u.SheetName.ToUpper() == destSheetName.ToUpper())
+                        .Where(u => u.ReportTemplateFK.IsArchive != true && u.SheetName.ToUpper() == destSheetName.ToUpper()
+                            && (u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId1 || u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId2))
                         .ToListWithNoLock();
                     if (destList != null && destList.Any())
                     {

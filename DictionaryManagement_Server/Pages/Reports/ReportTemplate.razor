@@ -558,15 +558,13 @@
                             foreach (var item in mesParamCodeList)
                                 reportsStr = reportsStr + "<li>Тэг: " + item.MesParamCode +  " Шаблон: " + item.ReportTemplateDTOFK.Description + "</li><br/>" ;
                             bool selectionResult2 = await _dialogs.ShowYesOrNoDialogBox("Восстановление шаблона отчёта",
-                                "<strong><div style=\"color:red\">Тэги листа OutputData встречаются на листе OutputData других не архивных шаблонов отчётов.</strong></div><br/>"                                
-                                +"ВСЁ РАВНО ВОССТАНОВИТЬ?", "Восстановить", "Отмена", reportsStr);
-                            if (selectionResult == false)
+                                "<strong><div style=\"color:red\">Тэги листа OutputData встречаются на листе OutputData других не архивных шаблонов отчётов.</div><br/>"
+                                + "ВСЁ РАВНО ВОССТАНОВИТЬ?</strong>", "Восстановить", "Отмена", reportsStr);
+                            if (selectionResult2 == false)
                             {
                                 await _jsRuntime.ToastrSuccess("Отмена восстановления");
                                 return;
-                            }
-
-                            return;
+                            }                            
                         }                                                         
                     }
                 }

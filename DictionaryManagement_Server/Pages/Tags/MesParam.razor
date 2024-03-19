@@ -509,14 +509,17 @@
                     var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(mesParamDTO.Code, reportTemplateIsInArchive: false);
                     if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
                     {
-                        string reportsStr = "|";
+                        string reportsStr = "";
                         foreach (var item in reportTemplateListWithOldMesParamCode)
-                            reportsStr = reportsStr + "шаблон: " + item.ReportTemplateId.ToString() + " тип: "
-                                + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : " --- лист: " + item.SheetName + " | ";
-                        await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Нельзя удалять в архив тэг. Код " + mesParamDTO.Code + " используется в не архивных шаблонах: " + reportsStr);
+                        {
+                            string str1 = "<li>Лист: \"" + item.SheetName + "\"<br/>";
+                            reportsStr = reportsStr + str1 + " Шаблон: " + (item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.Description : "") + "</li><br/>";
+                        }
+                        await _dialogs.ShowYesOrNoDialogBox("Удаление тэга в архив",
+                            "<strong><div style=\"color:red\">Нельзя удалять данный тэг в архив.<br/> Код тэга " + mesParamDTO.Code + " встречается на листах файлов не архивных шаблонов отчётов</strong></div><br/>"
+                            , "OK", "HIDE", reportsStr);
                         return;
                     }
-
                 }
                 else
                 {
