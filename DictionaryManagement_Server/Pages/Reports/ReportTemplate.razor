@@ -551,7 +551,7 @@
 
                     if (settingDTO != null)
                     {
-                        var mesParamCodeList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(reportTemplateDTO.Id, settingDTO.Value, settingDTO.Value); ;
+                        var mesParamCodeList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(reportTemplateDTO.Id, settingDTO.Value, settingDTO.Value);
                         if (mesParamCodeList != null && mesParamCodeList.Any())
                         {
                             string reportsStr = "";
