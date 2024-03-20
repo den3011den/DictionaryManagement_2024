@@ -22,8 +22,8 @@
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-        <div class="col-6">            
-            <h6 class="card-title text-primary"><a href="/reports">Отчёты</a> - <a href="/reports/ReportTemplate">Шаблоны отчётов</a></h6>            
+        <div class="col-6">
+            <h6 class="card-title text-primary"><a href="/reports">Отчёты</a> - <a href="/reports/ReportTemplate">Шаблоны отчётов</a></h6>
         </div>
 
         @if (IsLoading != true)
@@ -549,14 +549,26 @@
 
                     var settingDTO = await _settingsRepository.GetByName(SD.ReportOutputSheetSettingName);
 
-                    if(settingDTO != null)
+                    if (settingDTO != null)
                     {
                         var mesParamCodeList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(reportTemplateDTO.Id, settingDTO.Value, settingDTO.Value); ;
                         if (mesParamCodeList != null && mesParamCodeList.Any())
                         {
                             string reportsStr = "";
+                            string templateStrId = "";
+                            string templateStrType = "";
+                            string templateStrDepartment = "";
                             foreach (var item in mesParamCodeList)
-                                reportsStr = reportsStr + "<li>Тэг: " + item.MesParamCode +  " Шаблон: " + item.ReportTemplateDTOFK.Description + "</li><br/>" ;
+                            {
+                                templateStrId = item.ReportTemplateId.ToString();
+                                templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                                templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                                reportsStr = reportsStr + "<li>Тэг: " + item.MesParamCode
+                                    + "<br/> Ид шаблона: " + templateStrId + "<br/> Тип: "
+                                    + templateStrType + "<br/> Производство: "
+                                    + templateStrDepartment + "</li><br/>";
+
+                            }
                             bool selectionResult2 = await _dialogs.ShowYesOrNoDialogBox("Восстановление шаблона отчёта",
                                 "<strong><div style=\"color:red\">Тэги листа OutputData встречаются на листе OutputData других не архивных шаблонов отчётов.</div><br/>"
                                 + "ВСЁ РАВНО ВОССТАНОВИТЬ?</strong>", "Восстановить", "Отмена", reportsStr);
@@ -564,8 +576,8 @@
                             {
                                 await _jsRuntime.ToastrSuccess("Отмена восстановления");
                                 return;
-                            }                            
-                        }                                                         
+                            }
+                        }
                     }
                 }
             }
@@ -939,7 +951,7 @@
     async Task GoToPosition(ReportTemplateDTO? reportTemplateDTO)
     {
         if (reportTemplateDTO != null)
-        {            
+        {
             var selectedItem = reportTemplateDTOGrid.View.FirstOrDefault(u => u.Id == reportTemplateDTO.Id);
             await reportTemplateDTOGrid.SelectRow(selectedItem, true);
             await _jsRuntime.InvokeVoidAsync("eval", "(document.getElementById('" + reportTemplateDTO.ToStringId.ToUpper() + "') !==null) ? (document.getElementById('" + reportTemplateDTO.ToStringId.ToUpper() + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");

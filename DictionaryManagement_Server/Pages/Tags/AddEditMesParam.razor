@@ -485,10 +485,19 @@
                     if (reportTemplateListWithOldMesParamCode !=null && reportTemplateListWithOldMesParamCode.Any())
                     {
                         string reportsStr2 = "";
+                        string templateStrId = "";
+                        string templateStrType = "";
+                        string templateStrDepartment = "";
+
                         foreach (var item in reportTemplateListWithOldMesParamCode)
-                        {
-                            string str1 = "<li>Лист: \"" + item.SheetName + "\"<br/>";
-                            reportsStr2 = reportsStr2 + str1 + " Шаблон: " + (item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.Description : "") + "</li><br/>";
+                        {                            
+                            templateStrId = item.ReportTemplateId.ToString();
+                            templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                            templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                            reportsStr2 = reportsStr2 + "<li>Лист: " + item.SheetName
+                                + "<br/> Ид шаблона: " + templateStrId + "<br/> Тип: "
+                                + templateStrType + "<br/> Производство: "
+                                + templateStrDepartment + "</li><br/>";
                         }
                             
                         await _dialogs.ShowYesOrNoDialogBox("Редактирование тэга",

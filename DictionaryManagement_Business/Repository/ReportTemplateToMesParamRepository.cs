@@ -50,6 +50,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var objToGet = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .FirstOrDefaultWithNoLock(u => u.Id == id);
                 if (objToGet != null)
@@ -68,6 +70,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var objectToUpdate = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .FirstOrDefaultWithNoLock(u => u.Id == objectToUpdateDTO.Id);
                 if (objectToUpdate != null)
@@ -128,6 +132,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var hhh = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .ToListWithNoLock();
 
@@ -144,6 +150,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var objToGet = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .Where(u => u.ReportTemplateId == reportTemplateId)
                     .ToListWithNoLock();
@@ -162,6 +170,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var objToGet = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .Where(u => u.MesParamId == mesParamId)
                     .ToListWithNoLock();
@@ -182,6 +192,8 @@ namespace DictionaryManagement_Business.Repository
                 {
                     var objToGet = _db.ReportTemplateToMesParam
                         .Include("ReportTemplateFK")
+                        .Include("ReportTemplateFK.MesDepartmentFK")
+                        .Include("ReportTemplateFK.ReportTemplateTypeFK")
                         .Include("MesParamFK")
                         .Where(u => u.MesParamCode == mesParamCode)
                         .ToListWithNoLock();
@@ -194,6 +206,8 @@ namespace DictionaryManagement_Business.Repository
                 {
                     var objToGet = _db.ReportTemplateToMesParam
                         .Include("ReportTemplateFK")
+                        .Include("ReportTemplateFK.MesDepartmentFK")
+                        .Include("ReportTemplateFK.ReportTemplateTypeFK")
                         .Include("MesParamFK")
                         .Where(u => u.MesParamCode == mesParamCode && u.ReportTemplateFK.IsArchive == reportTemplateIsInArchive)
                         .ToListWithNoLock();
@@ -213,6 +227,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var objToGet = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .Where(u => u.SheetName.ToUpper() == sheetName.ToUpper())
                     .ToListWithNoLock();
@@ -260,6 +276,8 @@ namespace DictionaryManagement_Business.Repository
                 {
                     var objToGet = _db.ReportTemplateToMesParam
                         .Include("ReportTemplateFK")
+                        .Include("ReportTemplateFK.MesDepartmentFK")
+                        .Include("ReportTemplateFK.ReportTemplateTypeFK")
                         .Include("MesParamFK")
                         .Where(u => u.MesParamId == mesParamId && u.MesParamCode == mesParamCode.ToUpper())
                         .ToListWithNoLock();
@@ -280,6 +298,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var objToGet = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .Where(u => u.ReportTemplateId == reportTemplateTypeId && u.MesParamId == mesParamId && u.SheetName.ToUpper() == sheetName.ToUpper())
                     .ToListWithNoLock();
@@ -298,6 +318,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var objToGet = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .Where(u => u.ReportTemplateId == reportTemplateTypeId && u.MesParamCode == mesParamCode && u.SheetName.ToUpper() == sheetName.ToUpper())
                     .ToListWithNoLock();
@@ -409,6 +431,8 @@ namespace DictionaryManagement_Business.Repository
             {
                 var sourceList = _db.ReportTemplateToMesParam
                     .Include("ReportTemplateFK")
+                    .Include("ReportTemplateFK.MesDepartmentFK")
+                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
                     .Include("MesParamFK")
                     .Where(u => u.ReportTemplateId == sourceReportTemplateId && u.SheetName.ToUpper() == sourceSheetName.ToUpper())
                     .ToListWithNoLock();
@@ -435,6 +459,8 @@ namespace DictionaryManagement_Business.Repository
 
                     var destList = _db.ReportTemplateToMesParam
                         .Include("ReportTemplateFK")
+                        .Include("ReportTemplateFK.MesDepartmentFK")
+                        .Include("ReportTemplateFK.ReportTemplateTypeFK")
                         .Include("MesParamFK")
                         .Where(u => u.ReportTemplateFK.IsArchive != true && u.SheetName.ToUpper() == destSheetName.ToUpper()
                             && (u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId1 || u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId2))

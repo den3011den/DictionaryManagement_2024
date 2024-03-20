@@ -2477,10 +2477,26 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
                                 {
                                     string reportsStr = "";
+
+                                    string templateStrId = "";
+                                    string templateStrType = "";
+                                    string templateStrDepartment = "";
+
+
                                     foreach (var item in reportTemplateListWithOldMesParamCode)
                                     {
                                         string str1 = "\n* Лист: \"" + item.SheetName + "\"";
-                                        reportsStr = reportsStr + str1 + " Шаблон: " + (item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.Description : "") + " ";
+                                        string templateStr = "ид: " + item.ReportTemplateId.ToString()
+                                                + " тип: " + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : ""
+                                                + " производство: " + item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+
+                                        templateStrId = item.ReportTemplateId.ToString();
+                                        templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                                        templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                                        reportsStr = reportsStr + "\n* Лист: \"" + item.SheetName + "\""
+                                            + " Ид шаблона: " + templateStrId + " Тип: "
+                                            + templateStrType + " Производство: "
+                                            + templateStrDepartment;
                                     }
                                     haveErrors = true;
 

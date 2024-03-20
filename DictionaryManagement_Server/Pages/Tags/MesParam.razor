@@ -508,12 +508,20 @@
 
                     var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(mesParamDTO.Code, reportTemplateIsInArchive: false);
                     if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
-                    {
+                    {                        
+                        string templateStrId = "";
+                        string templateStrType = "";
+                        string templateStrDepartment = "";
                         string reportsStr = "";
                         foreach (var item in reportTemplateListWithOldMesParamCode)
-                        {
-                            string str1 = "<li>Лист: \"" + item.SheetName + "\"<br/>";
-                            reportsStr = reportsStr + str1 + " Шаблон: " + (item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.Description : "") + "</li><br/>";
+                        {                            
+                            templateStrId = item.ReportTemplateId.ToString();
+                            templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                            templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName: "") : "";
+                            reportsStr = reportsStr + "<li>Лист: " + item.SheetName 
+                                + "<br/> Ид шаблона: " + templateStrId + "<br/> Тип: " 
+                                + templateStrType + "<br/> Производство: " 
+                                + templateStrDepartment + "</li><br/>";
                         }
                         await _dialogs.ShowYesOrNoDialogBox("Удаление тэга в архив",
                             "<strong><div style=\"color:red\">Нельзя удалять данный тэг в архив.<br/> Код тэга " + mesParamDTO.Code + " встречается на листах файлов не архивных шаблонов отчётов</strong></div><br/>"
