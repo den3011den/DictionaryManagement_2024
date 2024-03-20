@@ -425,36 +425,64 @@ namespace DictionaryManagement_Business.Repository
             return retCount;
         }
 
-        public async Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetTagListInOtherNotArchiveReportTemplatesBySheetName(Guid sourceReportTemplateId, string sourceSheetName, string destSheetName)
+        public async Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetTagListInOtherNotArchiveReportTemplatesBySheetName(Guid sourceReportTemplateId, string sourceSheetName, string destSheetName
+                , List<string> sourceCodeList = null, string reportTemplateTypeName = null)
         {
             try
             {
-                var sourceList = _db.ReportTemplateToMesParam
-                    .Include("ReportTemplateFK")
-                    .Include("ReportTemplateFK.MesDepartmentFK")
-                    .Include("ReportTemplateFK.ReportTemplateTypeFK")
-                    .Include("MesParamFK")
-                    .Where(u => u.ReportTemplateId == sourceReportTemplateId && u.SheetName.ToUpper() == sourceSheetName.ToUpper())
-                    .ToListWithNoLock();
-
-                if (sourceList != null && sourceList.Any())
+                List<string> sourceList = null;
+                if (sourceCodeList != null)
                 {
-                    var reportTemplateDTO = await _reportTemplateRepository.GetById(sourceReportTemplateId);
+                    sourceList = sourceCodeList.Distinct().ToList();
+                }
+                else
+                {
+                    var sourceListTmp = _db.ReportTemplateToMesParam
+                        .Where(u => u.ReportTemplateId == sourceReportTemplateId && u.SheetName.ToUpper() == sourceSheetName.ToUpper())
+                        .ToListWithNoLock();
+                    if (sourceListTmp != null && sourceListTmp.Any())
+                    {
+                        sourceList = sourceListTmp.Select(u => u.MesParamCode).Distinct().ToList();
+                    }
+                }
+
+                if ((sourceList != null && sourceList.Any()) || (sourceCodeList != null && sourceCodeList.Any()))
+                {
                     int findReportTemplateTypeId1 = -999999;
                     int findReportTemplateTypeId2 = -999999;
-                    if (reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
-                        || reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.NdoReportTemplateTypeName.Trim().ToUpper())
+
+
+                    string reportTemplateTypeNameToCompare = "";
+                    if (String.IsNullOrEmpty(reportTemplateTypeName))
                     {
-                        findReportTemplateTypeId1 = reportTemplateDTO.ReportTemplateTypeDTOFK.Id;
+                        var reportTemplateDTO = await _reportTemplateRepository.GetById(sourceReportTemplateId);
+                        if (reportTemplateDTO != null)
+                            reportTemplateTypeNameToCompare = reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper();
+                    }
+                    else
+                    {
+                        reportTemplateTypeNameToCompare = reportTemplateTypeName.Trim().ToUpper();
                     }
 
-                    if (reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.EmbReportTemplateTypeName.Trim().ToUpper()
-                        || reportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.TebReportTemplateTypeName.Trim().ToUpper())
+                    if (reportTemplateTypeNameToCompare == SD.CorrectionReportTemplateTypeName.Trim().ToUpper())
                     {
-                        var dto1 = await _reportTemplateTypeRepository.GetByName(SD.EmbReportTemplateTypeName);
+                        var dto1 = await _reportTemplateTypeRepository.GetByName(reportTemplateTypeNameToCompare);
                         if (dto1 != null) { findReportTemplateTypeId1 = dto1.Id; }
-                        var dto2 = await _reportTemplateTypeRepository.GetByName(SD.TebReportTemplateTypeName);
-                        if (dto2 != null) { findReportTemplateTypeId2 = dto2.Id; }
+                    }
+                    else
+                    {
+                        if (reportTemplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                            || reportTemplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
+                        {
+                            var dto1 = await _reportTemplateTypeRepository.GetByName(SD.EmbReportTemplateTypeName);
+                            if (dto1 != null) { findReportTemplateTypeId1 = dto1.Id; }
+                            var dto2 = await _reportTemplateTypeRepository.GetByName(SD.TebReportTemplateTypeName);
+                            if (dto2 != null) { findReportTemplateTypeId2 = dto2.Id; }
+                        }
+                        else
+                        {
+                            return null;
+                        }
                     }
 
                     var destList = _db.ReportTemplateToMesParam
@@ -463,24 +491,25 @@ namespace DictionaryManagement_Business.Repository
                         .Include("ReportTemplateFK.ReportTemplateTypeFK")
                         .Include("MesParamFK")
                         .Where(u => u.ReportTemplateFK.IsArchive != true && u.SheetName.ToUpper() == destSheetName.ToUpper()
-                            && (u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId1 || u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId2))
+                            && (u.ReportTemplateId != sourceReportTemplateId && u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId1 || u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId2))
                         .ToListWithNoLock();
+
                     if (destList != null && destList.Any())
                     {
-
-                        var resultList = (from destListAlias in destList
-                                          join sourceListAlias in sourceList on destListAlias.MesParamCode equals sourceListAlias.MesParamCode
-                                          select
-                                                new ReportTemplateToMesParam
-                                                {
-                                                    Id = destListAlias.Id,
-                                                    ReportTemplateId = destListAlias.ReportTemplateId,
-                                                    ReportTemplateFK = destListAlias.ReportTemplateFK,
-                                                    MesParamCode = destListAlias.MesParamCode,
-                                                    MesParamId = destListAlias.MesParamId,
-                                                    MesParamFK = destListAlias.MesParamFK,
-                                                    SheetName = destListAlias.SheetName,
-                                                }).ToList();
+                        IEnumerable<ReportTemplateToMesParam> resultList = null;
+                        resultList = (from destListAlias in destList
+                                      join sourceListAlias in sourceList on destListAlias.MesParamCode equals sourceListAlias
+                                      select
+                                            new ReportTemplateToMesParam
+                                            {
+                                                Id = destListAlias.Id,
+                                                ReportTemplateId = destListAlias.ReportTemplateId,
+                                                ReportTemplateFK = destListAlias.ReportTemplateFK,
+                                                MesParamCode = destListAlias.MesParamCode,
+                                                MesParamId = destListAlias.MesParamId,
+                                                MesParamFK = destListAlias.MesParamFK,
+                                                SheetName = destListAlias.SheetName,
+                                            }).ToList();
                         if (resultList != null && resultList.Any())
                         {
                             return _mapper.Map<IEnumerable<ReportTemplateToMesParam>, IEnumerable<ReportTemplateToMesParamDTO>>(resultList);

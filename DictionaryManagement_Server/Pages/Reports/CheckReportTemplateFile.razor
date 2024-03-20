@@ -1,4 +1,4 @@
-﻿@page "/reports/ReportTemplate/AddEditReportTemplate/CheckReportTemplateFile/{ReportTemplateFilePath}/{ReportTemplateTypeName}"
+﻿@page "/reports/ReportTemplate/AddEditReportTemplate/ReportTemplateId/CheckReportTemplateFile/{ReportTemplateFilePath}/{ReportTemplateTypeName}"
 
 @attribute [Authorize]
 
@@ -74,6 +74,8 @@
 
     IEnumerable<MesParamDTO> mesParamDTOList { get; set; }
 
+    [Parameter]
+    public Guid ReportTemplateId { get; set; }
     [Parameter]
     public string ReportTemplateFilePath { get; set; }
     [Parameter]
@@ -277,7 +279,7 @@
 
                             bool duplicateFlag = false;
 
-                            List<string>? duplicateTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsDuplicate);
+                            List<string>? duplicateTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsDuplicate, ReportTemplateTypeName, ReportTemplateId);
 
                             if (duplicateTagList != null && duplicateTagList.Count() > 0)
                             {
@@ -306,7 +308,7 @@
 
                             bool notInBaseFlag = false;
 
-                            List<string>? notInBaseTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsNotInBase);
+                            List<string>? notInBaseTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsNotInBase, ReportTemplateTypeName, ReportTemplateId);
 
                             if (notInBaseTagList != null && notInBaseTagList.Count() > 0)
                             {
@@ -335,7 +337,7 @@
 
                             bool notInArchiveFlag = false;
 
-                            List<string>? notInArchiveTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsInArchive);
+                            List<string>? notInArchiveTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsInArchive, ReportTemplateTypeName, ReportTemplateId);
 
                             if (notInArchiveTagList != null && notInArchiveTagList.Count() > 0)
                             {
@@ -354,6 +356,34 @@
                             else
                             {
                                 await LogConsole($"!!! Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
+                                retFlag = false;
+                            }
+                        }
+                        if (sheetTemplate.NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName)
+                        {
+                            await LogConsole($" Проверка нахождения тэгов на листе \"{sheetTemplate.SheetName}\" в других не архивных шаблонах отчётов на листе \"{sheetTemplate.SheetName}\" ...");
+
+                            bool isInOtherNotArchiveReportTemplatesFlag = false;
+
+                            List<string>? inOtherNotArchiveReportTemplatesTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsInOtherNotArchiveReportTemplatesBySheetName, ReportTemplateTypeName, ReportTemplateId);
+
+                            if (inOtherNotArchiveReportTemplatesTagList != null && inOtherNotArchiveReportTemplatesTagList.Count() > 0)
+                            {
+
+                                foreach (var item in inOtherNotArchiveReportTemplatesTagList)
+                                {
+                                    await LogConsole($"!!! {item}.", AlertStyle.Danger);
+                                    isInOtherNotArchiveReportTemplatesFlag = true;
+                                }
+                            }
+
+                            if (!isInOtherNotArchiveReportTemplatesFlag)
+                            {
+                                await LogConsole($" Проверка нахождения тэгов на листе \"{sheetTemplate.SheetName}\" в других не архивных шаблонах отчётов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                            }
+                            else
+                            {
+                                await LogConsole($"!!!  Проверка нахождения тэгов на листе \"{sheetTemplate.SheetName}\" в других не архивных шаблонах отчётов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
                                 retFlag = false;
                             }
                         }

@@ -430,7 +430,7 @@
                 IXLWorkbook? xLWorkbook = null;
                 bool reportTemplateFileSaveAbordedResult = false;
                 IEnumerable<MesParamDTO> mesParamListDTO;
-                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
 
                 xLWorkbook = tmpVar.Item1;
                 reportTemplateFileSaveAbordedResult = tmpVar.Item2;
@@ -518,7 +518,7 @@
                 IXLWorkbook? xLWorkbook = null;
                 bool reportTemplateFileSaveAbordedResult = false;
                 IEnumerable<MesParamDTO> mesParamListDTO;
-                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
 
                 xLWorkbook = tmpVar.Item1;
                 reportTemplateFileSaveAbordedResult = tmpVar.Item2;
@@ -682,7 +682,8 @@
                     "Проверка файла шаблона отчёта - " + reportTemplateDTO.Id.ToString() + " - " + reportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + reportTemplateDTO.MesDepartmentDTOFK.Name,
                     new Dictionary
                     <string, object>
-                    () { { "ReportTemplateFilePath", filepath.HideSlash() },
+                    () { { "ReportTemplateId", reportTemplateDTO.Id },
+                         { "ReportTemplateFilePath", filepath.HideSlash() },
                          { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
                          { "ForSave", false } }
                     , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
@@ -811,7 +812,7 @@
             return false;
     }
 
-    private async Task<Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>>> ReportTemplateFileSaveAborded(string fileFullPath)
+    private async Task<Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>>> ReportTemplateFileSaveAborded(Guid reportTemplateId, string fileFullPath)
     {
         if (NeedCheckReportTemplateBeforeSaving)
         {

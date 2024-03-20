@@ -11,11 +11,14 @@ namespace DictionaryManagement_Business.Repository
     {
         private readonly IntDBApplicationDbContext _db;
         private readonly IMapper _mapper;
+        private readonly IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository;
 
-        public CheckReportTemplateRepository(IntDBApplicationDbContext db, IMapper mapper)
+        public CheckReportTemplateRepository(IntDBApplicationDbContext db, IMapper mapper, IReportTemplateToMesParamRepository reportTemplateToMesParamRepository)
         {
             _db = db;
             _mapper = mapper;
+            _reportTemplateToMesParamRepository = reportTemplateToMesParamRepository;
+
         }
 
         public record OutputDataRecord
@@ -70,7 +73,8 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType)
+        public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType
+            , string reportTemplateTypeName, Guid reportTemplateId)
         {
             List<string> mesParamCodeList;
             List<OutputDataRecord> outputDataList = new List<OutputDataRecord>();
@@ -126,6 +130,39 @@ namespace DictionaryManagement_Business.Repository
                         { return isInArchiveList; }
                         else
                         { return null; }
+                    }
+                case CheckReportTemplateTagsType.IsInOtherNotArchiveReportTemplatesBySheetName:
+                    {
+                        mesParamCodeList = outputDataList.Select(u => u.MesParamCode).ToList();
+
+                        var reportTemplateToMesParamList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(
+                                reportTemplateId, worksheet.Name, worksheet.Name, mesParamCodeList, reportTemplateTypeName);
+
+                        if (reportTemplateToMesParamList != null && reportTemplateToMesParamList.Any())
+                        {
+                            string templateStrId = "";
+                            string templateStrType = "";
+                            string templateStrDepartment = "";
+                            string reportsStr = "";
+                            List<string> listToReturn = new List<string>();
+                            foreach (var item in reportTemplateToMesParamList.OrderBy(u => u.ReportTemplateId))
+                            {
+                                templateStrId = item.ReportTemplateId.ToString();
+                                templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                                templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                                reportsStr = "Тэг: " + item.MesParamCode + " присутствует на листе \"" + worksheet.Name + "\""
+                                    + " Ид шаблона: " + templateStrId + " Тип: "
+                                    + templateStrType + " Производство: "
+                                    + templateStrDepartment + " ";
+                                listToReturn.Add(reportsStr);
+
+                            }
+                            if (listToReturn.Any())
+                            { return listToReturn; }
+                            else
+                            { return null; }
+                        }
+                        return null;
                     }
             }
 
