@@ -19,7 +19,7 @@ namespace DictionaryManagement_Business.Repository.IRepository
         public Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetReportTemplateIdAndMesParamCodeAndSheetName(Guid reportTemplateTypeId, string mesParamCode, string sheetName);
         public Task<int> DeleteAllByReportTemplateId(Guid reportTemplateId);
         public Task<int> CreateByList(IEnumerable<ReportTemplateToMesParamDTO> listToAddDTO);
-        public Task AddFromWorksheet(Guid reportTemplateId, IXLWorkbook workbook, string sheetName, string columnName, IEnumerable<MesParamDTO> mesParamListDTO);
+        public Task AddFromWorksheet(Guid reportTemplateId, IXLWorkbook workbook, string sheetName, string columnName, int skipRowsCount, IEnumerable<MesParamDTO> mesParamListDTO);
         public Task<int> UpdateEmptyMesParamIdByMesParamCode(string mesParamCode, int mesParamId);
         public Task<IEnumerable<ReportTemplateToMesParamDTO>?> GetTagListInOtherNotArchiveReportTemplatesBySheetName(Guid sourceReportTemplateId, string sourceSheetName
             , string destSheetName, List<string> sourceCodeList = null, string reportTemplateTypeName = null);

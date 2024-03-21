@@ -373,12 +373,12 @@ namespace DictionaryManagement_Business.Repository
             return 0;
         }
 
-        public async Task AddFromWorksheet(Guid reportTemplateId, IXLWorkbook workbook, string sheetName, string columnName, IEnumerable<MesParamDTO> mesParamListDTO)
+        public async Task AddFromWorksheet(Guid reportTemplateId, IXLWorkbook workbook, string sheetName, string columnName, int skipRowsCount, IEnumerable<MesParamDTO> mesParamListDTO)
         {
             workbook.TryGetWorksheet(sheetName, out IXLWorksheet worksheet);
             if (worksheet != null)
             {
-                var mesParamCodeList = worksheet.Range(columnName + ":" + columnName).CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+                var mesParamCodeList = worksheet.Range(columnName + (1 + skipRowsCount).ToString() + ":" + columnName + "1000000").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).ToList();
                 mesParamCodeList = mesParamCodeList.Where(u => !String.IsNullOrEmpty(u.Trim())).Distinct().ToList();
 
 

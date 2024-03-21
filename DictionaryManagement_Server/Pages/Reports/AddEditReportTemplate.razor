@@ -853,26 +853,26 @@
                 || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
             {
                 // добавление тэгов TagLibrary
-                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "TagLibrary", "A", mesParamListDTOPar);
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "TagLibrary", "A", 1, mesParamListDTOPar);
                 // добавление тэгов OutputData
-                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "OutputData", "A", mesParamListDTOPar);
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "OutputData", "A", 1, mesParamListDTOPar);
             }
             if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()    
                 || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
             {
                 // добавление тэгов Отчет матрица
-                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчет матрица", "P", mesParamListDTOPar);
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчет матрица", "P", 9, mesParamListDTOPar);
             }
             else
             if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper()
                 || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper())
             {
-                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчёт матрица", "P", mesParamListDTOPar);
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчёт матрица", "P", 9, mesParamListDTOPar);
             }
             if (reportTeplateTypeName == SD.CorrectionReportTemplateTypeName.Trim().ToUpper())
             {
                 // добавление тэгов Форма корректировок
-                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Форма корректировок", "N", mesParamListDTOPar);
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Форма корректировок", "N", 10, mesParamListDTOPar);
             }
         }
     }
