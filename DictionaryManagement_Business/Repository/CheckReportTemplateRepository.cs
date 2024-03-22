@@ -98,7 +98,7 @@ namespace DictionaryManagement_Business.Repository
                         List<string> duplicateList = new List<string>();
                         if (worksheet.Name.Trim().ToUpper() == "OUTPUTDATA")
                         {
-                            duplicateList = outputDataList.GroupBy(u => new { u.MesParamCode, u.ValueTime }).Where(u => u.Count() > 1)
+                            duplicateList = outputDataList.GroupBy(u => new { u.MesParamCode, u.ValueTime }).Where(u => u.Count() > 1 && !String.IsNullOrEmpty(u.Key.ValueTime))
                                 .Select(u => u.Key.MesParamCode + " на дату " + u.Key.ValueTime).ToList();
                         }
                         else

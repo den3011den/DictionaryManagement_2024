@@ -491,7 +491,7 @@ namespace DictionaryManagement_Business.Repository
                         .Include("ReportTemplateFK.ReportTemplateTypeFK")
                         .Include("MesParamFK")
                         .Where(u => u.ReportTemplateFK.IsArchive != true && u.SheetName.ToUpper() == destSheetName.ToUpper()
-                            && (u.ReportTemplateId != sourceReportTemplateId && u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId1 || u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId2))
+                            && (u.ReportTemplateId != sourceReportTemplateId && (u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId1 || u.ReportTemplateFK.ReportTemplateTypeId == findReportTemplateTypeId2)))
                         .ToListWithNoLock();
 
                     if (destList != null && destList.Any())
