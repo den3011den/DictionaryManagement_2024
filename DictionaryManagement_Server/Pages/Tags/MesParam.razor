@@ -50,7 +50,7 @@
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false"
-                               @bind-Value=@selectedTableMesParam                               
+                               @bind-Value=@selectedTableMesParam
                                RowDoubleClick="() => EditRow(selectedTableMesParam.FirstOrDefault(), SD.EditMode.Edit)">                               
 
                 @* Style="width: 100vw - document.querySelector('.navNenuDiv').getBoundingClientRect().width; height:79.5vh" *@
@@ -78,7 +78,7 @@
 
                     <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Code" Title="Код тэга СИР">
                         <Template Context="data1">
-                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px" id="@("mesparamid_" + data1.ToStringId.ToUpper())">
                                 <strong>
                                     @data1.Code
                                 </strong>
@@ -321,6 +321,8 @@
 
     _Dialogs? _dialogs { get; set; }
 
+    MesParamDTO? selectedToRemember = null;
+
     IEnumerable<MesParamDTO>? mesParamDTOs;
 
     // IEnumerable<MesParamSourceTypeDTO>? mesParamSourceTypeDTOs;
@@ -354,7 +356,7 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                await UpdateAsync();
+                await UpdateAsync(null);
             }
             else
                 _navigationManager.NavigateTo("/tags");
@@ -450,7 +452,7 @@
             {
                 if ((modePar == SD.EditMode.Create || modePar == SD.EditMode.CreateBasedOnRow) && (modePar != SD.EditMode.Edit))
                 {
-                    await UpdateAsync();
+                    await UpdateAsync(dialogResult);
                 }
                 else
                 {
@@ -720,8 +722,9 @@
         }
     }
 
-    public async Task UpdateAsync()
+    public async Task UpdateAsync(MesParamDTO? mesParamDTO)
     {
+        await SetPosition(mesParamDTO);
         IsLoading = true;
         await LoadStateAsync();
         await Task.Delay(100);
@@ -730,6 +733,10 @@
         await GetDistincts();
         IsLoading = false;
         await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1000);
+        await GoToPosition(selectedToRemember);
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -749,5 +756,27 @@
             await this.OnAfterRenderAsync(true);
         }
         IsLoading = false;
+    }
+
+    async Task SetPosition(MesParamDTO? mesParamDTO = null)
+    {
+        await Task.CompletedTask;
+        if (mesParamDTO != null)
+            selectedToRemember = mesParamDTO;
+        else
+        {
+            if (selectedTableMesParam != null && selectedTableMesParam.Any())
+                selectedToRemember = selectedTableMesParam.First();
+        }
+    }
+
+    async Task GoToPosition(MesParamDTO? mesParamDTO)
+    {
+        if (mesParamDTO != null)
+        {
+            var selectedItem = mesParamDTOGrid.View.FirstOrDefault(u => u.Id == mesParamDTO.Id);
+            await mesParamDTOGrid.SelectRow(selectedItem, true);
+            await _jsRuntime.InvokeVoidAsync("eval", "(document.getElementById('mesparamid_" + mesParamDTO.ToStringId.ToUpper() + "') !==null) ? (document.getElementById('mesparamid_" + mesParamDTO.ToStringId.ToUpper() + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");
+        }
     }
 }
