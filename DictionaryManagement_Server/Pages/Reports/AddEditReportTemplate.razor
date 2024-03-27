@@ -828,7 +828,8 @@
                         "Проверка файла шаблона отчёта - " + ActiveReportTemplateDTO.Id.ToString() + " - " + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name
                         , new Dictionary
                             <string, object>
-                     () { { "ReportTemplateFilePath", fileFullPath.HideSlash() },
+                     () { { "ReportTemplateId", ActiveReportTemplateDTO.Id},
+                         {"ReportTemplateFilePath", fileFullPath.HideSlash() },
                                  { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
                                  { "ForSave", true}}
                             , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
@@ -857,7 +858,7 @@
                 // добавление тэгов OutputData
                 await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "OutputData", "A", 1, mesParamListDTOPar);
             }
-            if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()    
+            if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()
                 || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
             {
                 // добавление тэгов Отчет матрица
