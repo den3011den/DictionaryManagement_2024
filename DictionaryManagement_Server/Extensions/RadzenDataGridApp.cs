@@ -48,7 +48,7 @@ namespace DictionaryManagement_Server.Extensions
             base.Density = Density.Compact;
             base.EmptyTemplate = EmptyTemplateRender;
             base.HeaderTemplate = HeaderTemplateRender;
-            this.VirtualizationOverscanCount = 40;
+            this.VirtualizationOverscanCount = 50;
         }
 
 

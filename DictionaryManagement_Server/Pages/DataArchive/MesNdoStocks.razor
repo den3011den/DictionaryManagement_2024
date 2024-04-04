@@ -212,14 +212,14 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapGoneBool" Title="Sap забрал" Filterable="true" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapGoneBool" Title="Sap обработал" Filterable="true" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.SapGoneBool ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
 
 
-                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapNdoOUTDTOFK.SapGoneTime" Title="Время Sap забрал" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="MesNdoStocksDTO" Property="SapNdoOUTDTOFK.SapGoneTime" Title="Время Sap обработал" TextAlign="TextAlign.Center"
                                              FilterProperty="SapNdoOUTDTOFK.SapGoneTime" FilterOperator="FilterOperator.Equals" SortProperty="SapNdoOUTDTOFK.SapGoneTime">
                         <Template Context="data1">
                             @if (data1.SapNdoOutId != null)

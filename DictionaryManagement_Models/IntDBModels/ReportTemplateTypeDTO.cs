@@ -37,6 +37,13 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "Файл-образец шаблона отчёта")]
         public string? SampleFileName { get; set; } = string.Empty;
 
+        [ForLogAttribute(NameProperty = "поле \"Нельзя переименовать\"")]
+        [Display(Name = "Нельзя переименовать")]
+        public bool? CantChangeName { get; set; }
+
+        [NotMapped]
+        public bool? OldCantChangeName { get; set; }
+
         [NotMapped]
         [Display(Name = "Чтение")]
         public bool CanDownload { get; set; }

@@ -70,7 +70,9 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Загружен в СИР в режиме переотправки в SAP (ResendMode)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Даты переотправки в SAP (ReportEntityResendDates)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Даты отправки в SAP - СИР (ReportEntityResendDates)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Даты отправки в SAP - Пользователь (ReportEntityResendDates)";
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
                 ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;
@@ -110,24 +112,30 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = reportEntity.ResendMode == true ? "Да" : "";
 
-                    string reportEntityResendDatesListString = "";
+                    string reportEntityResendDatesSIRListString = "";
+                    string reportEntityResendDatesUserListString = "";
                     if (reportEntity.ReportEntityResendDatesListDTO != null)
                     {
                         int datesInRowCount = 1;
-                        foreach (ReportEntityResendDatesDTO reportEntityResendDatesDTO in reportEntity.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDate))
+                        foreach (ReportEntityResendDatesDTO reportEntityResendDatesDTO in reportEntity.ReportEntityResendDatesListDTO.OrderBy(u => u.ResendDateSIR))
                         {
-                            if (String.IsNullOrEmpty(reportEntityResendDatesListString))
-                                reportEntityResendDatesListString = reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                            if (String.IsNullOrEmpty(reportEntityResendDatesSIRListString))
+                            {
+                                reportEntityResendDatesSIRListString = reportEntityResendDatesDTO.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss");
+                                reportEntityResendDatesUserListString = reportEntityResendDatesDTO.ResendDateUser.ToString("dd.MM.yyyy");
+                            }
                             else
                             {
                                 if (datesInRowCount % 4 == 0)
                                 {
-                                    reportEntityResendDatesListString = reportEntityResendDatesListString + "\n" + reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                                    reportEntityResendDatesSIRListString = reportEntityResendDatesSIRListString + "\n" + reportEntityResendDatesDTO.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss");
+                                    reportEntityResendDatesUserListString = reportEntityResendDatesUserListString + "\n" + reportEntityResendDatesDTO.ResendDateUser.ToString("dd.MM.yyyy");
                                     datesInRowCount = 1;
                                 }
                                 else
                                 {
-                                    reportEntityResendDatesListString = reportEntityResendDatesListString + "     " + reportEntityResendDatesDTO.ResendDate.ToString("dd.MM.yyyy");
+                                    reportEntityResendDatesSIRListString = reportEntityResendDatesSIRListString + "     " + reportEntityResendDatesDTO.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss");
+                                    reportEntityResendDatesUserListString = reportEntityResendDatesUserListString + "     " + reportEntityResendDatesDTO.ResendDateUser.ToString("dd.MM.yyyy");
                                 }
                             }
                             datesInRowCount++;
@@ -135,7 +143,11 @@ namespace DictionaryManagement_Business.Repository
                     }
 
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = reportEntityResendDatesListString;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportEntityResendDatesSIRListString;
+                    ws.Cell(excelRowNum, excelColNum).Style.Alignment.WrapText = true;
+
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportEntityResendDatesUserListString;
                     ws.Cell(excelRowNum, excelColNum).Style.Alignment.WrapText = true;
 
                     excelRowNum++;
@@ -1130,9 +1142,9 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Значение в витрине (SapNdoOUT.Value)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Sap забрал значение (SapNdoOUT.SapGone)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Sap обработал значение (SapNdoOUT.SapGone)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap забрал значение (SapNdoOUT.SapGoneTime)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap обработал значение (SapNdoOUT.SapGoneTime)";
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
                 ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;
@@ -1224,9 +1236,9 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Значение (Value)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Sap забрал значение (SapGone)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Sap обработал значение (SapGone)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap забрал значение (SapGoneTime)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Время Sap обработал значение (SapGoneTime)";
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
                 ws.Row(excelRowNum).Style.Fill.BackgroundColor = XLColor.LightCyan;
@@ -1507,7 +1519,12 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapMaterialCode;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapMaterialDTOFK.Name;
+                    //ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapMaterialDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ToStringSapMaterialDTOFK;
+                    if (sapMovementsOUTDTO.ToStringSapMaterialDTOFK.Equals("НЕ НАЙДЕН"))
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.Code;
                     excelColNum++;
@@ -1518,8 +1535,14 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpPlantIdSource == null ? "" : sapMovementsOUTDTO.ErpPlantIdSource;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpIdSource == null ? "" : sapMovementsOUTDTO.ErpIdSource;
+                    //excelColNum++;
+                    //ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentSourceDTOFK.Name;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentSourceDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ToStringSapEquipmentSourceDTOFK;
+                    if (sapMovementsOUTDTO.ToStringSapEquipmentSourceDTOFK.Equals("НЕ НАЙДЕН"))
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.IsWarehouseSource == true ? "Да" : "";
                     excelColNum++;
@@ -1527,7 +1550,12 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpIdDest == null ? "" : sapMovementsOUTDTO.ErpIdDest;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentDestDTOFK.Name;
+                    //ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTDTO.SapEquipmentDestDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ToStringSapEquipmentDestDTOFK;
+                    if (sapMovementsOUTDTO.ToStringSapEquipmentDestDTOFK.Equals("НЕ НАЙДЕН"))
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.IsWarehouseDest == true ? "Да" : "";
                     excelColNum++;
@@ -1673,17 +1701,33 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialCode;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "" : sapMovementsINDTO.SapMaterialDTOFK.Id.ToString();
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapMaterialDTOFK.Id.ToString();
+                    if (sapMovementsINDTO.SapMaterialDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "" : sapMovementsINDTO.SapMaterialDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapMaterialDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapMaterialDTOFK.Name;
+                    if (sapMovementsINDTO.SapMaterialDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.ErpPlantIdSource;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.ErpIdSource;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Id.ToString();
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Id.ToString();
+                    if (sapMovementsINDTO.SapEquipmentSourceDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentSourceDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentSourceDTOFK.Name;
+                    if (sapMovementsINDTO.SapEquipmentSourceDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.IsWarehouseSource == true ? "Да" : "";
                     excelColNum++;
@@ -1691,9 +1735,17 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.ErpIdDest;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentDestDTOFK.Id.ToString();
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentDestDTOFK.Id.ToString();
+                    if (sapMovementsINDTO.SapEquipmentDestDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsINDTO.SapEquipmentDestDTOFK.Name;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.SapEquipmentDestDTOFK == null ? "НЕ НАЙДЕН" : sapMovementsINDTO.SapEquipmentDestDTOFK.Name;
+                    if (sapMovementsINDTO.SapEquipmentDestDTOFK == null)
+                    {
+                        ws.Cell(excelRowNum, excelColNum).Style.Font.FontColor = XLColor.Red;
+                    }
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsINDTO.IsWarehouseDest == true ? "Да" : "";
                     excelColNum++;
@@ -2211,6 +2263,8 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование (Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Неизменяемый (Immutable)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;
 
@@ -2227,6 +2281,8 @@ namespace DictionaryManagement_Business.Repository
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.Id.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.Name;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.Immutable == true ? "Да" : "";
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = mesParamSourceTypeDTO.IsArchive == true ? "Да" : "";
 
@@ -2268,6 +2324,8 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Является типом результирующих данных авторасчётов (IsAutoCalcDestDataType)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Нельзя переименовывать (CantChangeName)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;
 
@@ -2289,6 +2347,8 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = dataTypeDTO.IsAutoCalcDestDataType == true ? "Да" : "";
                     excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = dataTypeDTO.CantChangeName == true ? "Да" : "";
+                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = dataTypeDTO.IsArchive == true ? "Да" : "";
 
                     excelRowNum++;
@@ -2307,7 +2367,6 @@ namespace DictionaryManagement_Business.Repository
             return fullfilepath;
         }
 
-
         public async Task<string> GenerateExcelDataSource(string filename, IEnumerable<DataSourceDTO> data)
         {
 
@@ -2325,6 +2384,8 @@ namespace DictionaryManagement_Business.Repository
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД записи (Id)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование (Name)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Неизменяемый (Immutable)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;
@@ -2379,9 +2440,15 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование (Name)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
-                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Требует авторасчёта (NeedAutoCalc)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Нельзя переименовать (CantChangeName)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Имя файла Vba-скрипта (VbaScriptFileName)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Имя файла-образца шаблона (SampleFileName)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (IsArchive)";
                 excelColNum++;
 
 
@@ -2399,9 +2466,15 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.Name;
                     excelColNum++;
-                    ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.IsArchive == true ? "Да" : "";
-                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.NeedAutoCalc == true ? "Да" : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.CantChangeName == true ? "Да" : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = String.IsNullOrEmpty(reportTemplateTypeDTO.VbaScriptFileName) ? reportTemplateTypeDTO.VbaScriptFileName : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = String.IsNullOrEmpty(reportTemplateTypeDTO.SampleFileName) ? reportTemplateTypeDTO.SampleFileName : "";
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = reportTemplateTypeDTO.IsArchive == true ? "Да" : "";
 
                     excelRowNum++;
                 }
@@ -2798,49 +2871,100 @@ namespace DictionaryManagement_Business.Repository
                 reportList.Column11Name = headerRows.Cell(11).CachedValue.ToString();
                 reportList.Column12Name = headerRows.Cell(12).CachedValue.ToString();
 
-                IEnumerable<IXLRangeRow>? rows = null;
+                // --> попытка ускорить считывание данных с листов 14.03.2024
+                //IEnumerable<IXLRangeRow>? rows = null;
 
-                try
-                {
-                    rows = worksheet.RangeUsed().RowsUsed().Skip(1);
-                }
-                catch (Exception ex2)
-                {
-                    return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не удалось получить строки листа: " + sheetName, workbook);
-                }
+                //try
+                //{
+                //    rows = worksheet.RangeUsed().RowsUsed().Skip(1);
+                //}
+                //catch (Exception ex2)
+                //{
+                //    return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не удалось получить строки листа: " + sheetName, workbook);
+                //}
 
 
                 //bool notImplementedThirdColumnForEmbReport = (reportEntityDTO.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == "ОТЧЁТ ЭМБ"
                 //    && sheetSettingName == SD.ReportOutputSheetSettingName);
 
-                bool notImplementedThirdColumnForEmbReport = false;
+                //bool notImplementedThirdColumnForEmbReport = false;
 
-                foreach (var row in rows)
+                //foreach (var row in rows)
+                //{
+                //    ExcelSheetWithSirTagsDTO rowItem = new ExcelSheetWithSirTagsDTO();
+
+                //    rowItem.Column1 = await GetCellValue(row.Cell(1));
+                //    rowItem.Column2 = await GetCellValue(row.Cell(2));
+                //    //if (notImplementedThirdColumnForEmbReport)
+                //    //    rowItem.Column3 = "Формула не поддерживается";
+                //    //else
+                //    rowItem.Column3 = await GetCellValue(row.Cell(3));
+                //    rowItem.Column4 = await GetCellValue(row.Cell(4));
+                //    rowItem.Column5 = await GetCellValue(row.Cell(5));
+                //    rowItem.Column6 = await GetCellValue(row.Cell(6));
+                //    rowItem.Column7 = await GetCellValue(row.Cell(7));
+                //    rowItem.Column8 = await GetCellValue(row.Cell(8));
+                //    rowItem.Column9 = await GetCellValue(row.Cell(9));
+                //    rowItem.Column10 = await GetCellValue(row.Cell(10));
+                //    rowItem.Column11 = await GetCellValue(row.Cell(11));
+                //    rowItem.Column12 = await GetCellValue(row.Cell(12));
+                //    rowItem.MesParamFoundFlag = false;
+
+
+                //    reportList.excelSheetWithSirTagsDTOList.Add(rowItem);
+                //}
+                // <-- попытка ускорить считывание данных с листов 14.03.2024
+
+                int rowNum = 1;
+                int emptyRows = 0;
+                int tryErrors = 0;
+                while (emptyRows < 10 && tryErrors < 100)
                 {
+                    rowNum++;
                     ExcelSheetWithSirTagsDTO rowItem = new ExcelSheetWithSirTagsDTO();
 
-                    rowItem.Column1 = await GetCellValue(row.Cell(1));
-                    rowItem.Column2 = await GetCellValue(row.Cell(2));
-                    if (notImplementedThirdColumnForEmbReport)
-                        rowItem.Column3 = "Формула не поддерживается";
-                    else
-                        rowItem.Column3 = await GetCellValue(row.Cell(3));
-                    rowItem.Column4 = await GetCellValue(row.Cell(4));
-                    rowItem.Column5 = await GetCellValue(row.Cell(5));
-                    rowItem.Column6 = await GetCellValue(row.Cell(6));
-                    rowItem.Column7 = await GetCellValue(row.Cell(7));
-                    rowItem.Column8 = await GetCellValue(row.Cell(8));
-                    rowItem.Column9 = await GetCellValue(row.Cell(9));
-                    rowItem.Column10 = await GetCellValue(row.Cell(10));
-                    rowItem.Column11 = await GetCellValue(row.Cell(11));
-                    rowItem.Column12 = await GetCellValue(row.Cell(12));
+                    try
+                    {
+                        rowItem.Column1 = worksheet.Cell(rowNum, 1).CachedValue.ToString().Trim();
+                        rowItem.Column2 = worksheet.Cell(rowNum, 2).CachedValue.ToString().Trim();
+                        rowItem.Column3 = worksheet.Cell(rowNum, 3).CachedValue.ToString().Trim();
+                        rowItem.Column4 = worksheet.Cell(rowNum, 4).CachedValue.ToString().Trim();
+                        rowItem.Column5 = worksheet.Cell(rowNum, 5).CachedValue.ToString().Trim();
+                        rowItem.Column6 = worksheet.Cell(rowNum, 6).CachedValue.ToString().Trim();
+                        rowItem.Column7 = worksheet.Cell(rowNum, 7).CachedValue.ToString().Trim();
+                        rowItem.Column8 = worksheet.Cell(rowNum, 8).CachedValue.ToString().Trim();
+                        rowItem.Column9 = worksheet.Cell(rowNum, 9).CachedValue.ToString().Trim();
+                        rowItem.Column10 = worksheet.Cell(rowNum, 10).CachedValue.ToString().Trim();
+                        rowItem.Column11 = worksheet.Cell(rowNum, 11).CachedValue.ToString().Trim();
+                        rowItem.Column12 = worksheet.Cell(rowNum, 12).CachedValue.ToString().Trim();
+                        tryErrors = 0;
+                    }
+                    catch (Exception ex2)
+                    {
+                        tryErrors++;
+                        continue;
+                    }
                     rowItem.MesParamFoundFlag = false;
-
-
-                    reportList.excelSheetWithSirTagsDTOList.Add(rowItem);
+                    if ((!rowItem.Column1.IsNullOrEmpty()) || (!rowItem.Column2.IsNullOrEmpty())
+                         || (!rowItem.Column3.IsNullOrEmpty()) || (!rowItem.Column4.IsNullOrEmpty()) || (!rowItem.Column5.IsNullOrEmpty())
+                         || (!rowItem.Column6.IsNullOrEmpty()) || (!rowItem.Column7.IsNullOrEmpty()) || (!rowItem.Column8.IsNullOrEmpty())
+                         || (!rowItem.Column9.IsNullOrEmpty()) || (!rowItem.Column10.IsNullOrEmpty()) || (!rowItem.Column11.IsNullOrEmpty())
+                          || (!rowItem.Column12.IsNullOrEmpty()))
+                    {
+                        emptyRows = 0;
+                        reportList.excelSheetWithSirTagsDTOList.Add(rowItem);
+                    }
+                    else
+                    {
+                        emptyRows++;
+                    }
                 }
 
-                IEnumerable<ExcelSheetWithSirTagsDTO>? returnResult;
+                // --> попытка ускорить считывание данных с листов 14.03.2024
+                // IEnumerable<ExcelSheetWithSirTagsDTO>? returnResult;
+                // <-- попытка ускорить считывание данных с листов 14.03.2024
+
+                List<ExcelSheetWithSirTagsDTO> returnResult = new List<ExcelSheetWithSirTagsDTO>();
 
                 if (reportList.Column1Name.Trim().ToUpper() == "MESPARAMCODE")
                 {
@@ -2873,94 +2997,97 @@ namespace DictionaryManagement_Business.Repository
                 {
                     returnResult = reportList.excelSheetWithSirTagsDTOList;
                 }
-                reportList.excelSheetWithSirTagsDTOList = (List<ExcelSheetWithSirTagsDTO>)returnResult
-                        .Where(u => ((!u.Column1.IsNullOrEmpty()) || (!u.Column2.IsNullOrEmpty())
-                         || (!u.Column3.IsNullOrEmpty()) || (!u.Column4.IsNullOrEmpty()) || (!u.Column5.IsNullOrEmpty())
-                         || (!u.Column6.IsNullOrEmpty()) || (!u.Column7.IsNullOrEmpty()) || (!u.Column8.IsNullOrEmpty())
-                         || (!u.Column9.IsNullOrEmpty()) || (!u.Column10.IsNullOrEmpty()) || (!u.Column11.IsNullOrEmpty())
-                          || (!u.Column12.IsNullOrEmpty())
-                        )).ToList();
+                // --> попытка ускорить считывание данных с листов 14.03.2024
+                //reportList.excelSheetWithSirTagsDTOList = (List<ExcelSheetWithSirTagsDTO>)returnResult
+                //        .Where(u => ((!u.Column1.IsNullOrEmpty()) || (!u.Column2.IsNullOrEmpty())
+                //         || (!u.Column3.IsNullOrEmpty()) || (!u.Column4.IsNullOrEmpty()) || (!u.Column5.IsNullOrEmpty())
+                //         || (!u.Column6.IsNullOrEmpty()) || (!u.Column7.IsNullOrEmpty()) || (!u.Column8.IsNullOrEmpty())
+                //         || (!u.Column9.IsNullOrEmpty()) || (!u.Column10.IsNullOrEmpty()) || (!u.Column11.IsNullOrEmpty())
+                //          || (!u.Column12.IsNullOrEmpty())
+                //        )).ToList();
+                // <-- попытка ускорить считывание данных с листов 14.03.2024
+                reportList.excelSheetWithSirTagsDTOList = returnResult;
 
                 return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(reportList, "", workbook);
             }
             return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "", workbook);
         }
 
-        public async Task<string> GetCellValue(IXLCell? cell)
-        {
-            string retVar = "";
-            if (cell == null)
-                return "";
-            retVar = cell.CachedValue.ToString();
+        //public async Task<string> GetCellValue(IXLCell? cell)
+        //{
+        //    string retVar = "";
+        //    if (cell == null)
+        //        return "";
+        //    retVar = cell.CachedValue.ToString();
 
-            if (!string.IsNullOrEmpty(retVar))
-                return retVar;
+        //    if (!string.IsNullOrEmpty(retVar))
+        //        return retVar;
 
-            if (cell.NeedsRecalculation)
-            {
+        //    if (cell.NeedsRecalculation)
+        //    {
 
-                switch (cell.DataType)
-                {
-                    case XLDataType.Text:
-                        {
-                            string ggg;
-                            if (cell.TryGetValue<string>(out ggg))
-                                retVar = ggg;
-                            else
-                                retVar = "Формула не поддерживается";
-                            break;
-                        }
-                    case XLDataType.Boolean:
-                        {
-                            bool ggg;
-                            if (cell.TryGetValue<bool>(out ggg))
-                                retVar = ggg.ToString();
-                            else
-                                retVar = "Формула не поддерживается";
-                            break;
-                        }
-                    case XLDataType.DateTime:
-                        {
-                            DateTime ggg;
-                            if (cell.TryGetValue<DateTime>(out ggg))
-                                retVar = ggg.ToString();
-                            else
-                                retVar = "Формула не поддерживается";
-                            break;
-                        }
-                    case XLDataType.Number:
-                        {
-                            Decimal ggg;
-                            if (cell.TryGetValue<Decimal>(out ggg))
-                                retVar = ggg.ToString();
-                            else
-                                retVar = "Формула не поддерживается";
-                            break;
-                        }
-                    case XLDataType.Blank:
-                        {
-                            var ttt = cell.Style.DateFormat.NumberFormatId;
-                            if (ttt == 14 || ttt == -1)
-                            {
-                                DateTime ggg;
-                                if (cell.TryGetValue<DateTime>(out ggg))
-                                    retVar = ggg.ToString();
-                                else
-                                    retVar = "Формула не поддерживается";
-                            }
-                            else
-                            {
-                                string ggg;
-                                if (cell.TryGetValue<string>(out ggg))
-                                    retVar = ggg;
-                                else
-                                    retVar = "Формула не поддерживается";
-                            }
-                            break;
-                        }
-                }
-            }
-            return retVar;
-        }
+        //        switch (cell.DataType)
+        //        {
+        //            case XLDataType.Text:
+        //                {
+        //                    string ggg;
+        //                    if (cell.TryGetValue<string>(out ggg))
+        //                        retVar = ggg;
+        //                    else
+        //                        retVar = "Формула не поддерживается";
+        //                    break;
+        //                }
+        //            case XLDataType.Boolean:
+        //                {
+        //                    bool ggg;
+        //                    if (cell.TryGetValue<bool>(out ggg))
+        //                        retVar = ggg.ToString();
+        //                    else
+        //                        retVar = "Формула не поддерживается";
+        //                    break;
+        //                }
+        //            case XLDataType.DateTime:
+        //                {
+        //                    DateTime ggg;
+        //                    if (cell.TryGetValue<DateTime>(out ggg))
+        //                        retVar = ggg.ToString();
+        //                    else
+        //                        retVar = "Формула не поддерживается";
+        //                    break;
+        //                }
+        //            case XLDataType.Number:
+        //                {
+        //                    Decimal ggg;
+        //                    if (cell.TryGetValue<Decimal>(out ggg))
+        //                        retVar = ggg.ToString();
+        //                    else
+        //                        retVar = "Формула не поддерживается";
+        //                    break;
+        //                }
+        //            case XLDataType.Blank:
+        //                {
+        //                    var ttt = cell.Style.DateFormat.NumberFormatId;
+        //                    if (ttt == 14 || ttt == -1)
+        //                    {
+        //                        DateTime ggg;
+        //                        if (cell.TryGetValue<DateTime>(out ggg))
+        //                            retVar = ggg.ToString();
+        //                        else
+        //                            retVar = "Формула не поддерживается";
+        //                    }
+        //                    else
+        //                    {
+        //                        string ggg;
+        //                        if (cell.TryGetValue<string>(out ggg))
+        //                            retVar = ggg;
+        //                        else
+        //                            retVar = "Формула не поддерживается";
+        //                    }
+        //                    break;
+        //                }
+        //        }
+        //    }
+        //    return retVar;
+        //}
     }
 }

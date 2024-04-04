@@ -13,6 +13,7 @@
 @inject IMesParamRepository _mesParamRepository
 @inject ILogEventRepository _logEventRepository
 @inject DialogService _dialogService
+@inject IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -50,7 +51,7 @@
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false"
                                @bind-Value=@selectedTableMesParam
-                               RowDoubleClick="() => EditRow(selectedTableMesParam.FirstOrDefault(), SD.EditMode.Edit)">
+                               RowDoubleClick="() => EditRow(selectedTableMesParam.FirstOrDefault(), SD.EditMode.Edit)">                               
 
                 @* Style="width: 100vw - document.querySelector('.navNenuDiv').getBoundingClientRect().width; height:79.5vh" *@
                 @* Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px") *@
@@ -77,7 +78,7 @@
 
                     <RadzenDataGridColumnApp TItem="MesParamDTO" Property="Code" Title="Код тэга СИР">
                         <Template Context="data1">
-                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px" id="@("mesparamid_" + data1.ToStringId.ToUpper())">
                                 <strong>
                                     @data1.Code
                                 </strong>
@@ -153,7 +154,8 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapEquipmentSourceDTOFK" Title="SAP источник" FilterProperty="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName" SortProperty="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName">
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapEquipmentSourceDTOFK" Title="SAP источник" FilterProperty="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName"
+                                             SortProperty="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName">
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 12px">
                                 @(data1.SapEquipmentSourceDTOFK == null ? "" : data1.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName)
@@ -161,38 +163,17 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapEquipmentDestDTOFK" Title="SAP приемник" FilterProperty="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName" SortProperty="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName">
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapEquipmentDestDTOFK" Title="SAP приемник" FilterProperty="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName"
+                                             SortProperty="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName">
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 12px">
                                 @(data1.SapEquipmentDestDTOFK == null ? "" : data1.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName)
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
-
-                    @*
-            @if (SD.AppFactoryMode == SD.FactoryMode.NKNH)
-            {
-            <RadzenDataGridColumnApp TItem="MesParamDTO" Property="MesMaterialDTOFK" Title="Материал MES" Width="70px" FilterProperty="MesMaterialDTOFK.ToStringValue" SortProperty="MesMaterialDTOFK.ToStringValue">
-            <Template Context="data1">
-            <div style="white-space:pre-wrap; font-size: 12px">
-            @data1.MesMaterialDTOFK
-            </div>
-            </Template>
-            </RadzenDataGridColumnApp>
-
-            <RadzenDataGridColumnApp TItem="MesParamDTO" Property="MesUnitOfMeasureDTOFK" Title="Ед.изм MES" Width="60px" FilterProperty="MesUnitOfMeasureDTOFK.ToStringValue" SortProperty="MesUnitOfMeasureDTOFK.ToStringValue">
-            <Template Context="data1">
-            <div style="white-space:pre-wrap; font-size: 12px">
-            @data1.MesUnitOfMeasureDTOFK
-            </div>
-            </Template>
-            </RadzenDataGridColumnApp>
-            }
-
-            @if (SD.AppFactoryMode == SD.FactoryMode.KOS)
-            { *@
-
-                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapMaterialDTOFK" Title="Материал SAP" FilterProperty="SapMaterialDTOFK.ToStringCodeName" SortProperty="SapMaterialDTOFK.ToStringCodeName">
+                
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapMaterialDTOFK" Title="Материал SAP" FilterProperty="SapMaterialDTOFK.ToStringCodeName" 
+                        SortProperty="SapMaterialDTOFK.ToStringCodeName">
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 12px">
                                 @(data1.SapMaterialDTOFK == null ? "" : data1.SapMaterialDTOFK.ToStringCodeName)
@@ -340,6 +321,8 @@
 
     _Dialogs? _dialogs { get; set; }
 
+    MesParamDTO? selectedToRemember = null;
+
     IEnumerable<MesParamDTO>? mesParamDTOs;
 
     // IEnumerable<MesParamSourceTypeDTO>? mesParamSourceTypeDTOs;
@@ -373,7 +356,7 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
-                await UpdateAsync();
+                await UpdateAsync(null);
             }
             else
                 _navigationManager.NavigateTo("/tags");
@@ -469,7 +452,7 @@
             {
                 if ((modePar == SD.EditMode.Create || modePar == SD.EditMode.CreateBasedOnRow) && (modePar != SD.EditMode.Edit))
                 {
-                    await UpdateAsync();
+                    await UpdateAsync(dialogResult);
                 }
                 else
                 {
@@ -522,6 +505,29 @@
                     if (selectionResult == false)
                     {
                         await _jsRuntime.ToastrSuccess("Отмена удаления");
+                        return;
+                    }
+
+                    var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(mesParamDTO.Code, reportTemplateIsInArchive: false);
+                    if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
+                    {                        
+                        string templateStrId = "";
+                        string templateStrType = "";
+                        string templateStrDepartment = "";
+                        string reportsStr = "";
+                        foreach (var item in reportTemplateListWithOldMesParamCode)
+                        {                            
+                            templateStrId = item.ReportTemplateId.ToString();
+                            templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                            templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName: "") : "";
+                            reportsStr = reportsStr + "<li>Лист: " + item.SheetName 
+                                + "<br/> Ид шаблона: " + templateStrId + "<br/> Тип: " 
+                                + templateStrType + "<br/> Производство: " 
+                                + templateStrDepartment + "</li><br/>";
+                        }
+                        await _dialogs.ShowYesOrNoDialogBox("Удаление тэга в архив",
+                            "<strong><div style=\"color:red\">Нельзя удалять данный тэг в архив.<br/> Код тэга " + mesParamDTO.Code + " встречается на листах файлов не архивных шаблонов отчётов</strong></div><br/>"
+                            , "OK", "HIDE", reportsStr);
                         return;
                     }
                 }
@@ -716,8 +722,9 @@
         }
     }
 
-    public async Task UpdateAsync()
+    public async Task UpdateAsync(MesParamDTO? mesParamDTO)
     {
+        await SetPosition(mesParamDTO);
         IsLoading = true;
         await LoadStateAsync();
         await Task.Delay(100);
@@ -726,6 +733,10 @@
         await GetDistincts();
         IsLoading = false;
         await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1000);
+        await GoToPosition(selectedToRemember);
+        await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -745,5 +756,27 @@
             await this.OnAfterRenderAsync(true);
         }
         IsLoading = false;
+    }
+
+    async Task SetPosition(MesParamDTO? mesParamDTO = null)
+    {
+        await Task.CompletedTask;
+        if (mesParamDTO != null)
+            selectedToRemember = mesParamDTO;
+        else
+        {
+            if (selectedTableMesParam != null && selectedTableMesParam.Any())
+                selectedToRemember = selectedTableMesParam.First();
+        }
+    }
+
+    async Task GoToPosition(MesParamDTO? mesParamDTO)
+    {
+        if (mesParamDTO != null)
+        {
+            var selectedItem = mesParamDTOGrid.View.FirstOrDefault(u => u.Id == mesParamDTO.Id);
+            await mesParamDTOGrid.SelectRow(selectedItem, true);
+            await _jsRuntime.InvokeVoidAsync("eval", "(document.getElementById('mesparamid_" + mesParamDTO.ToStringId.ToUpper() + "') !==null) ? (document.getElementById('mesparamid_" + mesParamDTO.ToStringId.ToUpper() + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");
+        }
     }
 }

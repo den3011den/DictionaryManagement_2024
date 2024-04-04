@@ -51,6 +51,7 @@ namespace DictionaryManagement_DataAccess.Data.IntDB
         public int? AutoCalcNumber { get; set; }
 
         public virtual ICollection<ReportTemplateFileHistory>? ReportTemplateFileHistoryList { get; set; }
+        public virtual ICollection<ReportTemplateToMesParam>? ReportTemplateToMesParamList { get; set; }
     }
 
 }

@@ -16,7 +16,6 @@ namespace DictionaryManagement_Business.Repository
 
         private readonly IUserToRoleRepository _userToRoleRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IADGroupRepository _adGroupRepository;
         private readonly IRoleToADGroupRepository _roleToADGroupRepository;
         private readonly ISettingsRepository _settingsRepository;
         private readonly IJSRuntime _jsRuntime;
@@ -24,14 +23,13 @@ namespace DictionaryManagement_Business.Repository
 
         public AuthorizationRepository(AuthenticationStateProvider authenticationStateProvider, IUserToRoleRepository userToRoleRepository,
             IUserRepository userRepository, IJSRuntime jsRuntime,
-            IADGroupRepository adGroupRepository, IRoleToADGroupRepository roleToADGroupRepository,
+            IRoleToADGroupRepository roleToADGroupRepository,
             ISettingsRepository settingsRepository, ILogEventRepository logEventRepository)
         {
             _authenticationStateProvider = authenticationStateProvider;
             _userToRoleRepository = userToRoleRepository;
             _userRepository = userRepository;
             _jsRuntime = jsRuntime;
-            _adGroupRepository = adGroupRepository;
             _roleToADGroupRepository = roleToADGroupRepository;
             _settingsRepository = settingsRepository;
             _logEventRepository = logEventRepository;
@@ -70,7 +68,6 @@ namespace DictionaryManagement_Business.Repository
             {
                 if (messageBoxModePar == MessageBoxMode.On)
                 {
-                    messShownFlag = true;
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не удалось получить логин текущего пользователя.");
                 }
             }
@@ -111,7 +108,6 @@ namespace DictionaryManagement_Business.Repository
             {
                 if (messageBoxModePar == MessageBoxMode.On)
                 {
-                    messShownFlag = true;
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не удалось получить логин текущего пользователя.");
                 }
 
@@ -208,7 +204,6 @@ namespace DictionaryManagement_Business.Repository
             {
                 if (messageBoxModePar == MessageBoxMode.On)
                 {
-                    messShownFlag = true;
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Пользователь " + userLogin +
                         " не найден, находится в архиве или не имеет роли с правами на администрирование СИР. Обратитесь в техподдержку.");
                 }
@@ -218,7 +213,6 @@ namespace DictionaryManagement_Business.Repository
             {
                 if (messageBoxModePar == MessageBoxMode.On)
                 {
-                    messShownFlag = true;
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не удалось получить логин текущего пользователя.");
                 }
             }
@@ -298,7 +292,7 @@ namespace DictionaryManagement_Business.Repository
                     needCheckDeleteGroups = false;
                 }
 
-                if (needAddUser == true)
+                if (needAddUser)
                 {
                     userFromDBDTO = new UserDTO
                     {

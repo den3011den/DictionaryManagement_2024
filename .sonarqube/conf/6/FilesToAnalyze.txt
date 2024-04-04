@@ -1,0 +1,2 @@
+﻿C:\IntegrationSolution\Applications\DictionaryManagement_latest\DictionaryManagement_Common\SD.cs
+C:\IntegrationSolution\Applications\DictionaryManagement_latest\DictionaryManagement_Common\StringExtension.cs

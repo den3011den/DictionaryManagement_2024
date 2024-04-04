@@ -112,23 +112,70 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapMaterialDTOFK.ToStringCodeName" Title="Материал SAP"
-                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapMaterialCode" Title="Код материала в SAP" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
-                                    @data1.SapMaterialDTOFK.ToStringCodeName
+                                    @data1.SapMaterialCode
                                 </strong>
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName" Title="Источник SAP"
-                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ToStringSapMaterialDTOFK" Title="Материал SAP в СИР" TextAlign="TextAlign.Center"
+                                             FilterOperator="FilterOperator.Contains" Filterable="true" Sortable="true" FilterProperty="ToStringSapMaterialDTOFK">
+                        <Template Context="data1">
+                            @if (!data1.ToStringSapMaterialDTOFK.Equals("НЕ НАЙДЕН"))
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    <strong>
+                                        @data1.ToStringSapMaterialDTOFK
+                                    </strong>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
+                                    @data1.ToStringSapMaterialDTOFK
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ErpPlantIdSource" Title="Завод-источник SAP" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                @data1.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName
+                                @data1.ErpPlantIdSource
                             </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ErpIdSource" Title="Ресурс-источник SAP" TextAlign="TextAlign.Center"
+                                             FilterOperator="FilterOperator.Contains" Filterable="true" Sortable="true">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.ErpIdSource
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ToStringSapEquipmentSourceDTOFK" Title="Источник в СИР" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (!data1.ToStringSapEquipmentSourceDTOFK.Equals("НЕ НАЙДЕН"))
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.ToStringSapEquipmentSourceDTOFK
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
+                                    @data1.ToStringSapEquipmentSourceDTOFK
+                                </div>
+                            }
                         </Template>
                     </RadzenDataGridColumnApp>
 
@@ -141,12 +188,39 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName" Title="Приёмник SAP"
-                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ErpPlantIdDest" Title="Завод-приёмник SAP" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                @data1.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName
+                                @data1.ErpPlantIdDest
                             </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ErpIdDest" Title="Ресурс-приёмник SAP" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @data1.ErpIdDest
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ToStringSapEquipmentDestDTOFK" Title="Приёмник в СИР" TextAlign="TextAlign.Center"
+                                             Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            @if (!data1.ToStringSapEquipmentDestDTOFK.Equals("НЕ НАЙДЕН"))
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                    @data1.ToStringSapEquipmentDestDTOFK
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px; color: red">
+                                    @data1.ToStringSapEquipmentDestDTOFK
+                                </div>
+                            }
                         </Template>
                     </RadzenDataGridColumnApp>
 
@@ -226,14 +300,14 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapGoneBool" Title="Забрал SAP" Filterable="true" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapGoneBool" Title="SAP обработал" Filterable="true" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.SapGoneBool ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
 
 
-                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapGoneTime" Title="Время забрал SAP" TextAlign="TextAlign.Center"
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapGoneTime" Title="Время SAP обработал" TextAlign="TextAlign.Center"
                                              FilterProperty="SapGoneTime" SortProperty="SapGoneTime" FilterOperator="FilterOperator.Equals">
                         <Template Context="data1">
                             @if (data1.SapGoneTime != null)
@@ -288,15 +362,6 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="SapMovementsOUTDTO" Context="sapMovementsOUTDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-            <Template Context="sapMovementsOUTDTO">
-            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(sapMovementsOUTDTO))" @onclick:stopPropagation="true">
-            </RadzenButton>
-            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(sapMovementsOUTDTO))" @onclick:stopPropagation="true">
-            </RadzenButton>
-            </Template>
-            </RadzenDataGridColumnApp>
-            *@
                 </Columns>
             </RadzenDataGridApp>         
         }

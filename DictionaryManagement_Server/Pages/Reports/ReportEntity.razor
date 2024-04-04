@@ -192,12 +192,12 @@
                             </RadzenButton>
                         </Template>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="ResendMode" Title="Переотправка в SAP" Filterable="true" Width="110px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="ReportEntityDTO" Property="ResendMode" Title="Даты отправки в SAP" Filterable="true" Width="110px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             @if (data.ResendMode == true && data.ReportEntityResendDatesListDTO != null)
                             {
                                 <RadzenCheckBox @bind-Value=data.ResendMode ReadOnly="true" TriState="false" TValue="bool"
-                                                MouseEnter="@(args => ShowTooltip(data.ReportEntityResendDatesListDTO.OrderBy(u=>u.ResendDate), args, new TooltipOptions() { Position = TooltipPosition.Left, Style = "width: 130px; background: var(--rz-warning-lighter); color: var(--rz-text-color)", Duration = null }))" />
+                                                MouseEnter="@(args => ShowTooltip(data.ReportEntityResendDatesListDTO.OrderBy(u=>u.ResendDateSIR), args, new TooltipOptions() { Position = TooltipPosition.Left, Style = "width: 415px; background: var(--rz-warning-lighter); color: var(--rz-text-color)", Duration = null }))" />
                             }
                             else
                             {
@@ -673,14 +673,23 @@
                            ShowCleanGridFiltersHeaderButton="false"
                            ShowCleanGridSortsHeaderButton="false">
             <Columns>
-                <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDate" Title="Даты переотправки в SAP" Width="100px" TextAlign="TextAlign.Left"
-                                         SortProperty="ResendDate">
+                <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDateSIR" Title="Дата СИР" Width="200px" TextAlign="TextAlign.Left"
+                                         SortProperty="ResendDateSIR">
                     <Template Context="data1">
                         <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                            @data1.ResendDate.ToString("dd.MM.yyyy")
+                            @data1.ResendDateSIR.ToString("dd.MM.yyyy HH:mm:ss")
                         </div>
                     </Template>
                 </RadzenDataGridColumnApp>
+                <RadzenDataGridColumnApp TItem="ReportEntityResendDatesDTO" Property="ResendDateUser" Title="Пользовательская дата" Width="200px" TextAlign="TextAlign.Left"
+                                         SortProperty="ResendDateUser">
+                    <Template Context="data1">
+                        <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                            @data1.ResendDateUser.ToString("dd.MM.yyyy")
+                        </div>
+                    </Template>
+                </RadzenDataGridColumnApp>
+
             </Columns>
         </RadzenDataGridApp>
     </div>

@@ -119,6 +119,8 @@ namespace DictionaryManagement_Models.IntDBModels
         [Required(ErrorMessage = "Тэг СИР обязателен")]
         public MesParamDTO MesParamDTOFK { get; set; }
 
+        [NotMapped]
+        private string _toStringId;
 
         [NotMapped]
         [Display(Name = "Ид записи")]
@@ -126,13 +128,17 @@ namespace DictionaryManagement_Models.IntDBModels
         {
             get
             {
-                return Id.ToString();
+                _toStringId = Id.ToString();
+                return _toStringId;
             }
             set
             {
-                ToStringId = value;
+                _toStringId = value;
             }
         }
+
+        [NotMapped]
+        private string _toStringCorrection2Previous;
 
         [NotMapped]
         [Display(Name = "Корректировка")]
@@ -140,13 +146,17 @@ namespace DictionaryManagement_Models.IntDBModels
         {
             get
             {
-                return Correction2Previous.ToString();
+                _toStringCorrection2Previous = Correction2Previous.ToString();
+                return _toStringCorrection2Previous;
             }
             set
             {
-                ToStringCorrection2Previous = value;
+                _toStringCorrection2Previous = value;
             }
         }
+
+        [NotMapped]
+        public string _toStringValue;
 
         [NotMapped]
         [Display(Name = "Значение")]
@@ -154,14 +164,17 @@ namespace DictionaryManagement_Models.IntDBModels
         {
             get
             {
-                return Value.ToString();
+                _toStringValue = Value.ToString();
+                return _toStringValue;
             }
             set
             {
-                ToStringValue = value;
+                _toStringValue = value;
             }
         }
 
+        [NotMapped]
+        private string? _toStringMesMovementId;
 
         [NotMapped]
         [Display(Name = "ИД записи в архиве данных")]
@@ -169,13 +182,17 @@ namespace DictionaryManagement_Models.IntDBModels
         {
             get
             {
-                return MesMovementId.ToString();
+                _toStringMesMovementId = MesMovementId == null ? "" : MesMovementId.ToString();
+                return _toStringMesMovementId;
             }
             set
             {
-                ToStringMesMovementId = value;
+                _toStringMesMovementId = value;
             }
         }
+
+        [NotMapped]
+        private string? _toStringPreviousRecordId;
 
         [NotMapped]
         [Display(Name = "ИД предыдущей записи")]
@@ -183,13 +200,17 @@ namespace DictionaryManagement_Models.IntDBModels
         {
             get
             {
-                return PreviousRecordId.ToString();
+                _toStringPreviousRecordId = PreviousRecordId == null ? "" : PreviousRecordId.ToString();
+                return _toStringPreviousRecordId;
             }
             set
             {
-                ToStringPreviousRecordId = value;
+                _toStringPreviousRecordId = value;
             }
         }
+
+        [NotMapped]
+        private bool _sapErrorBool;
 
         [NotMapped]
         [Display(Name = "Sap ошибка")]
@@ -197,31 +218,95 @@ namespace DictionaryManagement_Models.IntDBModels
         {
             get
             {
-                return SapError == null ? false : (bool)SapError;
+#pragma warning disable IDE0075 // Simplify conditional expression
+                _sapErrorBool = SapError == null ? false : (bool)SapError;
+#pragma warning restore IDE0075 // Simplify conditional expression
+                return _sapErrorBool;
             }
             set
             {
-                SapErrorBool = value;
+                _sapErrorBool = value;
             }
         }
 
         [NotMapped]
-        [Display(Name = "Sap забрал")]
+        private bool _sapGoneBool;
+
+        [NotMapped]
+        [Display(Name = "Sap обработал")]
         public bool SapGoneBool
         {
             get
             {
-                return SapGone == null ? false : (bool)SapGone;
+#pragma warning disable IDE0075 // Simplify conditional expression
+                _sapGoneBool = SapGone == null ? false : (bool)SapGone;
+#pragma warning restore IDE0075 // Simplify conditional expression
+                return _sapGoneBool;
             }
             set
             {
-                SapGoneBool = value;
+                _sapGoneBool = value;
+            }
+        }
+
+
+        [NotMapped]
+        [Display(Name = "Материал SAP")]
+        public string? ToStringSapMaterialDTOFK
+        {
+            get
+            {
+                if (SapMaterialDTOFK != null)
+                    return SapMaterialDTOFK.ToStringCodeName;
+                else
+                    return "НЕ НАЙДЕН";
+            }
+            set
+            {
+                ToStringSapMaterialDTOFK = value;
+            }
+        }
+
+        [NotMapped]
+        [Display(Name = "Источник в СИР")]
+        public string? ToStringSapEquipmentSourceDTOFK
+        {
+            get
+            {
+                if (SapEquipmentSourceDTOFK != null)
+                    return SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName;
+                else
+                    return "НЕ НАЙДЕН";
+            }
+            set
+            {
+                ToStringSapEquipmentSourceDTOFK = value;
+            }
+        }
+
+
+        [NotMapped]
+        [Display(Name = "Приёмник в СИР")]
+        public string? ToStringSapEquipmentDestDTOFK
+        {
+            get
+            {
+                if (SapEquipmentDestDTOFK != null)
+                    return SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName;
+                else
+                    return "НЕ НАЙДЕН";
+            }
+            set
+            {
+                ToStringSapEquipmentDestDTOFK = value;
             }
         }
 
         public override string ToString()
         {
+#pragma warning disable IDE0071 // Simplify interpolation
             return $"{Id.ToString()}";
+#pragma warning restore IDE0071 // Simplify interpolation
         }
     }
 }

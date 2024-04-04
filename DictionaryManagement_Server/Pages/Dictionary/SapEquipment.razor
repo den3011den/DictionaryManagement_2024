@@ -41,13 +41,23 @@
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="ErpPlantId" Title="Код завода SAP" Width="130px">
+                        <Template Context="sapEquipmentDTO">
+                            <div style="white-space:pre-wrap">
+                                @sapEquipmentDTO.ErpPlantId
+                            </div>
+                        </Template>
                         <EditTemplate Context="sapEquipmentDTO">
                             <RadzenTextBox @bind-Value="sapEquipmentDTO.ErpPlantId" Style="width:100%; display: block" Name="ErpPlantId" />
                             <RadzenRequiredValidator Text="Код завода обязателен к заполнению" Component="ErpPlantId" Popup="true" />
                             <RadzenLengthValidator Max=100 Text="Код завода не может быть больше 100 символов" Component="ErpPlantId" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="ErpId" Title="Код ресурса/склада SAP" Width="130px">
+                    <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="ErpId" Title="Код ресурса/склада SAP" Width="155px">
+                        <Template Context="sapEquipmentDTO">
+                            <div style="white-space:pre-wrap">
+                                @sapEquipmentDTO.ErpId
+                            </div>
+                        </Template>
                         <EditTemplate Context="sapEquipmentDTO">
                             <RadzenTextBox @bind-Value="sapEquipmentDTO.ErpId" Style="width:100%; display: block" Name="ErpId" />
                             <RadzenRequiredValidator Text="Код ресурса/склада обязателен к заполнению" Component="ErpId" Popup="true" />
@@ -55,6 +65,11 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="Name" Title="Наименование" Width="400px">
+                        <Template Context="sapEquipmentDTO">
+                            <div style="white-space:pre-wrap">
+                                @sapEquipmentDTO.Name
+                            </div>
+                        </Template>
                         <EditTemplate Context="sapEquipmentDTO">
                             <RadzenTextBox @bind-Value="sapEquipmentDTO.Name" Style="width:100%; display: block" Name="Name" />
                             <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
@@ -83,31 +98,31 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="SapEquipmentDTO" Context="sapEquipmentDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="86px">
                         <Template Context="sapEquipmentDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(sapEquipmentDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!sapEquipmentDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(sapEquipmentDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Восстановить из архив" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(sapEquipmentDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
                         <EditTemplate Context="sapEquipmentDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Сохранить" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@((args) => SaveRow(sapEquipmentDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapEquipmentDTO))">
+                            <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapEquipmentDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                          Click="@(args => DeleteRow(sapEquipmentDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton>
+                            @* <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                    Click="@(args => DeleteRow(sapEquipmentDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                    </RadzenButton> *@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>

@@ -59,6 +59,10 @@ namespace DictionaryManagement_Business.Repository
                 {
                     if (objectToUpdate.Name != objectToUpdateDTO.Name)
                         objectToUpdate.Name = objectToUpdateDTO.Name;
+                    if (objectToUpdate.Immutable != objectToUpdateDTO.Immutable)
+                    {
+                        objectToUpdate.Immutable = objectToUpdateDTO.Immutable;
+                    }
                 }
                 if (updateMode == SD.UpdateMode.MoveToArchive)
                 {
@@ -68,6 +72,7 @@ namespace DictionaryManagement_Business.Repository
                 {
                     objectToUpdate.IsArchive = false;
                 }
+
                 _db.MesParamSourceType.Update(objectToUpdate);
                 _db.SaveChanges();
                 return _mapper.Map<MesParamSourceType, MesParamSourceTypeDTO>(objectToUpdate);

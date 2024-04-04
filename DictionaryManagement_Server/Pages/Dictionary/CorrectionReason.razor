@@ -63,32 +63,32 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonDTO" Context="correctionReasonDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="correctionReasonDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(correctionReasonDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!correctionReasonDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(correctionReasonDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(correctionReasonDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
                         <EditTemplate Context="correctionReasonDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Сохранить" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@((args) => SaveRow(correctionReasonDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1"
+                            <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@((args) => CancelEdit(correctionReasonDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                            @* <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@(args => DeleteRow(correctionReasonDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton>
+                            </RadzenButton> *@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>

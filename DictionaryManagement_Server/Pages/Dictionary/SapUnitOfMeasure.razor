@@ -65,31 +65,31 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="SapUnitOfMeasureDTO" Context="sapUnitOfMeasureDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="sapUnitOfMeasureDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!sapUnitOfMeasureDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                               Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                                 </RadzenButton>
                             }
                         </Template>
                         <EditTemplate Context="sapUnitOfMeasureDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Сохранить" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@((args) => SaveRow(sapUnitOfMeasureDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapUnitOfMeasureDTO))">
+                            <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapUnitOfMeasureDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                            @* <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton>
+                            </RadzenButton> *@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>

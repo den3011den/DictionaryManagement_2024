@@ -9,6 +9,7 @@
 @inject DialogService DialogService
 @inject IJSRuntime _jsRuntime
 @inject IDataTypeRepository _dataTypeRepository
+@inject ISettingsRepository _settingsRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
 
@@ -21,7 +22,6 @@
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/DataType">Виды данных</a></h6>
         </div>
-
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
@@ -44,13 +44,24 @@
                 <Columns>
                     <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Name" Title="Наименование" Width="200px">
+                        <Template Context="data">
+                            <div style="white-space:pre-wrap">
+                                @data.Name
+                            </div>
+                        </Template>
                         <EditTemplate Context="dataTypeDTO">
-                            <RadzenTextBox @bind-Value="dataTypeDTO.Name" Style="width:100%; display: block" Name="Name" />
+@*                             <RadzenTextBox @bind-Value="dataTypeDTO.Name" Style="width:100%; display: block" Name="Name"
+                                           Disabled="@(ControlDataTypeCantChangeName == true && dataTypeDTO.OldCantChangeName == true)" />
+                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" /> *@
+
+                            <RadzenTextBox @bind-Value="dataTypeDTO.Name"
+                                           Style="@("width:100%; display: block;" + (dataTypeDTO.CantChangeName == true ? " color:darkgrey;":""))" Name="Name"
+                                           Disabled="@(dataTypeDTO.CantChangeName == true)" />
                             <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-
+                     
                     <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="Priority" Title="Приоритет передачи в SAP (чем больше число - тем выше приоритет)" Width="150px" TextAlign="TextAlign.Center">
                         <EditTemplate Context="dataTypeDTO">
                             <RadzenNumeric @bind-Value="dataTypeDTO.Priority" Style="width:100%; display: block" Name="Priority" />
@@ -58,7 +69,7 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="IsAutoCalcDestDataType" Title="Результирующий тип авторасчёта" Width="150px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="IsAutoCalcDestDataType" Title="Результирующий тип авторасчёта" Width="180px" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <RadzenCheckBox @bind-Value=data.IsAutoCalcDestDataType ReadOnly="true" TriState="false" TValue="bool?" />
                         </Template>
@@ -71,7 +82,19 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-
+                    <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="CantChangeName" Title="Нельзя переименовать" Width="150px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.CantChangeName ReadOnly="true" TriState="false" TValue="bool?" />
+                        </Template>
+                        <EditTemplate Context="data">
+                            <strong>
+                                @((ControlDataTypeCantChangeName == true && data.OldCantChangeName == true) ? "" : "|")
+                                <RadzenCheckBox @bind-Value=data.CantChangeName TriState="false" TValue="bool?"
+                                                Disabled="@(ControlDataTypeCantChangeName == true && data.OldCantChangeName == true)" />
+                                @((ControlDataTypeCantChangeName == true && data.OldCantChangeName == true) ? "" : "|")
+                            </strong>
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
 
                     <RadzenDataGridColumnApp TItem="DataTypeDTO" Property="IsArchive" Title="Архив" Filterable="true" Width="90px" TextAlign="TextAlign.Center">
                         <Template Context="data">
@@ -79,34 +102,37 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="DataTypeDTO" Context="dataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="DataTypeDTO" Context="dataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="80px">
                         <Template Context="dataTypeDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(dataTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!dataTypeDTO.IsArchive)
                             {
-                                <RadzenButton Tooltip="Восстановить из архива" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true"
+                                              Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlDataTypeCantChangeName == true && dataTypeDTO.CantChangeName == true))">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(dataTypeDTO))" @onclick:stopPropagation="true"
+                                              Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlDataTypeCantChangeName == true && dataTypeDTO.CantChangeName == true))">
                                 </RadzenButton>
                             }
                         </Template>
                         <EditTemplate Context="dataTypeDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Сохранить" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@((args) => SaveRow(dataTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1"
+                            <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@((args) => CancelEdit(dataTypeDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                          Click="@(args => DeleteRow(dataTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton>
+@*                             <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(dataTypeDTO))"
+                                          Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlDataTypeCantChangeName == true && dataTypeDTO.CantChangeName == true))">
+                            </RadzenButton> *@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>
@@ -136,6 +162,8 @@
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
+    public bool ControlDataTypeCantChangeName { get; set; } = true;
+    public bool CantChangeName { get; set; } = true;
 
     DataGridSettings _dataTypeGridSettings;
     public DataGridSettings DataTypeGridSettings
@@ -197,6 +225,21 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
                 dataTypeDTOs = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                if (dataTypeDTOs != null)
+                {
+                    foreach (var item in dataTypeDTOs)
+                        item.OldCantChangeName = item.CantChangeName;
+                }
+                var tmpSetting = await _settingsRepository.GetByName(SD.ControlDataTypeCantChangeNameSettingName);
+                if (tmpSetting == null)
+                {
+                    ControlDataTypeCantChangeName = true;
+                }
+                else
+                {
+                    ControlDataTypeCantChangeName = tmpSetting.Value.Trim() == "1" ? true : false;
+                }
+
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -210,6 +253,7 @@
     {
         if (IsAdmin == AdminMode.IsAdmin)
         {
+            dataTypeDTO.OldCantChangeName = dataTypeDTO.CantChangeName;
             dataTypeDTOToUpdate = dataTypeDTO;
             await dataTypeDTOGrid.EditRow(dataTypeDTO);
         }
@@ -235,6 +279,8 @@
                     dataTypeDTO.Name = objectForRestore.Name;
                     dataTypeDTO.Priority = objectForRestore.Priority;
                     dataTypeDTO.IsAutoCalcDestDataType = objectForRestore.IsAutoCalcDestDataType;
+                    dataTypeDTO.CantChangeName = objectForRestore.CantChangeName;
+                    dataTypeDTO.OldCantChangeName = objectForRestore.CantChangeName;
                     await dataTypeDTOGrid.UpdateRow(dataTypeDTO);
                     await dataTypeDTOGrid.Reload();
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись вида данных с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
@@ -250,6 +296,8 @@
                     var objectForRestore = await _dataTypeRepository.Get(dataTypeDTO.Id);
                     dataTypeDTO.Name = objectForRestore.Name;
                     dataTypeDTO.Priority = objectForRestore.Priority;
+                    dataTypeDTO.CantChangeName = objectForRestore.CantChangeName;
+                    dataTypeDTO.OldCantChangeName = objectForRestore.CantChangeName;
                     dataTypeDTO.IsAutoCalcDestDataType = objectForRestore.IsAutoCalcDestDataType;
                     await dataTypeDTOGrid.UpdateRow(dataTypeDTO);
                     await dataTypeDTOGrid.Reload();
@@ -280,6 +328,11 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
                 dataTypeDTOs = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                if (dataTypeDTOs != null)
+                {
+                    foreach (var item in dataTypeDTOs)
+                        item.OldCantChangeName = item.CantChangeName;
+                }
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -308,12 +361,14 @@
         if (objectForRestore != null)
         {
             dataTypeDTO.Name = objectForRestore.Name;
+            dataTypeDTO.Priority = objectForRestore.Priority;
+            dataTypeDTO.IsAutoCalcDestDataType = objectForRestore.IsAutoCalcDestDataType;
+            dataTypeDTO.CantChangeName = objectForRestore.CantChangeName;
+            dataTypeDTO.OldCantChangeName = objectForRestore.CantChangeName;
             dataTypeDTOGrid.UpdateRow(dataTypeDTO);
             dataTypeDTOGrid.Reload();
         }
-
         dataTypeDTOGrid.CancelEditRow(dataTypeDTO);
-
     }
 
     async Task DeleteRow(DataTypeDTO dataTypeDTO)
@@ -389,6 +444,8 @@
         {
             dataTypeDTOToInsert = new DataTypeDTO();
             dataTypeDTOToInsert.IsAutoCalcDestDataType = false;
+            dataTypeDTOToInsert.CantChangeName = false;
+            dataTypeDTOToInsert.OldCantChangeName = false;
             await dataTypeDTOGrid.InsertRow(dataTypeDTOToInsert);
         }
     }
@@ -445,6 +502,11 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
                 dataTypeDTOs = _dataTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                if (dataTypeDTOs != null)
+                {
+                    foreach (var item in dataTypeDTOs)
+                        item.OldCantChangeName = item.CantChangeName;
+                }
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);

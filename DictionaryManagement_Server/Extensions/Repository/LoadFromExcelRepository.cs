@@ -28,6 +28,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
         private readonly ISapMovementsOUTRepository _sapMovementsOUTRepository;
         private readonly IDataSourceRepository _dataSourceRepository;
         private readonly IDataTypeRepository _dataTypeRepository;
+        private readonly IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository;
 
         public LoadFromExcelRepository(ISapMaterialRepository sapMaterialRepository, IMesMaterialRepository mesMaterialRepository,
             ISapEquipmentRepository sapEquipmentRepository,
@@ -44,7 +45,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
             ISapMovementsINRepository sapMovementsINRepository,
             ISapMovementsOUTRepository sapMovementsOUTRepository,
             IDataSourceRepository dataSourceRepository,
-            IDataTypeRepository dataTypeRepository)
+            IDataTypeRepository dataTypeRepository,
+            IReportTemplateToMesParamRepository reportTemplateToMesParamRepository)
         {
             _sapMaterialRepository = sapMaterialRepository;
             _mesMaterialRepository = mesMaterialRepository;
@@ -64,7 +66,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
             _sapMovementsOUTRepository = sapMovementsOUTRepository;
             _dataSourceRepository = dataSourceRepository;
             _dataTypeRepository = dataTypeRepository;
-
+            _reportTemplateToMesParamRepository = reportTemplateToMesParamRepository;
         }
 
         public async Task<string> MaterialReportTemplateDownloadFileWithData(Shared.LoadFromExcel? loadFromExcelPage, IXLWorksheet worksheet, IEnumerable<MaterialDTO>? materialList)
@@ -497,23 +499,23 @@ namespace DictionaryManagement_Server.Extensions.Repository
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapMaterialDTOFK.Name;
                 excelColNum++;
-                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK.Id.ToString();
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK.Id.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpPlantIdSource;
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpIdSource;
                 excelColNum++;
-                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK.Name;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTItemDTO.SapEquipmentSourceDTOFK.Name;
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.IsWarehouseSource == true ? "Да" : "Нет";
                 excelColNum++;
-                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentDestDTOFK.Id.ToString();
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTItemDTO.SapEquipmentDestDTOFK.Id.ToString();
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpPlantIdDest;
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.ErpIdDest;
                 excelColNum++;
-                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentDestDTOFK.Name;
+                worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTItemDTO.SapEquipmentDestDTOFK.Name;
                 excelColNum++;
                 worksheet.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTItemDTO.IsWarehouseDest == true ? "Да" : "Нет";
                 excelColNum++;
@@ -1664,7 +1666,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                     new FieldValueWithColumnPosition(TIVarString, 24), new FieldValueWithColumnPosition(nameTIVarString, 25), new FieldValueWithColumnPosition(TMVarString, 26),
                     new FieldValueWithColumnPosition(nameTMVarString, 27), new FieldValueWithColumnPosition(mesToSirUnitOfMeasureKoefVarString, 28), new FieldValueWithColumnPosition(needWriteToSapVarString, 29),
                     new FieldValueWithColumnPosition(needReadFromSapVarString, 30), new FieldValueWithColumnPosition(needReadFromMesVarString, 31), new FieldValueWithColumnPosition(needWriteToMesVarString, 32),
-                    new FieldValueWithColumnPosition(isNdoVarString, 33), new FieldValueWithColumnPosition(isNdoVarString, 34)
+                    new FieldValueWithColumnPosition(isNdoVarString, 33), new FieldValueWithColumnPosition(isArchiveVarString, 34)
                 };
                 if ((await CheckControlSymbolsAndLeadingAndTrailingSpaces(loadFromExcelPage, worksheet, fieldValueWithColumnPosition, rowNumber, resultColumnNumber, 1)) != true)
                 {
@@ -2418,6 +2420,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 changedMesParamDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
 
                             MesParamDTO? newMesParamDTO = await _mesParamRepository.Create(changedMesParamDTO);
+                            if (newMesParamDTO != null)
+                                await _reportTemplateToMesParamRepository.UpdateEmptyMesParamIdByMesParamCode(newMesParamDTO.Code, newMesParamDTO.Id);
 
                             await _logEventRepository.ToLog<MesParamDTO>(oldObject: null, newObject: newMesParamDTO, "Добавление тэга СИР", "Тэг СИР: ", _authorizationRepository);
 
@@ -2465,7 +2469,58 @@ namespace DictionaryManagement_Server.Extensions.Repository
                             {
                                 changedMesParamDTO.IsArchive = isArchiveVarString.ToUpper().Equals("ДА") ? true : false;
                             }
+
+
+                            if (foundMesParamDTO.Code.ToUpper() != changedMesParamDTO.Code.ToUpper() || (changedMesParamDTO.IsArchive == true && foundMesParamDTO.IsArchive == false))
+                            {
+                                var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(foundMesParamDTO.Code, reportTemplateIsInArchive: false);
+                                if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
+                                {
+                                    string reportsStr = "";
+
+                                    string templateStrId = "";
+                                    string templateStrType = "";
+                                    string templateStrDepartment = "";
+
+
+                                    foreach (var item in reportTemplateListWithOldMesParamCode)
+                                    {
+                                        string str1 = "\n* Лист: \"" + item.SheetName + "\"";
+                                        string templateStr = "ид: " + item.ReportTemplateId.ToString()
+                                                + " тип: " + item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : ""
+                                                + " производство: " + item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+
+                                        templateStrId = item.ReportTemplateId.ToString();
+                                        templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                                        templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                                        reportsStr = reportsStr + "\n* Лист: \"" + item.SheetName + "\""
+                                            + " Ид шаблона: " + templateStrId + " Тип: "
+                                            + templateStrType + " Производство: "
+                                            + templateStrDepartment;
+                                    }
+                                    haveErrors = true;
+
+                                    if (foundMesParamDTO.Code.ToUpper() != changedMesParamDTO.Code.ToUpper())
+                                    {
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 4. Нельзя менять код тэга. Код "
+                                                + foundMesParamDTO.Code + " используется в НЕ архивных шаблонах отчётов:\n " + reportsStr + "\n Изменения не применялись.";
+                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 4 }, resultString);
+                                        rowNumber++;
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        resultString = "! Строка " + rowNumber.ToString() + ", столбец 34. Нельзя удалять тэг в архив. Используется в НЕ архивных шаблонах отчётов:\n "
+                                            + reportsStr + " \nИзменения не применялись.";
+                                        await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 34 }, resultString);
+                                        rowNumber++;
+                                        continue;
+                                    }
+                                }
+                            }
+
                             await _mesParamRepository.Update(changedMesParamDTO);
+                            await _reportTemplateToMesParamRepository.UpdateEmptyMesParamIdByMesParamCode(changedMesParamDTO.Code, changedMesParamDTO.Id);
 
                             if (changedMesParamDTO.IsArchive != foundMesParamDTO.IsArchive)
                             {
@@ -2761,7 +2816,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 catch (Exception ex)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap забрал\"). Не удалось получить Когда Sap забрал." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap обработал\"). Не удалось получить Когда Sap обработал." +
                                         " Изменения не применялись. Сообщение ошибки: " + ex.Message;
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
                                     rowNumber++;
@@ -2778,8 +2833,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 || (changedSapNdoOUTDTO.SapGone != true && changedSapNdoOUTDTO.SapGoneTime == null)))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap забрал\", \"Когда Sap забрал\"). Если \"Sap забрал\" равно \"Да\" время \"Когда Sap забрал\" должно быть заполнено."
-                                    + " Если \"Sap забрал\" равно \"Нет\" или пусто, то время \"Когда Sap забрал\" должно быть пустым."
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap обработал\", \"Когда Sap обработал\"). Если \"Sap обработал\" равно \"Да\" время \"Когда Sap обработал\" должно быть заполнено."
+                                    + " Если \"Sap обработал\" равно \"Нет\" или пусто, то время \"Когда Sap обработал\" должно быть пустым."
                                     + " Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 8, 9 }, resultString);
                                 rowNumber++;
@@ -2964,7 +3019,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 catch (Exception ex)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap забрал\"). Не удалось получить Когда Sap забрал." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 9 (\"Когда Sap обработал\"). Не удалось получить Когда Sap обработал." +
                                         " Изменения не применялись. Сообщение ошибки: " + ex.Message;
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 9 }, resultString);
                                     rowNumber++;
@@ -2981,8 +3036,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 || (changedSapNdoOUTDTO.SapGone != true && changedSapNdoOUTDTO.SapGoneTime == null)))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap забрал\", \"Когда Sap забрал\"). Если \"Sap забрал\" равно \"Да\" время \"Когда Sap забрал\" должно быть заполнено."
-                                    + " Если \"Sap забрал\" равно \"Нет\" или пусто, то время \"Когда Sap забрал\" должно быть пустым."
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 8, 9 (\"Sap обработал\", \"Когда Sap обработал\"). Если \"Sap обработал\" равно \"Да\" время \"Когда Sap обработал\" должно быть заполнено."
+                                    + " Если \"Sap обработал\" равно \"Нет\" или пусто, то время \"Когда Sap обработал\" должно быть пустым."
                                     + " Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 8, 9 }, resultString);
                                 rowNumber++;
@@ -6410,7 +6465,7 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                 catch (Exception ex)
                                 {
                                     haveErrors = true;
-                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 28 (\"Время SAP забрал\"). Не удалось получить Время SAP забрал." +
+                                    resultString = "! Строка " + rowNumber.ToString() + ", столбец 28 (\"Время SAP обработал\"). Не удалось получить Время SAP обработал." +
                                         " Изменения не применялись. Сообщение ошибки: " + ex.Message;
                                     await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[2] { 2, 28 }, resultString);
                                     rowNumber++;
@@ -6429,8 +6484,8 @@ namespace DictionaryManagement_Server.Extensions.Repository
                                     || (changedSapMovementsOUTDTO.SapGone != true && changedSapMovementsOUTDTO.SapGoneTime == null)))
                             {
                                 haveErrors = true;
-                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 27, 28 (\"SAP забрал\", \"Время SAP забрал\"). Если \"Sap забрал\" равно \"Да\", то \"Время SAP забрал\" должно быть заполнено."
-                                    + " Если \"SAP забрал\" равно \"Нет\" или пусто, то \"Время SAP забрал\" должно быть пустым."
+                                resultString = "! Строка " + rowNumber.ToString() + ", столбец 27, 28 (\"SAP обработал\", \"Время SAP обработал\"). Если \"Sap обработал\" равно \"Да\", то \"Время SAP обработал\" должно быть заполнено."
+                                    + " Если \"SAP обработал\" равно \"Нет\" или пусто, то \"Время SAP обработал\" должно быть пустым."
                                     + " Изменения не применялись.";
                                 await WriteError(loadFromExcelPage, worksheet, rowNumber, 1, resultColumnNumber, new int[3] { 2, 27, 28 }, resultString);
                                 rowNumber++;

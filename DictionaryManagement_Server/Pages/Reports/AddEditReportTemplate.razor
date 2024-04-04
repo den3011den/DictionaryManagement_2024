@@ -1,6 +1,7 @@
 ﻿@page "/reports/ReportTemplate/AddEditReportTemplate/{ReportTemplateId}"
 @attribute [Authorize]
 
+@using ClosedXML.Excel
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
 @inject IReportTemplateRepository _reportTemplateRepository
@@ -14,6 +15,7 @@
 @inject DialogService _dialogService
 @inject IUserRepository _userRepository
 @inject IReportTemplateFileHistoryRepository _reportTemplateFileHistoryRepository
+@inject IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository
 
 <_Dialogs @ref="_dialogs"></_Dialogs>
 
@@ -425,7 +427,16 @@
                     return;
                 }
 
-                if (await ReportTemplateFileSaveAborded(TempFilePath + customParameter + ".xlsx"))
+                IXLWorkbook? xLWorkbook = null;
+                bool reportTemplateFileSaveAbordedResult = false;
+                IEnumerable<MesParamDTO> mesParamListDTO;
+                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+
+                xLWorkbook = tmpVar.Item1;
+                reportTemplateFileSaveAbordedResult = tmpVar.Item2;
+                mesParamListDTO = tmpVar.Item3;
+
+                if (reportTemplateFileSaveAbordedResult)
                 {
                     IsSubmited = false;
                     return;
@@ -456,12 +467,15 @@
                 }
                 string oldTemplateFileName = "";
 
+                bool fileSaveSuccess = false;
                 try
                 {
                     File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                    fileSaveSuccess = true;
                 }
                 catch (Exception copyEx)
                 {
+                    fileSaveSuccess = false;
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
                 }
 
@@ -472,6 +486,11 @@
                 reportTemplateFileHistoryDTO.PreviousFileName = oldTemplateFileName;
                 reportTemplateFileHistoryDTO.CurrentFileName = ActiveReportTemplateDTO.TemplateFileName;
                 await _reportTemplateFileHistoryRepository.Create(reportTemplateFileHistoryDTO);
+
+                if (fileSaveSuccess)
+                {
+                    await FillReportTemplateToMesParam(createdTemplateDTO, xLWorkbook, mesParamListDTO);
+                }
 
                 await _jsRuntime.ToastrSuccess("Шаблон \"" + ActiveReportTemplateDTO.Description + "\" создан");
                 if (isUploadFileError == false)
@@ -496,12 +515,22 @@
 
                 ActiveReportTemplateDTO.TemplateFileName = ActiveReportTemplateDTO.Id + ".xlsx";
 
-                if (await ReportTemplateFileSaveAborded(TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx"))
+                IXLWorkbook? xLWorkbook = null;
+                bool reportTemplateFileSaveAbordedResult = false;
+                IEnumerable<MesParamDTO> mesParamListDTO;
+                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+
+                xLWorkbook = tmpVar.Item1;
+                reportTemplateFileSaveAbordedResult = tmpVar.Item2;
+                mesParamListDTO = tmpVar.Item3;
+
+                if (reportTemplateFileSaveAbordedResult)
                 {
                     IsSubmited = false;
                     return;
                 }
 
+                bool fileSaveSuccess = false;
                 if (!String.IsNullOrEmpty(uploadFileWarning))
                 {
                     //upload.Url = @"UploadFileController/UploadReportTemplateFile/" + ActiveReportTemplateDTO.Id;
@@ -520,10 +549,12 @@
                     {
                         File.Copy(ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + oldTemplateFileName, true);
                         File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                        fileSaveSuccess = true;
                     }
                     catch (Exception copyEx)
                     {
                         await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Ошибка при записи файла. Сообщение ошибки: " + copyEx.Message);
+                        fileSaveSuccess = false;
                     }
 
                     await _logEventRepository.AddRecord("Изменение шаблона отчёта", addedUser.Id, ActiveReportTemplateDTO.ToString(), ActiveReportTemplateDTO.ToString(), false, "Замена файла шаблона отчёта: " + ActiveReportTemplateDTO.ToString());
@@ -542,6 +573,11 @@
                 ReportTemplateDTO newReportTemplateDTO = await _reportTemplateRepository.Update(ActiveReportTemplateDTO);
 
                 await _logEventRepository.ToLog<ReportTemplateDTO>(oldObject: oldReportTemplateDTO, newObject: newReportTemplateDTO, "Изменение шаблона отчёта", "Шаблон отчёта: ", _authorizationRepository);
+
+                if (!String.IsNullOrEmpty(uploadFileWarning) && fileSaveSuccess)
+                {
+                    await FillReportTemplateToMesParam(newReportTemplateDTO, xLWorkbook, mesParamListDTO);
+                }
 
                 await _jsRuntime.ToastrSuccess("Шаблон отчёта \"" + ActiveReportTemplateDTO.Id.ToString() + "\" изменён");
                 if (isUploadFileError == false)
@@ -641,13 +677,13 @@
                 return;
             }
 
-            bool? dialogResult = true;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+            await _dialogService.OpenAsync<CheckReportTemplateFile>(
                     "Проверка файла шаблона отчёта - " + reportTemplateDTO.Id.ToString() + " - " + reportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + reportTemplateDTO.MesDepartmentDTOFK.Name,
                     new Dictionary
                     <string, object>
-                    () { { "ReportTemplateFilePath", filepath.HideSlash() },
+                    () { { "ReportTemplateId", reportTemplateDTO.Id },
+                         { "ReportTemplateFilePath", filepath.HideSlash() },
                          { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
                          { "ForSave", false } }
                     , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
@@ -776,9 +812,7 @@
             return false;
     }
 
-
-
-    private async Task<bool> ReportTemplateFileSaveAborded(string fileFullPath)
+    private async Task<Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>>> ReportTemplateFileSaveAborded(Guid reportTemplateId, string fileFullPath)
     {
         if (NeedCheckReportTemplateBeforeSaving)
         {
@@ -786,28 +820,61 @@
             {
                 if (CanCheckReportTemplateFile().GetAwaiter().GetResult())
                 {
-                    bool? dialogResult = true;
+                    bool dialogResult = true;
+                    Tuple<IXLWorkbook?, bool?, IEnumerable<MesParamDTO>> dialogReturnVar;
                     IsLoading = false;
-                    
-                    dialogResult = await _dialogService.OpenAsync<CheckReportTemplateFile>(
+
+                    dialogReturnVar = await _dialogService.OpenAsync<CheckReportTemplateFile>(
                         "Проверка файла шаблона отчёта - " + ActiveReportTemplateDTO.Id.ToString() + " - " + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + " - " + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name
                         , new Dictionary
                             <string, object>
-                     () { { "ReportTemplateFilePath", fileFullPath.HideSlash() },
+                     () { { "ReportTemplateId", ActiveReportTemplateDTO.Id},
+                         {"ReportTemplateFilePath", fileFullPath.HideSlash() },
                                  { "ReportTemplateTypeName" , ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper()},
                                  { "ForSave", true}}
                             , new DialogOptions() { Width = "80vw", Left = "2vw", Top = "1vh", Bottom = "1vh", ShowClose = false });
-                    if (dialogResult == false)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+
+                    dialogResult = dialogReturnVar.Item2 == false ? true : false;
+                    return new Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>>(dialogReturnVar.Item1, dialogResult, dialogReturnVar.Item3);
                 }
             }
         }
-        return false;
+        return new Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>>(null, false, new List<MesParamDTO>());
+    }
+
+
+    private async Task FillReportTemplateToMesParam(ReportTemplateDTO reportTemplateDTOPar, IXLWorkbook? workbookPar, IEnumerable<MesParamDTO> mesParamListDTOPar)
+    {
+        if (workbookPar != null)
+        {
+            await _reportTemplateToMesParamRepository.DeleteAllByReportTemplateId(reportTemplateDTOPar.Id);
+            string reportTeplateTypeName = reportTemplateDTOPar.ReportTemplateTypeDTOFK.Name.Trim().ToUpper();
+            if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                || reportTeplateTypeName == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
+                || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
+            {
+                // добавление тэгов TagLibrary
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "TagLibrary", "A", 1, mesParamListDTOPar);
+                // добавление тэгов OutputData
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "OutputData", "A", 1, mesParamListDTOPar);
+            }
+            if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
+            {
+                // добавление тэгов Отчет матрица
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчет матрица", "P", 9, mesParamListDTOPar);
+            }
+            else
+            if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper()
+                || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper())
+            {
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Отчёт матрица", "P", 9, mesParamListDTOPar);
+            }
+            if (reportTeplateTypeName == SD.CorrectionReportTemplateTypeName.Trim().ToUpper())
+            {
+                // добавление тэгов Форма корректировок
+                await _reportTemplateToMesParamRepository.AddFromWorksheet(reportTemplateDTOPar.Id, workbookPar, "Форма корректировок", "N", 10, mesParamListDTOPar);
+            }
+        }
     }
 }

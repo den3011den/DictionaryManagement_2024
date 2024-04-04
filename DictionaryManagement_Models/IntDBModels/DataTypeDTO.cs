@@ -30,6 +30,13 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "Результирующий тип авторасчёта")]
         public bool? IsAutoCalcDestDataType { get; set; }
 
+        [ForLogAttribute(NameProperty = "поле \"Нельзя переименовывать\"")]
+        [Display(Name = "Нельзя переименовывать")]
+        public bool? CantChangeName { get; set; }
+
+        [NotMapped]
+        public bool? OldCantChangeName { get; set; }
+
         [NotMapped]
         public string ToStringValue { get; set; } = string.Empty;
 

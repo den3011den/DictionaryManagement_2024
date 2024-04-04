@@ -11,11 +11,20 @@ namespace DictionaryManagement_Business.Repository
     {
         private readonly IntDBApplicationDbContext _db;
         private readonly IMapper _mapper;
+        private readonly IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository;
 
-        public CheckReportTemplateRepository(IntDBApplicationDbContext db, IMapper mapper)
+        public CheckReportTemplateRepository(IntDBApplicationDbContext db, IMapper mapper, IReportTemplateToMesParamRepository reportTemplateToMesParamRepository)
         {
             _db = db;
             _mapper = mapper;
+            _reportTemplateToMesParamRepository = reportTemplateToMesParamRepository;
+
+        }
+
+        public record OutputDataRecord
+        {
+            public string MesParamCode { get; set; } = "";
+            public string ValueTime { get; set; } = "";
         }
 
         public async Task<List<string>?> IsNotExistSheets(IXLWorkbook workbook, List<string> sheetList)
@@ -64,15 +73,39 @@ namespace DictionaryManagement_Business.Repository
             return null;
         }
 
-        public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType)
+        public async Task<List<string>?> CheckSheetTags(IXLWorksheet worksheet, IEnumerable<MesParamDTO> mesParamDTOList, CheckReportTemplateTagsType checkReportTemplateTagsType
+            , string reportTemplateTypeName, Guid reportTemplateId)
         {
-            var mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+            List<string> mesParamCodeList;
+            List<OutputDataRecord> outputDataList = new List<OutputDataRecord>();
+
+            mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+            if (worksheet.Name.Trim().ToUpper() == "OUTPUTDATA")
+            {
+                outputDataList = worksheet.Range("A:B").RowsUsed()
+                    .Select(c => new OutputDataRecord { MesParamCode = c.Cell(1).CachedValue.ToString(), ValueTime = c.Cell(2).CachedValue.ToString() }).Skip(1).ToList();
+            }
+            else
+            {
+                mesParamCodeList = worksheet.Range("A:A").CellsUsed().Select(c => c.CachedValue.ToString()/*.Trim()*/).Skip(1).ToList();
+            }
+
+
             switch (checkReportTemplateTagsType)
             {
                 case CheckReportTemplateTagsType.IsDuplicate:
                     {
-                        List<string> duplicateList = mesParamCodeList.GroupBy(u => u).Where(u => u.Count() > 1).Select(u => u.Key).ToList();
-                        if (duplicateList.Any())
+                        List<string> duplicateList = new List<string>();
+                        if (worksheet.Name.Trim().ToUpper() == "OUTPUTDATA")
+                        {
+                            duplicateList = outputDataList.GroupBy(u => new { u.MesParamCode, u.ValueTime }).Where(u => u.Count() > 1 && !String.IsNullOrEmpty(u.Key.ValueTime))
+                                .Select(u => u.Key.MesParamCode + " на дату " + u.Key.ValueTime).ToList();
+                        }
+                        else
+                        {
+                            duplicateList = mesParamCodeList.GroupBy(u => u).Where(u => u.Count() > 1).Select(u => u.Key).ToList();
+                        }
+                        if (duplicateList != null && duplicateList.Any())
                         { return duplicateList; }
                         else
                         { return null; }
@@ -97,6 +130,39 @@ namespace DictionaryManagement_Business.Repository
                         { return isInArchiveList; }
                         else
                         { return null; }
+                    }
+                case CheckReportTemplateTagsType.IsInOtherNotArchiveReportTemplatesBySheetName:
+                    {
+                        mesParamCodeList = outputDataList.Select(u => u.MesParamCode).ToList();
+
+                        var reportTemplateToMesParamList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(
+                                reportTemplateId, worksheet.Name, worksheet.Name, mesParamCodeList, reportTemplateTypeName);
+
+                        if (reportTemplateToMesParamList != null && reportTemplateToMesParamList.Any())
+                        {
+                            string templateStrId = "";
+                            string templateStrType = "";
+                            string templateStrDepartment = "";
+                            string reportsStr = "";
+                            List<string> listToReturn = new List<string>();
+                            foreach (var item in reportTemplateToMesParamList.OrderBy(u => u.ReportTemplateId))
+                            {
+                                templateStrId = item.ReportTemplateId.ToString();
+                                templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                                templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                                reportsStr = "Тэг: " + item.MesParamCode + " присутствует на листе \"" + worksheet.Name + "\""
+                                    + " Ид шаблона: " + templateStrId + " Тип: "
+                                    + templateStrType + " Производство: "
+                                    + templateStrDepartment + " ";
+                                listToReturn.Add(reportsStr);
+
+                            }
+                            if (listToReturn.Any())
+                            { return listToReturn; }
+                            else
+                            { return null; }
+                        }
+                        return null;
                     }
             }
 

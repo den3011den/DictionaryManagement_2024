@@ -209,7 +209,7 @@ namespace DictionaryManagement_Models.IntDBModels
         }
 
         [NotMapped]
-        [Display(Name = "Sap забрал")]
+        [Display(Name = "Sap обработал")]
         public bool SapGoneBool
         {
             get
@@ -228,6 +228,49 @@ namespace DictionaryManagement_Models.IntDBModels
                 SapGoneBool = value;
             }
         }
+
+        [NotMapped]
+        [Display(Name = "Ошибка обработки SAP")]
+        public bool SapErrorBool
+        {
+            get
+            {
+                if (SapMovementsOUTDTOFK == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return SapMovementsOUTDTOFK.SapErrorBool;
+                }
+            }
+            set
+            {
+                SapErrorBool = value;
+            }
+        }
+
+        [NotMapped]
+        [Display(Name = "Сообщение ошибки обработки SAP")]
+        public string SapErrorMessage
+        {
+            get
+            {
+                if (SapMovementsOUTDTOFK == null)
+                {
+                    return "";
+                }
+                else
+                {
+                    return String.IsNullOrEmpty(SapMovementsOUTDTOFK.SapErrorMessage) ? "" : SapMovementsOUTDTOFK.SapErrorMessage;
+                }
+            }
+            set
+            {
+                SapErrorMessage = value;
+            }
+        }
+
 
         [NotMapped]
         [Display(Name = "Mes забрал")]

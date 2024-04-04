@@ -6,6 +6,7 @@
 
 @inject IJSRuntime _jsRuntime
 @inject IReportTemplateTypeRepository _reportTemplateTypeRepository
+@inject ISettingsRepository _settingsRepository
 @inject DialogService _dialogService
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -31,9 +32,13 @@
                                         <RadzenNumeric @bind-Value="@ActiveReportTemplateTypeDTO.Id" ReadOnly="true" />
                                     </RadzenFormField>
                                 }
-
+                                @if (ControlReportTemplateTypeCantChangeName == true && ActiveReportTemplateTypeDTO.CantChangeName == true)
+                                {
+                                    <RadzenLabel Text="Наименование данного типа шаблона отчёта нельзя менять" Style="color:salmon"></RadzenLabel>
+                                }
                                 <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 600px;">
-                                    <RadzenTextBox @bind-Value="@ActiveReportTemplateTypeDTO.Name" />
+                                    <RadzenTextBox @bind-Value="@ActiveReportTemplateTypeDTO.Name" 
+                                            Disabled="@(ControlReportTemplateTypeCantChangeName == true && ActiveReportTemplateTypeDTO.CantChangeName == true)"/>
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveReportTemplateTypeDTO.Name"></ValidationMessage>
 
@@ -41,7 +46,8 @@
                         </RadzenColumn>
                     </RadzenRow>
                     <div class="form-group py-2">
-                        <button class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
+                        <button class="btn btn-primary" 
+                                disabled=@(IsAdmin != AdminMode.IsAdmin || (ControlReportTemplateTypeCantChangeName == true && ActiveReportTemplateTypeDTO.CantChangeName == true))>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>
@@ -64,6 +70,8 @@
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
 
+    public bool ControlReportTemplateTypeCantChangeName { get; set; } = true;
+
     public ReportTemplateTypeDTO ActiveReportTemplateTypeDTO { get; set; }
 
     private string Title { get; set; } = "Создать тип шаблона отчёта";
@@ -84,6 +92,16 @@
         {
             ActiveReportTemplateTypeDTO = await _reportTemplateTypeRepository.Get(ReportTemplateTypeId);
             Title = "Изменить тип шаблона отчёта";
+        }
+
+        var tmpSetting = await _settingsRepository.GetByName(SD.ControlReportTemplateTypeCantChangeNameSettingName);
+        if (tmpSetting == null)
+        {
+            ControlReportTemplateTypeCantChangeName = true;
+        }
+        else
+        {
+            ControlReportTemplateTypeCantChangeName = tmpSetting.Value.Trim() == "1" ? true : false;
         }
 
         IsLoading = false;

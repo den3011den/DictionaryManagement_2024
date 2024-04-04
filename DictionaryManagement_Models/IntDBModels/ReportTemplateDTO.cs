@@ -80,6 +80,9 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "История файлов шаблона отчёта")]
         public IEnumerable<ReportTemplateFileHistoryDTO>? ReportTemplateFileHistoryListDTO { get; set; }
 
+        [Display(Name = "Тэги шаблона отчёта")]
+        public IEnumerable<ReportTemplateToMesParamDTO>? ReportTemplateToMesParamListDTO { get; set; }
+
         [NotMapped]
         [Display(Name = "Ид записи")]
         public string ToStringId

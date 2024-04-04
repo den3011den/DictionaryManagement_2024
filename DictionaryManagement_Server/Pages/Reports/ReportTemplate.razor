@@ -1,5 +1,6 @@
 ﻿@page "/reports/ReportTemplate"
 @attribute [Authorize]
+@using ClosedXML.Excel
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Business.Repository;
 @using DictionaryManagement_Common;
@@ -12,6 +13,9 @@
 @inject ILogEventRepository _logEventRepository
 @inject DialogService _dialogService
 @inject NavigationManager _navigationManager
+@inject IMesParamRepository _mesParamRepository
+@inject ISettingsRepository _settingsRepository
+@inject IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
@@ -26,8 +30,17 @@
         {
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый шаблон отчёта"
-                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || LoadTagsFromAllReportTemplatesFlag)" />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
+                              Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=LoadTagsFromAllReportTemplatesFlag />
+                @if (ShowLoadTagsFromAllReportTemplatesButtonFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка списков тэгов с листов файлов всех поддерживаемых шаблонов отчётов в таблицу ReportTemplateToMesParam"
+                                  Text="Перезагрузить списки тэгов из файлов шаблонов отчётов" Click="@(args => LoadTagsFromAllReportTemplates())" IsBusy="@LoadTagsFromAllReportTemplatesFlag" BusyText="@LoadTagsFromAllReportTemplatesText"
+                                  Disabled="@(IsAdmin != AdminMode.IsAdmin)"
+                                  Image="/css/bootstrap-icons-1.10.5/bi--tags-fill.svg">
+                    </RadzenButton>
+                }
             </RadzenRow>
 
             <RadzenDataGridApp @bind-Settings="@ReportTemplateGridSettings" SettingsName="ReportTemplateGridSettings" @ref="reportTemplateDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
@@ -66,7 +79,6 @@
                     </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
-
                     <RadzenDataGridColumnApp TItem="ReportTemplateDTO" Property="ToStringId" Title="Ид шаблона отчёта"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
@@ -93,7 +105,7 @@
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
                         </FilterTemplate>
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-wrap" id="@(data1.ToStringId.ToUpper())">
                                 @data1.AddUserDTOFK.UserName
                             </div>
                         </Template>
@@ -208,28 +220,55 @@
                         </Template>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="ReportTemplateDTO" Context="reportTemplateDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="130px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="ReportTemplateDTO" Context="reportTemplateDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="85px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                         <Template Context="reportTemplateDTO">
-                            <RadzenButton title="@((reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0) ? "Нет истории изменения файла (появилась с версии 0.15.2.3)" : "История изменений файла шаблона")" Icon="history" ButtonStyle="ButtonStyle.Light" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
-                                          Click="@(args => ShowFileHistory(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0)">
-                            </RadzenButton>
+                            <div class="row">
+                                <div class="col-3">
+                                    <RadzenButton title="Тэги шаблона отчёта" ButtonStyle="ButtonStyle.Light" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                                  Click="@(args => ShowReportTemplateTags(reportTemplateDTO))" @onclick:stopPropagation="true"
+                                                  Disabled="@(reportTemplateDTO.ReportTemplateToMesParamListDTO == null || !reportTemplateDTO.ReportTemplateToMesParamListDTO.Any() || LoadTagsFromAllReportTemplatesFlag)" class="my-1 ms-1 p-0">
+                                        <i class="bi bi-tags-fill"></i>
+                                    </RadzenButton>
+                                </div>
 
-                            <RadzenButton title="Скачать файл шаблона" Icon="download" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" Click="@(args => DownloadTemplate(reportTemplateDTO.Id))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" Click="@(args => EditRow(reportTemplateDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            @if (!reportTemplateDTO.IsArchive)
-                            {
-                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                                </RadzenButton>
-                            }
-                            else
-                            {
-                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                                </RadzenButton>
-                            }
+                                <div class="col-3">
+                                    <RadzenButton title="@((reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || !reportTemplateDTO.ReportTemplateFileHistoryListDTO.Any()) ? "Нет истории изменения файла (появилась с версии 0.15.2.3)" : "История изменений файла шаблона")" Icon="history" ButtonStyle="ButtonStyle.Light" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                                  Click="@(args => ShowFileHistory(reportTemplateDTO))" @onclick:stopPropagation="true"
+                                                  Disabled="@(reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || !reportTemplateDTO.ReportTemplateFileHistoryListDTO.Any() || LoadTagsFromAllReportTemplatesFlag)" class="my-1 ms-1 p-0">
+                                    </RadzenButton>
+                                </div>
+                                <div class="col-3">
+                                    <RadzenButton title="Скачать файл шаблона" Icon="download" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                                  Click="@(args => DownloadTemplate(reportTemplateDTO.Id))" @onclick:stopPropagation="true" Disabled="@LoadTagsFromAllReportTemplatesFlag" class="my-1 ms-1 p-0">
+                                    </RadzenButton>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-3">
+                                </div>
+                                <div class="col-3">
+                                    <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                                  Click="@(args => EditRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@LoadTagsFromAllReportTemplatesFlag" class="my-1 ms-1 p-0">
+                                    </RadzenButton>
+                                </div>
+
+                                @if (!reportTemplateDTO.IsArchive)
+                                {
+                                    <div class="col-3">
+                                        <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1 p-0"
+                                                      Click="@(args => DeleteRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || LoadTagsFromAllReportTemplatesFlag)">
+                                        </RadzenButton>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="col-3">
+                                        <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1 p-0"
+                                                      Click="@(args => DeleteRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || LoadTagsFromAllReportTemplatesFlag)">
+                                        </RadzenButton>
+                                    </div>
+                                }
+                            </div>
                         </Template>
                     </RadzenDataGridColumnApp>
                 </Columns>
@@ -253,6 +292,8 @@
     bool iconMenuActive { get; set; }
     _Dialogs? _dialogs { get; set; }
 
+    ReportTemplateDTO? selectedToRemember = null;
+
     IEnumerable<ReportTemplateDTO>? reportTemplateDTOs;
 
     RadzenDataGrid<ReportTemplateDTO> reportTemplateDTOGrid;
@@ -272,6 +313,10 @@
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
+    public bool LoadTagsFromAllReportTemplatesFlag = false;
+    public bool ShowLoadTagsFromAllReportTemplatesButtonFlag = false;
+
+    public string LoadTagsFromAllReportTemplatesText = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -289,6 +334,11 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
                 reportTemplateDTOs = await _reportTemplateRepository.GetAll(SD.SelectDictionaryScope.All);
+                ShowLoadTagsFromAllReportTemplatesButtonFlag = false;
+                var settingsDTO = await _settingsRepository.GetByName(SD.ShowFillReportTemplateToMesParamTableForAllReportTemplatesButtonSettingName);
+                if (settingsDTO != null)
+                    if (settingsDTO.Value.Trim() == "1")
+                        ShowLoadTagsFromAllReportTemplatesButtonFlag = true;
                 await GetDistincts();
                 await LoadStateAsync();
                 IsLoading = false;
@@ -320,7 +370,6 @@
     private async Task LoadStateAsync()
     {
         await Task.CompletedTask;
-
         if (!(await SD.CheckPageSettingsVersion("ReportTemplateGridSettings", _jsRuntime)))
             return;
 
@@ -374,7 +423,8 @@
 
     async Task EditRow(ReportTemplateDTO reportTemplateDTO)
     {
-        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+
+        if ((IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly) && !LoadTagsFromAllReportTemplatesFlag)
         {
             IsLoading = true;
             ReportTemplateDTO dialogResult = null;
@@ -391,6 +441,8 @@
 
             if (dialogResult != null)
             {
+                await SetPosition(dialogResult);
+
                 IsLoading = true;
                 await LoadStateAsync();
                 await Task.Delay(100);
@@ -399,6 +451,10 @@
                 await GetDistincts();
                 IsLoading = false;
                 await Task.Delay(100);
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(1000);
+                await GoToPosition(selectedToRemember);
+                await Task.Delay(10);
                 await InvokeAsync(StateHasChanged);
             }
             IsLoading = false;
@@ -417,16 +473,16 @@
             }
             else
             {
-                if (reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0)
+                if (reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || !reportTemplateDTO.ReportTemplateFileHistoryListDTO.Any())
                 {
-                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "отсутствует история изменения файла шаблона отчёта");
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Отсутствует история изменения файла шаблона отчёта");
                 }
                 else
                 {
                     IsLoading = false;
                     dialogResult = await _dialogService.OpenAsync<ShowReportTemplateFileHistory>("История изменений шаблона отчёта " + reportTemplateDTO.Id.ToString(), new Dictionary
                             <string, object>
-                            () { {"DataList", (IEnumerable<ReportTemplateFileHistoryDTO>)reportTemplateDTO.ReportTemplateFileHistoryListDTO.OrderByDescending(u=> u.AddTime) }}
+                            () { { "DataList", (IEnumerable<ReportTemplateFileHistoryDTO>)reportTemplateDTO.ReportTemplateFileHistoryListDTO.OrderByDescending(u => u.AddTime) } }
                             , new DialogOptions() { Width = $"{70}vw", Left = "10vw" });
                     IsLoading = false;
                 }
@@ -435,6 +491,35 @@
         }
     }
 
+    async Task ShowReportTemplateTags(ReportTemplateDTO reportTemplateDTO)
+    {
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            IsLoading = true;
+            ReportTemplateDTO dialogResult = null;
+            if (reportTemplateDTO == null)
+            {
+
+            }
+            else
+            {
+                if (reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || reportTemplateDTO.ReportTemplateFileHistoryListDTO.Count() <= 0)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Отсутствует список тэгов шаблона отчёта");
+                }
+                else
+                {
+                    IsLoading = false;
+                    dialogResult = await _dialogService.OpenAsync<ShowReportTemplateTags>("Тэги шаблона отчёта " + reportTemplateDTO.Id.ToString(), new Dictionary
+                            <string, object>
+                           () { { "DataList", (IEnumerable<ReportTemplateToMesParamDTO>)reportTemplateDTO.ReportTemplateToMesParamListDTO.OrderBy(u => u.SheetName).ThenBy(u => u.MesParamCode) } }
+                            , new DialogOptions() { Width = $"{85}vw", Left = "1vw" });
+                    IsLoading = false;
+                }
+            }
+            IsLoading = false;
+        }
+    }
 
 
     async Task DeleteRow(ReportTemplateDTO reportTemplateDTO)
@@ -445,7 +530,7 @@
             {
                 if (reportTemplateDTO.IsArchive != true)
                 {
-                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление шаблона отчёта", "Удалить шаблон \"" + reportTemplateDTO.Description + "\" в архив ?", "Удалить", "Отмена");
+                    bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Удаление шаблона отчёта", "<strong>Удалить</strong> шаблон:<br/>\"" + reportTemplateDTO.Description + "\"<br/><strong>в архив ?</strong>", "Удалить", "Отмена");
                     if (selectionResult == false)
                     {
                         await _jsRuntime.ToastrSuccess("Отмена удаления");
@@ -459,6 +544,39 @@
                     {
                         await _jsRuntime.ToastrSuccess("Отмена восстановления");
                         return;
+                    }
+
+                    var settingDTO = await _settingsRepository.GetByName(SD.ReportOutputSheetSettingName);
+
+                    if (settingDTO != null)
+                    {
+                        var mesParamCodeList = await _reportTemplateToMesParamRepository.GetTagListInOtherNotArchiveReportTemplatesBySheetName(reportTemplateDTO.Id, settingDTO.Value, settingDTO.Value);
+                        if (mesParamCodeList != null && mesParamCodeList.Any())
+                        {
+                            string reportsStr = "";
+                            string templateStrId = "";
+                            string templateStrType = "";
+                            string templateStrDepartment = "";
+                            foreach (var item in mesParamCodeList)
+                            {
+                                templateStrId = item.ReportTemplateId.ToString();
+                                templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
+                                templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                                reportsStr = reportsStr + "<li>Тэг: " + item.MesParamCode
+                                    + "<br/> Ид шаблона: " + templateStrId + "<br/> Тип: "
+                                    + templateStrType + "<br/> Производство: "
+                                    + templateStrDepartment + "</li><br/>";
+
+                            }
+                            bool selectionResult2 = await _dialogs.ShowYesOrNoDialogBox("Восстановление шаблона отчёта",
+                                "<strong><div style=\"color:red\">Тэги листа OutputData встречаются на листе OutputData других не архивных шаблонов отчётов.</div><br/>"
+                                + "ВСЁ РАВНО ВОССТАНОВИТЬ?</strong>", "Восстановить", "Отмена", reportsStr);
+                            if (selectionResult2 == false)
+                            {
+                                await _jsRuntime.ToastrSuccess("Отмена восстановления");
+                                return;
+                            }
+                        }
                     }
                 }
             }
@@ -644,6 +762,198 @@
             .Select(u => u.MesDepartmentDTOFK.ToStringHierarchyShortName).Distinct().ToList();
         distinctAddUsersInList = (List<string>)reportTemplateDTOs.OrderBy(u => u.AddUserDTOFK.UserName)
             .Select(u => u.AddUserDTOFK.UserName).Distinct().ToList();
+    }
 
+    async Task LoadTagsFromAllReportTemplates()
+    {
+        if (IsAdmin == AdminMode.IsAdmin)
+        {
+            await Task.Delay(200);
+            await InvokeAsync(StateHasChanged);
+
+            bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Загрузка тэгов из шаблонов отчётов",
+                "Будут перезагружены списки тэгов для всех шаблонов отчётов в таблицу ReportTemplateToMesParam. Процедура продолжительная. Запустить загрузку ?", "Загрузить", "Отмена");
+            if (selectionResult == false)
+            {
+                await _jsRuntime.ToastrSuccess("Отмена");
+                return;
+            }
+
+            //IsLoading = true;
+            LoadTagsFromAllReportTemplatesFlag = true;
+            LoadTagsFromAllReportTemplatesText = "Выбирается список поддерживаемых шаблонов отчётов ...";
+            await Task.Delay(20);
+            await InvokeAsync(StateHasChanged);
+
+            var reportTemplateList = await _reportTemplateRepository.GetAll(SelectDictionaryScope.All);
+
+            if (reportTemplateList == null || !reportTemplateList.Any())
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Получен пустой список шаблонов отчётов");
+                //IsLoading = false;
+                LoadTagsFromAllReportTemplatesFlag = false;
+                LoadTagsFromAllReportTemplatesText = "";
+                await Task.Delay(20);
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            var reportTemplateListResult = reportTemplateList
+                .Where(u => u.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                    || u.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
+                    || u.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.TebReportTemplateTypeName.Trim().ToUpper()).ToList();
+
+            if (reportTemplateListResult == null || !reportTemplateListResult.Any())
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Получен пустой список шаблонов отчётов");
+                //IsLoading = false;
+                LoadTagsFromAllReportTemplatesFlag = false;
+                LoadTagsFromAllReportTemplatesText = "";
+                await Task.Delay(20);
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            var settingDTO = await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName);
+
+            if (settingDTO == null)
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найдена настройка с наименованием \"" + SD.ReportTemplatePathSettingName + "\" в справочнике настроек.");
+                //IsLoading = false;
+                LoadTagsFromAllReportTemplatesFlag = false;
+                LoadTagsFromAllReportTemplatesText = "";
+                await Task.Delay(20);
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            string reportTemplatePath = settingDTO.Value;
+
+            if (!System.IO.Directory.Exists(reportTemplatePath))
+            {
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найден путь \"" + reportTemplatePath + "\"");
+                //IsLoading = false;
+                LoadTagsFromAllReportTemplatesFlag = false;
+                LoadTagsFromAllReportTemplatesText = "";
+                await Task.Delay(20);
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            await SetPosition();
+
+            IEnumerable<MesParamDTO> mesParamDTOList = await _mesParamRepository.GetAll(SelectDictionaryScope.All);
+
+            int reportTemplateCount = reportTemplateListResult.Count();
+            int reportTemplateNumber = 0;
+
+            string reportTemplateFilePath = "";
+            bool errorFlag = false;
+
+            foreach (var item in reportTemplateListResult)
+            {
+                reportTemplateNumber++;
+
+                LoadTagsFromAllReportTemplatesText = "Обрабатывается файл " + reportTemplateNumber.ToString() + " из " + reportTemplateCount.ToString() + " ... ";
+                await Task.Delay(20);
+                await InvokeAsync(StateHasChanged);
+
+                reportTemplateFilePath = reportTemplatePath + item.Id.ToString() + ".xlsx";
+
+                if (!System.IO.File.Exists(reportTemplateFilePath))
+                {
+                    await _jsRuntime.ToastrSuccess("Не найден файл \"" + reportTemplateFilePath + "\"");
+                    errorFlag = true;
+                    continue;
+                }
+                try
+                {
+                    IXLWorkbook? workbook = null;
+                    workbook = new XLWorkbook(reportTemplateFilePath);
+
+                    await _reportTemplateToMesParamRepository.DeleteAllByReportTemplateId(item.Id);
+                    string reportTeplateTypeName = item.ReportTemplateTypeDTOFK.Name.Trim().ToUpper();
+
+                    if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                            || reportTeplateTypeName == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
+                            || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
+                    {
+                        // добавление тэгов TagLibrary
+                        await _reportTemplateToMesParamRepository.AddFromWorksheet(item.Id, workbook, "TagLibrary", "A", 1, mesParamDTOList);
+                        // добавление тэгов OutputData
+                        await _reportTemplateToMesParamRepository.AddFromWorksheet(item.Id, workbook, "OutputData", "A", 1, mesParamDTOList);
+                    }
+                    if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                        || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
+                    {
+                        // добавление тэгов Отчет матрица
+                        await _reportTemplateToMesParamRepository.AddFromWorksheet(item.Id, workbook, "Отчет матрица", "P", 9, mesParamDTOList);
+                    }
+                    else
+                    if (reportTeplateTypeName == SD.EmbReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper()
+                        || reportTeplateTypeName == SD.TebReportTemplateTypeName.Trim().Replace("е", "ё").ToUpper())
+                    {
+                        await _reportTemplateToMesParamRepository.AddFromWorksheet(item.Id, workbook, "Отчёт матрица", "P", 9, mesParamDTOList);
+                    }
+                    if (reportTeplateTypeName == SD.CorrectionReportTemplateTypeName.Trim().ToUpper())
+                    {
+                        // добавление тэгов Форма корректировок
+                        await _reportTemplateToMesParamRepository.AddFromWorksheet(item.Id, workbook, "Форма корректировок", "N", 10, mesParamDTOList);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errorFlag = true;
+                    await _jsRuntime.ToastrError("Ошибка: " + ex.Message);
+                }
+            }
+
+            if (errorFlag)
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Выполнено с ошибками");
+            else
+                await _jsRuntime.InvokeVoidAsync("ShowSwal", "success", "Готово");
+
+            //IsLoading = false;
+            LoadTagsFromAllReportTemplatesFlag = false;
+            LoadTagsFromAllReportTemplatesText = "";
+            // await Task.Delay(20);
+            // await InvokeAsync(StateHasChanged);
+
+            await LoadStateAsync();
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+            reportTemplateDTOs = await _reportTemplateRepository.GetAll(SD.SelectDictionaryScope.All);
+            await GetDistincts();
+            IsLoading = false;
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(1000);
+            await GoToPosition(selectedToRemember);
+            await Task.Delay(10);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+    }
+
+    async Task SetPosition(ReportTemplateDTO? reportTemplateDTO = null)
+    {
+        await Task.CompletedTask;
+        if (reportTemplateDTO != null)
+            selectedToRemember = reportTemplateDTO;
+        else
+        {
+            if (selectedTableReportTemplates != null && selectedTableReportTemplates.Any())
+                selectedToRemember = selectedTableReportTemplates.First();
+        }
+    }
+
+    async Task GoToPosition(ReportTemplateDTO? reportTemplateDTO)
+    {
+        if (reportTemplateDTO != null)
+        {
+            var selectedItem = reportTemplateDTOGrid.View.FirstOrDefault(u => u.Id == reportTemplateDTO.Id);
+            await reportTemplateDTOGrid.SelectRow(selectedItem, true);
+            await _jsRuntime.InvokeVoidAsync("eval", "(document.getElementById('" + reportTemplateDTO.ToStringId.ToUpper() + "') !==null) ? (document.getElementById('" + reportTemplateDTO.ToStringId.ToUpper() + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");
+        }
     }
 }

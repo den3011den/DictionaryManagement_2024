@@ -9,6 +9,7 @@
 @inject IJSRuntime _jsRuntime
 @inject IMesParamSourceTypeRepository _mesParamSourceTypeRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
+@inject ISettingsRepository _settingsRepository
 @inject ILogEventRepository _logEventRepository
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -43,10 +44,28 @@
                 <Columns>
                     <RadzenDataGridColumnApp TItem="MesParamSourceTypeDTO" Property="Id" Title="Ид записи" Width="100px" />
                     <RadzenDataGridColumnApp TItem="MesParamSourceTypeDTO" Property="Name" Title="Наименование" Width="300px">
+                        <Template Context="data">
+                            <div style="white-space:pre-wrap">
+                                @data.Name
+                            </div>
+                        </Template>
                         <EditTemplate Context="mesParamSourceTypeDTO">
                             <RadzenTextBox @bind-Value="mesParamSourceTypeDTO.Name" Style="width:100%; display: block" Name="Name" />
                             <RadzenRequiredValidator Text="Наименование обязательно к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="MesParamSourceTypeDTO" Property="Immutable" Title="Неизменяемый" Width="150px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=data.Immutable ReadOnly="true" TriState="false" TValue="bool?" />
+                        </Template>
+                        <EditTemplate Context="data">
+                            <strong>
+                                |
+                                <RadzenCheckBox @bind-Value=data.Immutable TriState="false" TValue="bool?"/>
+                                |
+                            </strong>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
@@ -57,31 +76,35 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="MesParamSourceTypeDTO" Context="mesParamSourceTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="mesParamSourceTypeDTO">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                          Click="@(args => EditRow(mesParamSourceTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                          Click="@(args => EditRow(mesParamSourceTypeDTO))" @onclick:stopPropagation="true" 
+                                          Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlMesParamSourceTypeImmutable == true && mesParamSourceTypeDTO.Immutable == true))">
                             </RadzenButton>
                             @if (!mesParamSourceTypeDTO.IsArchive)
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(mesParamSourceTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(mesParamSourceTypeDTO))" @onclick:stopPropagation="true"
+                                              Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlMesParamSourceTypeImmutable == true && mesParamSourceTypeDTO.Immutable == true))">
                                 </RadzenButton>
                             }
                             else
                             {
-                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(mesParamSourceTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                              Click="@(args => DeleteRow(mesParamSourceTypeDTO))" @onclick:stopPropagation="true"
+                                              Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlMesParamSourceTypeImmutable == true && mesParamSourceTypeDTO.Immutable == true))">
                                 </RadzenButton>
                             }
                         </Template>
                         <EditTemplate Context="mesParamSourceTypeDTO">
-                            <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Сохранить" Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@((args) => SaveRow(mesParamSourceTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
-                            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(mesParamSourceTypeDTO))">
+                            <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(mesParamSourceTypeDTO))">
                             </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                          Click="@(args => DeleteRow(mesParamSourceTypeDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton>
+                            @* <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                          Click="@(args => DeleteRow(mesParamSourceTypeDTO))"
+                                          Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlMesParamSourceTypeImmutable == true && mesParamSourceTypeDTO.Immutable == true))">
+                            </RadzenButton> *@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>
@@ -112,6 +135,7 @@
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
+    public bool ControlMesParamSourceTypeImmutable = true;
 
     void Reset()
     {
@@ -174,6 +198,15 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
                 mesParamSourceTypeDTOs = _mesParamSourceTypeRepository.GetAll(SD.SelectDictionaryScope.All).Result;
+                var tmpSetting = await _settingsRepository.GetByName(SD.ControlMesParamSourceTypeImmutableSettingName);
+                if (tmpSetting == null)
+                {
+                    ControlMesParamSourceTypeImmutable = true;
+                }
+                else
+                {
+                    ControlMesParamSourceTypeImmutable = tmpSetting.Value.Trim() == "1" ? true : false;
+                }
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -185,7 +218,7 @@
 
     async Task EditRow(MesParamSourceTypeDTO mesParamSourceTypeDTO)
     {
-        if (IsAdmin == AdminMode.IsAdmin)
+        if (IsAdmin == AdminMode.IsAdmin && (ControlMesParamSourceTypeImmutable == false || (ControlMesParamSourceTypeImmutable == true && mesParamSourceTypeDTO.Immutable!=true)))
         {
             mesParamSourceTypeDTOToUpdate = mesParamSourceTypeDTO;
             await mesParamSourceTypeDTOGrid.EditRow(mesParamSourceTypeDTO);
@@ -211,6 +244,7 @@
                 {
                     var objectForRestore = await _mesParamSourceTypeRepository.Get(mesParamSourceTypeDTO.Id);
                     mesParamSourceTypeDTO.Name = objectForRestore.Name;
+                    mesParamSourceTypeDTO.Immutable = objectForRestore.Immutable;
                     await mesParamSourceTypeDTOGrid.UpdateRow(mesParamSourceTypeDTO);
                     await mesParamSourceTypeDTOGrid.Reload();
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись типа тэгов с наименованием \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
@@ -244,12 +278,12 @@
         if (objectForRestore != null)
         {
             mesParamSourceTypeDTO.Name = objectForRestore.Name;
+            mesParamSourceTypeDTO.Immutable = objectForRestore.Immutable;
             mesParamSourceTypeDTOGrid.UpdateRow(mesParamSourceTypeDTO);
         }
         mesParamSourceTypeDTOGrid.Reload();
 
         mesParamSourceTypeDTOGrid.CancelEditRow(mesParamSourceTypeDTO);
-
     }
 
     async Task DeleteRow(MesParamSourceTypeDTO mesParamSourceTypeDTO)
@@ -325,6 +359,7 @@
         if (IsAdmin == AdminMode.IsAdmin)
         {
             mesParamSourceTypeDTOToInsert = new MesParamSourceTypeDTO();
+            mesParamSourceTypeDTOToInsert.Immutable = false;
             await mesParamSourceTypeDTOGrid.InsertRow(mesParamSourceTypeDTOToInsert);
         }
     }

@@ -1,4 +1,4 @@
-﻿@page "/reports/ReportTemplate/AddEditReportTemplate/CheckReportTemplateFile/{ReportTemplateFilePath}/{ReportTemplateTypeName}"
+﻿@page "/reports/ReportTemplate/AddEditReportTemplate/ReportTemplateId/CheckReportTemplateFile/{ReportTemplateFilePath}/{ReportTemplateTypeName}"
 
 @attribute [Authorize]
 
@@ -31,7 +31,7 @@
     }
     else
     {
-        <EventConsole @ref=@console MinHeight="2rem" MaxHeight="300rem" Height="70vh" InProgressFlag = "@CheckIsInProgress" />
+        <EventConsole @ref=@console MinHeight="2rem" MaxHeight="300rem" Height="70vh" InProgressFlag="@CheckIsInProgress" />
 
         @if (ForSave)
         {
@@ -75,6 +75,8 @@
     IEnumerable<MesParamDTO> mesParamDTOList { get; set; }
 
     [Parameter]
+    public Guid ReportTemplateId { get; set; }
+    [Parameter]
     public string ReportTemplateFilePath { get; set; }
     [Parameter]
     public string ReportTemplateTypeName { get; set; }
@@ -84,9 +86,11 @@
     public string SaveButtonTitle = "Сохранить";
     public string SaveButtonStyle = "btn btn-primary";
 
-    XLWorkbook? workbook = null;
+    IXLWorkbook? workbook = null;
 
     Variant variant = Variant.Outlined;
+
+    public bool FirstOnClickSave { get; set; } = true;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
@@ -125,9 +129,11 @@
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
 
-                resultFlag = await CheckReportTemplate();
+                Tuple<IXLWorkbook?, bool> tmp = await CheckReportTemplate();
+                workbook = tmp.Item1;
+                resultFlag = tmp.Item2;                
                 if (resultFlag == true)
-                {                    
+                {
                     SaveButtonTitle = "Сохранить";
                     SaveButtonStyle = "btn btn-primary";
                 }
@@ -146,7 +152,7 @@
         }
     }
 
-    public async Task<bool> CheckReportTemplate()
+    public async Task<Tuple<IXLWorkbook?, bool>> CheckReportTemplate()
     {
 
         bool retFlag = true;
@@ -155,6 +161,8 @@
 
         await LogConsole("--> Тип шаблона отчёта: " + ReportTemplateTypeName);
         await LogConsole("--> Начало проверки шаблона отчёта: " + ReportTemplateFilePath);
+
+        IXLWorkbook? workbookInternal = null;
 
         try
         {
@@ -180,187 +188,213 @@
             if (sheets == null)
             {
                 await LogConsole("!!! Не удалось определить список листов для типа шаблона отчёта: " + ReportTemplateTypeName, AlertStyle.Danger);
-                return false;
+                return new Tuple<IXLWorkbook?, bool>(null, false);
             }
 
             await LogConsole("Загрузка шаблона отчёта в память ...");
 
-            using var workbook = new XLWorkbook(ReportTemplateFilePath);
+            workbookInternal = new XLWorkbook(ReportTemplateFilePath);
+            await LogConsole("Проверка наличия обязательных листов ...");
+            List<string>? notExistSheetsList = await _checkReportTemplateRepository.IsNotExistSheets(workbookInternal, sheets.Select(u => u.SheetName).ToList());
+            if (notExistSheetsList != null)
             {
-                await LogConsole("Проверка наличия обязательных листов ...");
-                List<string>? notExistSheetsList = await _checkReportTemplateRepository.IsNotExistSheets(workbook, sheets.Select(u => u.SheetName).ToList());
-                if (notExistSheetsList != null)
+                foreach (var sheet in notExistSheetsList)
                 {
-                    foreach (var sheet in notExistSheetsList)
+                    await LogConsole("!!! Не найден обязательный лист: {sheet}", AlertStyle.Danger);
+                    retFlag = false;
+                }
+                await LogConsole("!!! Проверка наличия обязательных листов: Обнаружены ошибки", AlertStyle.Danger);
+            }
+            else
+            {
+                await LogConsole("Проверка наличия обязательных листов: OK", AlertStyle.Success);
+            }
+            if (notExistSheetsList == null)
+                notExistSheetsList = new List<string>();
+
+            List<string>? existSheets = sheets.Select(u => u.SheetName).ToList().Except(notExistSheetsList, StringComparer.OrdinalIgnoreCase).ToList();
+            if (existSheets != null)
+            {
+                foreach (var sheetName in existSheets)
+                {
+                    await LogConsole("Начало проверки листа: " + sheetName);
+                    IXLWorksheet? worksheet = workbookInternal.Worksheet(sheetName);
+                    try
                     {
-                        await LogConsole("!!! Не найден обязательный лист: {sheet}", AlertStyle.Danger);
-                        retFlag = false;
+                        worksheet = workbookInternal.Worksheet(sheetName);
                     }
-                    await LogConsole("!!! Проверка наличия обязательных листов: Обнаружены ошибки", AlertStyle.Danger);
-                }
-                else
-                {
-                    await LogConsole("Проверка наличия обязательных листов: OK", AlertStyle.Success);
-                }
-                if (notExistSheetsList == null)
-                    notExistSheetsList = new List<string>();
-
-                List<string>? existSheets = sheets.Select(u => u.SheetName).ToList().Except(notExistSheetsList, StringComparer.OrdinalIgnoreCase).ToList();
-                if (existSheets != null)
-                {
-                    foreach (var sheetName in existSheets)
+                    catch (Exception ex2)
                     {
-                        await LogConsole("Начало проверки листа: " + sheetName);
-                        IXLWorksheet? worksheet = workbook.Worksheet(sheetName);
-                        try
-                        {
-                            worksheet = workbook.Worksheet(sheetName);
-                        }
-                        catch (Exception ex2)
-                        {
-                            await LogConsole($"!!! Не удалось получить лист книги {sheetName}. Ошибка: {ex2.Message}", AlertStyle.Danger);
-                            await LogConsole($"!!! Проверка листа пропущена", AlertStyle.Danger);
-                            retFlag = false;
-                            continue;
-                        }
-                        bool isEmptySheet = await _checkReportTemplateRepository.IsEmptySheet(worksheet);
-                        if (isEmptySheet == true)
-                        {
-                            await LogConsole($"!!! Лист книги {sheetName} пустой.", AlertStyle.Danger);
-                            await LogConsole($"!!! Проверка листа пропущена", AlertStyle.Danger);
-                            retFlag = false;
-                            continue;
-                        }
+                        await LogConsole($"!!! Не удалось получить лист книги {sheetName}. Ошибка: {ex2.Message}", AlertStyle.Danger);
+                        await LogConsole($"!!! Проверка листа пропущена", AlertStyle.Danger);
+                        retFlag = false;
+                        continue;
+                    }
+                    bool isEmptySheet = await _checkReportTemplateRepository.IsEmptySheet(worksheet);
+                    if (isEmptySheet == true)
+                    {
+                        await LogConsole($"!!! Лист книги {sheetName} пустой.", AlertStyle.Danger);
+                        await LogConsole($"!!! Проверка листа пропущена", AlertStyle.Danger);
+                        retFlag = false;
+                        continue;
+                    }
 
-                        SheetTemplate? sheetTemplate = sheets.FirstOrDefault(u => u.SheetName.Trim().ToUpper() == sheetName.Trim().ToUpper());
-                        List<SheetHeader>? sheetHeaderList = null;
-                        if (sheetTemplate != null)
+                    SheetTemplate? sheetTemplate = sheets.FirstOrDefault(u => u.SheetName.Trim().ToUpper() == sheetName.Trim().ToUpper());
+                    List<SheetHeader>? sheetHeaderList = null;
+                    if (sheetTemplate != null)
+                    {
+                        sheetHeaderList = sheetTemplate.SheetHeaderList;
+                        await LogConsole($" Проверка заголовков на листе \"{sheetTemplate.SheetName}\" ...");
+
+                        bool headersFlag = true;
+
+                        if (sheetTemplate.NeedCheckSheetHeaders)
                         {
-                            sheetHeaderList = sheetTemplate.SheetHeaderList;
-                            await LogConsole($" Проверка заголовков на листе \"{sheetTemplate.SheetName}\" ...");
+                            List<SheetHeader>? notExistHeaderList = await _checkReportTemplateRepository.CheckSheetHeader(worksheet, sheetHeaderList);
 
-                            bool headersFlag = true;
-
-                            if (sheetTemplate.NeedCheckSheetHeaders)
+                            if (notExistHeaderList != null && notExistHeaderList.Count() > 0)
                             {
-                                List<SheetHeader>? notExistHeaderList = await _checkReportTemplateRepository.CheckSheetHeader(worksheet, sheetHeaderList);
-
-                                if (notExistHeaderList != null && notExistHeaderList.Count() > 0)
+                                foreach (var header in notExistHeaderList)
                                 {
-                                    foreach (var header in notExistHeaderList)
-                                    {
-                                        await LogConsole($"!!! Не найден заголовок \"{header.SheetHeaderColumnName}\" в строке 1, столбце {header.SheetHeaderColumnNumber.ToString()}.", AlertStyle.Danger);
-                                        headersFlag = false;
-                                    }
+                                    await LogConsole($"!!! Не найден заголовок \"{header.SheetHeaderColumnName}\" в строке 1, столбце {header.SheetHeaderColumnNumber.ToString()}.", AlertStyle.Danger);
+                                    headersFlag = false;
+                                }
+                            }
+                        }
+
+                        if (headersFlag)
+                        {
+                            await LogConsole($" Проверка заголовков на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                        }
+                        else
+                        {
+                            await LogConsole($"!!! Проверка заголовков на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
+                            retFlag = false;
+                        }
+
+
+                        if (sheetTemplate.NeedCheckIsDuplicateTags)
+                        {
+                            await LogConsole($" Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\" ...");
+
+                            bool duplicateFlag = false;
+
+                            List<string>? duplicateTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsDuplicate, ReportTemplateTypeName, ReportTemplateId);
+
+                            if (duplicateTagList != null && duplicateTagList.Count() > 0)
+                            {
+
+                                foreach (var tag in duplicateTagList)
+                                {
+                                    await LogConsole($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" встречается более одного раза.", AlertStyle.Danger);
+                                    duplicateFlag = true;
                                 }
                             }
 
-                            if (headersFlag)
+                            if (!duplicateFlag)
                             {
-                                await LogConsole($" Проверка заголовков на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                                await LogConsole($" Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
                             }
                             else
                             {
-                                await LogConsole($"!!! Проверка заголовков на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
+                                await LogConsole($"!!! Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
                                 retFlag = false;
                             }
-
-
-                            if (sheetTemplate.NeedCheckIsDuplicateTags)
-                            {
-                                await LogConsole($" Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\" ...");
-
-                                bool duplicateFlag = false;
-
-                                List<string>? duplicateTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsDuplicate);
-
-                                if (duplicateTagList != null && duplicateTagList.Count() > 0)
-                                {
-
-                                    foreach (var tag in duplicateTagList)
-                                    {
-                                        await LogConsole($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" встречается более одного раза.", AlertStyle.Danger);
-                                        duplicateFlag = true;
-                                    }
-                                }
-
-                                if (!duplicateFlag)
-                                {
-                                    await LogConsole($" Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
-                                }
-                                else
-                                {
-                                    await LogConsole($"!!! Проверка дублей тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
-                                    retFlag = false;
-                                }
-                            }
-
-                            if (sheetTemplate.NeedCheckIsNotInBaseTags)
-                            {
-                                await LogConsole($" Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\" ...");
-
-                                bool notInBaseFlag = false;
-
-                                List<string>? notInBaseTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsNotInBase);
-
-                                if (notInBaseTagList != null && notInBaseTagList.Count() > 0)
-                                {
-
-                                    foreach (var tag in notInBaseTagList)
-                                    {
-                                        await LogConsole($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" не найден в справочнике тэгов СИР.", AlertStyle.Danger);
-                                        notInBaseFlag = true;
-                                    }
-                                }
-
-                                if (!notInBaseFlag)
-                                {
-                                    await LogConsole($" Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
-                                }
-                                else
-                                {
-                                    await LogConsole($"!!! Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
-                                    retFlag = false;
-                                }
-                            }
-
-                            if (sheetTemplate.NeedCheckIsInArchiveTags)
-                            {
-                                await LogConsole($" Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\" ...");
-
-                                bool notInArchiveFlag = false;
-
-                                List<string>? notInArchiveTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsInArchive);
-
-                                if (notInArchiveTagList != null && notInArchiveTagList.Count() > 0)
-                                {
-
-                                    foreach (var tag in notInArchiveTagList)
-                                    {
-                                        await LogConsole($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" находится в архиве в справочнике тэгов СИР.", AlertStyle.Danger);
-                                        notInArchiveFlag = true;
-                                    }
-                                }
-
-                                if (!notInArchiveFlag)
-                                {
-                                    await LogConsole($" Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
-                                }
-                                else
-                                {
-                                    await LogConsole($"!!! Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
-                                    retFlag = false;
-                                }
-                            }
-
                         }
+
+                        if (sheetTemplate.NeedCheckIsNotInBaseTags)
+                        {
+                            await LogConsole($" Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\" ...");
+
+                            bool notInBaseFlag = false;
+
+                            List<string>? notInBaseTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsNotInBase, ReportTemplateTypeName, ReportTemplateId);
+
+                            if (notInBaseTagList != null && notInBaseTagList.Count() > 0)
+                            {
+
+                                foreach (var tag in notInBaseTagList)
+                                {
+                                    await LogConsole($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" не найден в справочнике тэгов СИР.", AlertStyle.Danger);
+                                    notInBaseFlag = true;
+                                }
+                            }
+
+                            if (!notInBaseFlag)
+                            {
+                                await LogConsole($" Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                            }
+                            else
+                            {
+                                await LogConsole($"!!! Проверка отсутствующих в БД тэгов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
+                                retFlag = false;
+                            }
+                        }
+
+                        if (sheetTemplate.NeedCheckIsInArchiveTags)
+                        {
+                            await LogConsole($" Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\" ...");
+
+                            bool notInArchiveFlag = false;
+
+                            List<string>? notInArchiveTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsInArchive, ReportTemplateTypeName, ReportTemplateId);
+
+                            if (notInArchiveTagList != null && notInArchiveTagList.Count() > 0)
+                            {
+
+                                foreach (var tag in notInArchiveTagList)
+                                {
+                                    await LogConsole($"!!! Тэг \"{tag}\" на листе \"{sheetTemplate.SheetName}\" находится в архиве в справочнике тэгов СИР.", AlertStyle.Danger);
+                                    notInArchiveFlag = true;
+                                }
+                            }
+
+                            if (!notInArchiveFlag)
+                            {
+                                await LogConsole($" Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                            }
+                            else
+                            {
+                                await LogConsole($"!!! Проверка тэгов, находящихся в архиве, на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
+                                retFlag = false;
+                            }
+                        }
+                        if (sheetTemplate.NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName)
+                        {
+                            await LogConsole($" Проверка нахождения тэгов на листе \"{sheetTemplate.SheetName}\" в других не архивных шаблонах отчётов на листе \"{sheetTemplate.SheetName}\" ...");
+
+                            bool isInOtherNotArchiveReportTemplatesFlag = false;
+
+                            List<string>? inOtherNotArchiveReportTemplatesTagList = await _checkReportTemplateRepository.CheckSheetTags(worksheet, mesParamDTOList, CheckReportTemplateTagsType.IsInOtherNotArchiveReportTemplatesBySheetName, ReportTemplateTypeName, ReportTemplateId);
+
+                            if (inOtherNotArchiveReportTemplatesTagList != null && inOtherNotArchiveReportTemplatesTagList.Count() > 0)
+                            {
+
+                                foreach (var item in inOtherNotArchiveReportTemplatesTagList)
+                                {
+                                    await LogConsole($"!!! {item}.", AlertStyle.Danger);
+                                    isInOtherNotArchiveReportTemplatesFlag = true;
+                                }
+                            }
+
+                            if (!isInOtherNotArchiveReportTemplatesFlag)
+                            {
+                                await LogConsole($" Проверка нахождения тэгов на листе \"{sheetTemplate.SheetName}\" в других не архивных шаблонах отчётов на листе \"{sheetTemplate.SheetName}\": OK", AlertStyle.Success);
+                            }
+                            else
+                            {
+                                await LogConsole($"!!!  Проверка нахождения тэгов на листе \"{sheetTemplate.SheetName}\" в других не архивных шаблонах отчётов на листе \"{sheetTemplate.SheetName}\": Неудачно", AlertStyle.Danger);
+                                retFlag = false;
+                            }
+                        }
+
                     }
                 }
-                else
-                {
-                    await LogConsole($"!!! Дальнейшие проверки (наличие тэгов в БД и прочее) не проводилось так как нет ни одного обязательного листа в файле", AlertStyle.Danger);
-                    retFlag = false;
-                }
+            }
+            else
+            {
+                await LogConsole($"!!! Дальнейшие проверки (наличие тэгов в БД и прочее) не проводилось так как нет ни одного обязательного листа в файле", AlertStyle.Danger);
+                retFlag = false;
             }
         }
         catch (Exception ex1)
@@ -381,7 +415,7 @@
             await LogConsole($"<-- Результат проверки: Неудачно.", AlertStyle.Danger);
         }
 
-        return retFlag;
+        return new Tuple<IXLWorkbook?, bool>(workbookInternal, retFlag);
     }
 
     public async Task LogConsole(string logString, AlertStyle alertStyle = AlertStyle.Info)
@@ -393,17 +427,21 @@
 
     private async Task OnClickCancel()
     {
-        _dialogService.Close(null);
+        _dialogService.Close(new Tuple<IXLWorkbook?, bool?, IEnumerable<MesParamDTO>>(null, null, mesParamDTOList));
     }
 
     private async Task OnClickAbordSaving()
     {
-        _dialogService.Close(false);
+        _dialogService.Close(new Tuple<IXLWorkbook?, bool?, IEnumerable<MesParamDTO>>(null, false, mesParamDTOList));
     }
 
     private async Task OnClickSave()
     {
-        _dialogService.Close(true);
+        if (FirstOnClickSave)
+        {
+            FirstOnClickSave = false;
+            _dialogService.Close(new Tuple<IXLWorkbook?, bool?, IEnumerable<MesParamDTO>>(workbook, true, mesParamDTOList));
+        }
     }
 }
 

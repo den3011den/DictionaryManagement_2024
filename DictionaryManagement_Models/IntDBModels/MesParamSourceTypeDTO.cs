@@ -22,6 +22,10 @@ namespace DictionaryManagement_Models.IntDBModels
         [Display(Name = "В архиве")]
         public bool IsArchive { get; set; } = false;
 
+        [ForLogAttribute(NameProperty = "поле \"Неизменяемый\"")]
+        [Display(Name = "Неизменяемый")]
+        public bool? Immutable { get; set; }
+
         [NotMapped]
         public string ToStringValue
         {

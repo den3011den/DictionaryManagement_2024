@@ -67,6 +67,8 @@ namespace DictionaryManagement_Business.Repository
                         objectToUpdate.VbaScriptFileName = objectToUpdateDTO.VbaScriptFileName;
                     if (objectToUpdate.SampleFileName != objectToUpdateDTO.SampleFileName)
                         objectToUpdate.SampleFileName = objectToUpdateDTO.SampleFileName;
+                    if (objectToUpdate.CantChangeName != objectToUpdateDTO.CantChangeName)
+                        objectToUpdate.CantChangeName = objectToUpdateDTO.CantChangeName;
                 }
                 if (updateMode == SD.UpdateMode.MoveToArchive)
                 {
