@@ -1,52 +1,53 @@
 ﻿@inherits LayoutComponentBase
 @using DictionaryManagement_Common;
+@using Microsoft.Data.SqlClient
 @inject NavigationManager _navigationManager
 
 <PageTitle>1 - Dictionary Management - @SD.AppVersion</PageTitle>
 
-        <div class="page" style="width:100vw">
-            <div class="sidebar background-menu-class" style=@(_iconMenuActive ? "width: 80px":"width: 240px")>
+<div class="page" style="width:100vw">
+    <div class="sidebar background-menu-class" style=@(_iconMenuActive ? "width: 80px":"width: 240px")>
 
-                @* <NavMenu /> *@
+        @* <NavMenu /> *@
 
-                <NavMenu ShowIconMenu="ToggleIconMenu" />
-            </div>
-
-            <main>
-                <RadzenDialog />
-                <RadzenNotification />
-                <RadzenContextMenu />
-                <RadzenTooltip />
-
-                <div class="top-row px-4 auth">
-                    <LoginDisplay />
-                </div>
-                <article class="content px-4">
-                    <CascadingValue Value=_iconMenuActive>
-                        @Body
-                </CascadingValue>
-            </article>
-            <article class="content px-4">
-                @* <LoginDisplay />*@
-            </article>
-        </main>
+        <NavMenu ShowIconMenu="ToggleIconMenu" />
     </div>
+
+    <main>
+        <RadzenDialog />
+        <RadzenNotification />
+        <RadzenContextMenu />
+        <RadzenTooltip />
+
+        <div class="top-row px-4 auth">
+            <LoginDisplay />
+        </div>
+        <article class="content px-4">
+            <CascadingValue Value=_iconMenuActive>
+                @Body
+            </CascadingValue>
+
+        </article>
+        <article class="content px-4">
+            @* <LoginDisplay />*@
+        </article>
+    </main>
+</div>
 
 
 
 <style>
-         :root:after {
-            content: "@BackgroundText";
-            font-size: 130px;
-            font-weight: 900;
-            position: fixed;
-            color: @(_navigationManager.Uri.Count("/") > 3 ? "rgb(240, 240, 240)" : "rgb(252, 252, 252)");
-            top: 0;
-            text-align: center;
-            z-index: -1;
+    :root:after {
+        content: "@BackgroundText";
+        font-size: 130px;
+        font-weight: 900;
+        position: fixed;
+        color: @(_navigationManager.Uri.Count("/") > 3 ? "rgb(240, 240, 240)" : "rgb(252, 252, 252)");
+        top: 0;
+        text-align: center;
+        z-index: -1;
         white-space: break-spaces;
-        } 
-
+    }
 </style>
 
 @code {
@@ -54,9 +55,9 @@
     private string? IconMenuCssClass => _iconMenuActive ? "width: 80px;" : null;
 
     public string BackgroundText { get; set; } = (SD.ShowBackgroundText == null || SD.ShowBackgroundText != 1) ? "" : string.Concat(Enumerable.Repeat(SD.AppFactoryModeShort + "      ", 50));
-    
+
     protected void ToggleIconMenu(bool iconMenuActive)
-    {               
-        _iconMenuActive = iconMenuActive;        
-    }        
+    {
+        _iconMenuActive = iconMenuActive;
+    }
 }

@@ -6,6 +6,7 @@
 @using DictionaryManagement_Common;
 @using DictionaryManagement_Models.IntDBModels;
 @using System.Text.Json;
+@using Microsoft.Data.SqlClient
 
 @inject IJSRuntime _jsRuntime
 @inject IReportTemplateRepository _reportTemplateRepository
@@ -333,7 +334,16 @@
                 IsLoading = true;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
-                reportTemplateDTOs = await _reportTemplateRepository.GetAll(SD.SelectDictionaryScope.All);
+                try
+                {
+                    reportTemplateDTOs = await _reportTemplateRepository.GetAll(SD.SelectDictionaryScope.All);
+                }
+                catch (SqlException ex) when (ex.Number == -2)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+                    reportTemplateDTOs = new List<ReportTemplateDTO>();
+                }
+                
                 ShowLoadTagsFromAllReportTemplatesButtonFlag = false;
                 var settingsDTO = await _settingsRepository.GetByName(SD.ShowFillReportTemplateToMesParamTableForAllReportTemplatesButtonSettingName);
                 if (settingsDTO != null)

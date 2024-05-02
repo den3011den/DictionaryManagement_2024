@@ -4,6 +4,7 @@
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_DataAccess.Data.IntDB;
 @using DictionaryManagement_Models.IntDBModels
+@using Microsoft.Data.SqlClient
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json;
 @using System.Linq.Dynamic.Core
@@ -451,7 +452,7 @@
             if (dialogResult != null)
             {
                 if ((modePar == SD.EditMode.Create || modePar == SD.EditMode.CreateBasedOnRow) && (modePar != SD.EditMode.Edit))
-                {
+                {                    
                     await UpdateAsync(dialogResult);
                 }
                 else
@@ -768,7 +769,15 @@
         await LoadStateAsync();
         await Task.Delay(100);
         await InvokeAsync(StateHasChanged);
-        mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
+        try
+        {
+            mesParamDTOs = await _mesParamRepository.GetAll(SD.SelectDictionaryScope.All);
+        }
+        catch (SqlException ex) when (ex.Number == -2)
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+            mesParamDTOs = new List<MesParamDTO>();
+        }        
         await GetDistincts();
         IsLoading = false;
         await Task.Delay(100);

@@ -3,6 +3,7 @@
 
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
+@using Microsoft.Data.SqlClient
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
 
@@ -202,7 +203,15 @@
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
-                mesMaterialDTOs = await _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.All);
+                try
+                {
+                    mesMaterialDTOs = await _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.All);
+                }
+                catch (SqlException ex) when (ex.Number == -2)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+                    mesMaterialDTOs = new List<MesMaterialDTO>();
+                }                
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);

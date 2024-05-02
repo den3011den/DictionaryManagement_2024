@@ -4,6 +4,7 @@
 @using System.Text.Json;
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels;
+@using Microsoft.Data.SqlClient
 
 @inject IJSRuntime _jsRuntime
 @inject TooltipService tooltipService
@@ -345,7 +346,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.TotalDays > 14)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + ((SD.SqlCommandConnectionTimeout / 60.0)).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -376,7 +377,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.Days > 14)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + ((SD.SqlCommandConnectionTimeout / 60.0)).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -388,13 +389,19 @@
         await LoadStateAsync();
         await Task.Delay(100);
         await InvokeAsync(StateHasChanged);
-        logEventDTOs = await _logEventRepository.GetAllByTimeInterval(startDate, endDate);
-
+        try
+        {
+            logEventDTOs = await _logEventRepository.GetAllByTimeInterval(startDate, endDate);            
+        }
+        catch (SqlException ex) when (ex.Number == -2)
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+            logEventDTOs = new List<LogEventDTO>();
+        }
         distinctLogEventTypesInList = (List<string>)logEventDTOs.OrderBy(u => u.LogEventTypeDTOFK.Name)
-            .Select(u => u.LogEventTypeDTOFK.Name).Distinct().ToList();
+                .Select(u => u.LogEventTypeDTOFK.Name).Distinct().ToList();
         distinctUsersInList = (List<string>)logEventDTOs.OrderBy(u => u.UserDTOFK.UserName)
             .Select(u => u.UserDTOFK.UserName).Distinct().ToList();
-
         ApplyButtonDisabled = false;
         IsLoading = false;
         await Task.Delay(100);
