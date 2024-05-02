@@ -51,7 +51,7 @@
                                ShowCleanGridFiltersHeaderButton="false"
                                ShowCleanGridSortsHeaderButton="false"
                                @bind-Value=@selectedTableMesParam
-                               RowDoubleClick="() => EditRow(selectedTableMesParam.FirstOrDefault(), SD.EditMode.Edit)">                               
+                               RowDoubleClick="() => EditRow(selectedTableMesParam.FirstOrDefault(), SD.EditMode.Edit)">
 
                 @* Style="width: 100vw - document.querySelector('.navNenuDiv').getBoundingClientRect().width; height:79.5vh" *@
                 @* Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px") *@
@@ -108,7 +108,7 @@
                             <RadzenDropDown @bind-Value=@selectedMesParamSourceType
                                             Change=OnSelectedMesParamSourceTypeChange Data="@(distinctMesParamSourceTypeInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Style="font-size:0.75rem;width: 30vw;"                                            
+                                            Style="font-size:0.75rem;width: 30vw;"
                                             PopupStyle="max-height:40vh"
                                             Chips="true"
                                             OpenOnFocus="true"
@@ -139,10 +139,10 @@
                             <RadzenDropDown @bind-Value=@selectedMesDepartment
                                             Change=OnSelectedMesDepartmentChange Data="@(distinctMesDepartmentInList)" AllowClear="true" Multiple="true"
                                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowFiltering="true"
-                                            Chips = "true"
+                                            Chips="true"
                                             OpenOnFocus="true"
-                                            FilterPlaceholder = "Поиск..."
-                                            MaxSelectedLabels = "6"
+                                            FilterPlaceholder="Поиск..."
+                                            MaxSelectedLabels="6"
                                             Style="font-size:0.75rem;width: 30vw;"
                                             PopupStyle="max-height:50vh"
                                             SelectAllText="ВСЕ" SelectedItemsText="элементов выбрано" />
@@ -171,9 +171,9 @@
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
-                
-                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapMaterialDTOFK" Title="Материал SAP" FilterProperty="SapMaterialDTOFK.ToStringCodeName" 
-                        SortProperty="SapMaterialDTOFK.ToStringCodeName">
+
+                    <RadzenDataGridColumnApp TItem="MesParamDTO" Property="SapMaterialDTOFK" Title="Материал SAP" FilterProperty="SapMaterialDTOFK.ToStringCodeName"
+                                             SortProperty="SapMaterialDTOFK.ToStringCodeName">
                         <Template Context="data1">
                             <div style="white-space:pre-wrap; font-size: 12px">
                                 @(data1.SapMaterialDTOFK == null ? "" : data1.SapMaterialDTOFK.ToStringCodeName)
@@ -403,7 +403,7 @@
                     selectedMesDepartment = JsonSerializer.Deserialize<List<string>>(col_var2.FilterValue.ToString());
                 }
                 var col_var3 = _mesParamGridSettings.Columns.Where(c => c.Property == "SapUnitOfMeasureDTOFK.NameAndShortName").FirstOrDefault();
-                if (col_var3!= null && col_var3.FilterValue != null)
+                if (col_var3 != null && col_var3.FilterValue != null)
                 {
                     selectedSapUnitOfMeasure = JsonSerializer.Deserialize<List<string>>(col_var3.FilterValue.ToString());
                 }
@@ -510,19 +510,19 @@
 
                     var reportTemplateListWithOldMesParamCode = await _reportTemplateToMesParamRepository.GetByMesParamCode(mesParamDTO.Code, reportTemplateIsInArchive: false);
                     if (reportTemplateListWithOldMesParamCode != null && reportTemplateListWithOldMesParamCode.Any())
-                    {                        
+                    {
                         string templateStrId = "";
                         string templateStrType = "";
                         string templateStrDepartment = "";
                         string reportsStr = "";
                         foreach (var item in reportTemplateListWithOldMesParamCode)
-                        {                            
+                        {
                             templateStrId = item.ReportTemplateId.ToString();
                             templateStrType = item.ReportTemplateDTOFK != null ? item.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name : "";
-                            templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName: "") : "";
-                            reportsStr = reportsStr + "<li>Лист: " + item.SheetName 
-                                + "<br/> Ид шаблона: " + templateStrId + "<br/> Тип: " 
-                                + templateStrType + "<br/> Производство: " 
+                            templateStrDepartment = item.ReportTemplateDTOFK != null ? (item.ReportTemplateDTOFK.MesDepartmentDTOFK != null ? item.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName : "") : "";
+                            reportsStr = reportsStr + "<li>Лист: " + item.SheetName
+                                + "<br/> Ид шаблона: " + templateStrId + "<br/> Тип: "
+                                + templateStrType + "<br/> Производство: "
                                 + templateStrDepartment + "</li><br/>";
                         }
                         await _dialogs.ShowYesOrNoDialogBox("Удаление тэга в архив",
@@ -539,6 +539,45 @@
                         await _jsRuntime.ToastrSuccess("Отмена восстановления");
                         return;
                     }
+
+                    if ((mesParamDTO.SapEquipmentIdSource != null) || (mesParamDTO.SapEquipmentIdDest != null) || (mesParamDTO.SapMaterialId != null))
+                    {
+                        if ((mesParamDTO.SapEquipmentIdSource != null) && (mesParamDTO.SapEquipmentIdDest != null) && (mesParamDTO.SapMaterialId != null))
+                        {
+                            var foundBySapMapping = await _mesParamRepository.GetBySapMappingNotInArchive(mesParamDTO.SapEquipmentIdSource, mesParamDTO.SapEquipmentIdDest, mesParamDTO.SapMaterialId, mesParamDTO.Id);
+                            if (foundBySapMapping != null)
+                            {
+                                string reportsStr = "ИД: " + foundBySapMapping.Id.ToString()
+                                        + "<br/> КОД: " + foundBySapMapping.Code.ToString()
+                                        + "<br/> НАИМЕНОВАНИЕ: " + foundBySapMapping.Name;
+
+                                await _dialogs.ShowYesOrNoDialogBox("Восстановление тэга из архива",
+                                    "<strong><div style=\"color:red\">Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\"</strong></div><br/>"
+                                    , "OK", "HIDE", reportsStr);
+                                return;                                
+                            }
+                        }
+                        else
+                        {                            
+                            await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
+                            return;
+                        }
+                    }
+
+                    if (mesParamDTO.MesParamSourceLink != null && mesParamDTO.MesParamSourceLink.Trim().ToUpper() != "NULL")
+                    {
+                        var foundByMesParamSourceLink = await _mesParamRepository.GetByMesParamSourceLink(mesParamDTO.MesParamSourceLink);
+                        if ((foundByMesParamSourceLink != null) && (foundByMesParamSourceLink.Id != mesParamDTO.Id))
+                        {
+                            bool selectionResult_check = await _dialogs.ShowYesOrNoDialogBox("Восстановление тэга СИР", "Уже есть тэг СИР с тэгом источника " + foundByMesParamSourceLink.MesParamSourceLink + " (Код: " + foundByMesParamSourceLink.Code.ToString() + " ИД: " + foundByMesParamSourceLink.Id.ToString() + ")" +
+                                        "    Всё равно восстановить ?", "Восстановить", "Отмена");
+                            if (selectionResult_check == false)
+                            {
+                                return;
+                            }
+                        }
+                    }
+
                 }
             }
 
@@ -634,7 +673,7 @@
                     c.Width = mesParamDTOGrid.ColumnWidth;
             }
         }
-        
+
         selectedMesParamSourceType = null;
         selectedMesDepartment = null;
         selectedSapUnitOfMeasure = null;
@@ -644,7 +683,7 @@
             await GetDistincts();
         }
 
-        await InvokeAsync(SaveStateAsync);        
+        await InvokeAsync(SaveStateAsync);
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 
