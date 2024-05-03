@@ -112,6 +112,43 @@
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
+                   @*  ddd *@
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapMaterialDTOFK.ToStringCodeName" Title="Материал SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.SapMaterialDTOFK != null ? data1.MesParamDTOFK.SapMaterialDTOFK.ToStringCodeName : "")
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName" Title="Источник SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.SapEquipmentSourceDTOFK != null ? data1.MesParamDTOFK.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName : "")
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName" Title="Приёмник SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">                                
+                                @(data1.MesParamDTOFK.SapEquipmentDestDTOFK != null ? data1.MesParamDTOFK.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName : "")
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapUnitOfMeasureDTOFK.NameAndShortName" Title="Ед.изм.SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.SapUnitOfMeasureDTOFK != null ? data1.MesParamDTOFK.SapUnitOfMeasureDTOFK.NameAndShortName : "")
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
 
                     <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="SapMaterialCode" Title="Код материала в SAP" TextAlign="TextAlign.Center"
                                              Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">

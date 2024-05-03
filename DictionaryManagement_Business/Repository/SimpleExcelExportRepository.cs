@@ -1457,8 +1457,18 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наим. тэга СИР (MesParam.Name)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Наим. тэга СИР (MesParam.Description)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Описание тэга СИР (MesParam.Description)";
                 excelColNum++;
+
+                ws.Cell(excelRowNum, excelColNum).Value = "Материал SAP в тэге СИР (маппинг)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Источник SAP в тэге СИР (маппинг)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Приёмник SAP в тэге СИР (маппинг)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Ед.изм. SAP в тэге СИР (маппинг)";
+                excelColNum++;
+
                 ws.Cell(excelRowNum, excelColNum).Value = "Код завода источника SAP (ErpPlantIdSource)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Код ресурса источника SAP (ErpIdSource)";
@@ -1532,6 +1542,16 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.Description == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.Description;
                     excelColNum++;
+
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapMaterialDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapMaterialDTOFK.ToStringCodeName;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapUnitOfMeasureDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapUnitOfMeasureDTOFK.NameAndShortName;
+                    excelColNum++;
+
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpPlantIdSource == null ? "" : sapMovementsOUTDTO.ErpPlantIdSource;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpIdSource == null ? "" : sapMovementsOUTDTO.ErpIdSource;
