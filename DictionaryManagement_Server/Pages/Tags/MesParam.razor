@@ -33,9 +33,22 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тэг СИР"
                               Click="@(args => EditRow(null, SD.EditMode.Create))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
-                <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                @if (@excelExportFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                }
+                else
+                {
+                    <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                    </RadzenButton>
+                }
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+                </RadzenButton>
             </RadzenRow>
+
             <RadzenDataGridApp @bind-Settings="@MesParamGridSettings" SettingsName="MesParamGridSettings" @ref="mesParamDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@mesParamDTOs" TItem="MesParamDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -277,27 +290,51 @@
                             <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
-
-                    <RadzenDataGridColumnApp Title="Действия" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TItem="MesParamDTO" Context="mesParamDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="95px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="MesParamDTO" Context="mesParamDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="95px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                         <Template Context="mesParamDTO">
-                            <RadzenButton title="Создать на основании" Icon="add_box" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
-                                          Click="@(args => EditRow(mesParamDTO, SD.EditMode.CreateBasedOnRow))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton>
-                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
-                                          Click="@(args => EditRow(mesParamDTO, SD.EditMode.Edit))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            @if (!mesParamDTO.IsArchive)
-                            {
-                                <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                                </RadzenButton>
-                            }
-                            else
-                            {
-                                <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                                </RadzenButton>
-                            }
+                            <div class="row">
+                                <div class="col-3">
+                                </div>
+                                <div class="col-3">
+                                </div>
+                                <div class="col-3">
+                                    <RadzenButton title="Создать на основании" Icon="add_box" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
+                                                  Click="@(args => EditRow(mesParamDTO, SD.EditMode.CreateBasedOnRow))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                    </RadzenButton>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-3">
+                                    <RadzenButton title="Создать на основании" Icon="add_box" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
+                                                  Click="@(args => EditRow(mesParamDTO, SD.EditMode.CreateBasedOnRow))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                    </RadzenButton>
+                                </div>
+
+                                <div class="col-3">
+                                    <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
+                                                  Click="@(args => EditRow(mesParamDTO, SD.EditMode.Edit))" @onclick:stopPropagation="true">
+                                    </RadzenButton>
+
+                                </div>
+
+                                @if (!mesParamDTO.IsArchive)
+                                {
+                                    <div class="col-3">
+                                        <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
+                                                      Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                        </RadzenButton>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="col-3">
+                                        <RadzenButton title="Восстановить из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
+                                                      Click="@(args => DeleteRow(mesParamDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                        </RadzenButton>
+                                    </div>
+                                }
+                            </div>
                         </Template>
                     </RadzenDataGridColumnApp>
                 </Columns>
@@ -452,7 +489,7 @@
             if (dialogResult != null)
             {
                 if ((modePar == SD.EditMode.Create || modePar == SD.EditMode.CreateBasedOnRow) && (modePar != SD.EditMode.Edit))
-                {                    
+                {
                     await UpdateAsync(dialogResult);
                 }
                 else
@@ -555,11 +592,11 @@
                                 await _dialogs.ShowYesOrNoDialogBox("Восстановление тэга из архива",
                                     "<strong><div style=\"color:red\">Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\"</strong></div><br/>"
                                     , "OK", "HIDE", reportsStr);
-                                return;                                
+                                return;
                             }
                         }
                         else
-                        {                            
+                        {
                             await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
                             return;
                         }
@@ -777,7 +814,7 @@
         {
             await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
             mesParamDTOs = new List<MesParamDTO>();
-        }        
+        }
         await GetDistincts();
         IsLoading = false;
         await Task.Delay(100);

@@ -37,12 +37,22 @@
                                     </Items>
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                @*                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                <RadzenButton Size="ButtonSize.Small" title="Загрузка данных из Excel в Витрины SAP - НДО-выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
-                                @* <RadzenText TextStyle="TextStyle.H6">@(sapNdoOUTDTOGrid.View.Count().ToString())</RadzenText> *@
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <i class="bi bi-grip-vertical"></i>
+                                @if (@excelExportFlag)
+                                {
+                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                }
+                                else
+                                {
+                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                                    </RadzenButton>
+                                }
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в Витрины SAP - НДО-выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
+                                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+                                </RadzenButton>                                
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -63,7 +73,7 @@
                                ColumnWidth="200px"
                                AllowColumnPicking="true"
                                GridLines="DataGridGridLines.Both"
-                               @bind-Value=@selectedTableSapNdoOUT>                
+                               @bind-Value=@selectedTableSapNdoOUT>
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SapNdoOUTDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
                                              FilterProperty="Id" SortProperty="Id">
@@ -215,7 +225,7 @@
                 IsLoading = true;
                 await LoadStateAsync();
                 await Task.Delay(100);
-                await InvokeAsync(StateHasChanged);                
+                await InvokeAsync(StateHasChanged);
                 await GetRows();
 
                 IsLoading = false;
