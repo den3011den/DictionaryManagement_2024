@@ -16,6 +16,7 @@
 @inject DialogService _dialogService
 @inject IReportTemplateToMesParamRepository _reportTemplateToMesParamRepository
 
+
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
@@ -66,10 +67,6 @@
                                ShowCleanGridSortsHeaderButton="false"
                                @bind-Value=@selectedTableMesParam
                                RowDoubleClick="() => EditRow(selectedTableMesParam.FirstOrDefault(), SD.EditMode.Edit)">
-
-                @* Style="width: 100vw - document.querySelector('.navNenuDiv').getBoundingClientRect().width; height:79.5vh" *@
-                @* Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:1760px" : "height:calc(100vh - 190px); width:1600px") *@
-                @* Style=@(iconMenuActive ? "height:calc(100vh - 190px); width:85vw;" : "height:calc(100vh - 190px);width:85vw;") *@
                 <HeaderTemplate>
                     <RadzenButton Size="ButtonSize.Small" Text="Очистить настройки интерфейса страницы" Icon="settings"
                                   ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="(args) => CleanPageSettingsCustom()">
@@ -298,8 +295,10 @@
                                 <div class="col-3">
                                 </div>
                                 <div class="col-3">
-                                    <RadzenButton title="Создать на основании" Icon="add_box" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" class="my-1 ms-1"
-                                                  Click="@(args => EditRow(mesParamDTO, SD.EditMode.CreateBasedOnRow))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                    <RadzenButton title="Посмотреть в каких шаблонах отчётов находится" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                                  Click="@(args => ShowTagInReportTemplates(mesParamDTO))" @onclick:stopPropagation="true"
+                                                  ButtonStyle="ButtonStyle.Light" class="my-1 ms-1 p-0">
+                                        <i class="bi bi-building-fill-add"></i>
                                     </RadzenButton>
                                 </div>
                             </div>
@@ -862,6 +861,37 @@
             var selectedItem = mesParamDTOGrid.View.FirstOrDefault(u => u.Id == mesParamDTO.Id);
             await mesParamDTOGrid.SelectRow(selectedItem, true);
             await _jsRuntime.InvokeVoidAsync("eval", "(document.getElementById('mesparamid_" + mesParamDTO.ToStringId.ToUpper() + "') !==null) ? (document.getElementById('mesparamid_" + mesParamDTO.ToStringId.ToUpper() + "').scrollIntoView({ behavior: 'smooth',  block: 'center',})) : null");
+        }
+    }
+
+    async Task ShowTagInReportTemplates(MesParamDTO mesParamDTO)
+    {
+        if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
+        {
+            IsLoading = true;
+            MesParamDTO dialogResult = null;
+            if (mesParamDTO == null)
+            {
+
+            }
+            else
+            {
+                IsLoading = false;
+
+                var dataList = await _reportTemplateToMesParamRepository.GetByMesParamIdOrAndMesParamCode(mesParamDTO.Id, mesParamDTO.Code);
+                if (dataList == null)
+                {
+                    dataList = new List<ReportTemplateToMesParamDTO>();
+                }
+                dialogResult = await _dialogService.OpenAsync<ShowTagInReportTemplates>("Тэг " + mesParamDTO.Code + " в шаблонах отчётов", new Dictionary
+                            <string, object>
+                           () { { "DataList", (IEnumerable<ReportTemplateToMesParamDTO>)dataList.OrderBy(u => u.ReportTemplateDTOFK.ReportTemplateTypeDTOFK.Name)
+                                .ThenBy(u => u.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName)
+                                .ThenBy(u => u.SheetName)} }
+                            , new DialogOptions() { Width = $"{85}vw", Left = "1vw" });
+                    IsLoading = false;
+            }
+            IsLoading = false;
         }
     }
 }
