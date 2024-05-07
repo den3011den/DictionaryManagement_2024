@@ -2216,13 +2216,19 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование причины корректировки (CorrectionReason.Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (CorrectionReason.IsArchive)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД типа шаблона отчёта (ReportTemplateTypeId)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование типа шаблона отчёта (ReportTemplateType.Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (ReportTemplateType.IsArchive)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД типа данных (DataTypeId)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование типа данных (DataType.Name)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (DataType.IsArchive)";
                 excelColNum++;
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
@@ -2241,14 +2247,19 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.CorrectionReasonDTOFK.Name;
                     excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.CorrectionReasonDTOFK.IsArchive == true ? "Да" : "";
+                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeId.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeDTOFK.Name;
                     excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeDTOFK.IsArchive == true ? "Да" : "";
+                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeId.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeDTOFK.Name;
-
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeDTOFK.IsArchive == true ? "Да" : "";
                     excelRowNum++;
                 }
 
