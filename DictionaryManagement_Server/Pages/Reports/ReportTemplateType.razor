@@ -31,7 +31,17 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тип шаблонов отчётов"
                               Click="@InsertRow" Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                @if (@excelExportFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
+                }
+                else
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null)>
+                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                    </RadzenButton>
+                }
             </RadzenRow>
 
 
@@ -47,7 +57,7 @@
                                @bind-Value=@selectedTableReportTemplateType
                                RowDoubleClick="() => EditRow(selectedTableReportTemplateType.FirstOrDefault())">
                 <Columns>
-                    <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Id" Title="Ид записи" Width="120px" />                    
+                    <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="Name" Title="Наименование" Width="250px">
                         <Template Context="data">
                             <div style="white-space:pre-wrap">
@@ -55,9 +65,6 @@
                             </div>
                         </Template>
                         <EditTemplate Context="reportTemplateTypeDTO">
-@*                             <RadzenTextBox @bind-Value="reportTemplateTypeDTO.Name" Style="width:100%; display: block;" Name="Name"
-                                           Disabled="@(ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.OldCantChangeName == true)" />
- *@
                             <RadzenTextBox @bind-Value="reportTemplateTypeDTO.Name"
                                            Style="@("width:100%; display: block;" + (reportTemplateTypeDTO.CantChangeName == true ? " color:darkgrey;":""))" Name="Name"
                                            Disabled="@(reportTemplateTypeDTO.CantChangeName == true)" />
@@ -65,7 +72,7 @@
                             <RadzenRequiredValidator Text="Наименование обязательно к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
                         </EditTemplate>
-                    </RadzenDataGridColumnApp>                    
+                    </RadzenDataGridColumnApp>
 
                     <RadzenDataGridColumnApp TItem="ReportTemplateTypeDTO" Property="CanAutoCalc" Title="Доступен для настройки авторасчёта" Width="150px" TextAlign="TextAlign.Center">
                         <Template Context="data">
@@ -107,7 +114,7 @@
                             <RadzenButton title="Загрузить/скачать образец файла-шаблона" Icon="text_snippet" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => LoadUploadFile(reportTemplateTypeDTO, "xlsx"))" @onclick:stopPropagation="true">
                             </RadzenButton>
-                            <RadzenButton title = "Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(reportTemplateTypeDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!reportTemplateTypeDTO.IsArchive)
@@ -131,11 +138,12 @@
                             </RadzenButton>
                             <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(reportTemplateTypeDTO))">
                             </RadzenButton>
-@*                             <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                          Click="@(args => DeleteRow(reportTemplateTypeDTO))"
-                                          Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.CantChangeName == true))">
-                            </RadzenButton>
- *@                        </EditTemplate>
+                            @*                             <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                    Click="@(args => DeleteRow(reportTemplateTypeDTO))"
+                    Disabled="@((IsAdmin != AdminMode.IsAdmin) || (ControlReportTemplateTypeCantChangeName == true && reportTemplateTypeDTO.CantChangeName == true))">
+                    </RadzenButton>
+                    *@
+                        </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>
             </RadzenDataGridApp>
@@ -347,7 +355,7 @@
                                     {
                                         item.AutoCalcOrder = 1;
                                     }
-                                }                                
+                                }
                                 await _reportTemplateRepository.Update(item);
                             }
                         }

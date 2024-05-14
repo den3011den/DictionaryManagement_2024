@@ -1457,8 +1457,18 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наим. тэга СИР (MesParam.Name)";
                 excelColNum++;
-                ws.Cell(excelRowNum, excelColNum).Value = "Наим. тэга СИР (MesParam.Description)";
+                ws.Cell(excelRowNum, excelColNum).Value = "Описание тэга СИР (MesParam.Description)";
                 excelColNum++;
+
+                ws.Cell(excelRowNum, excelColNum).Value = "Материал SAP в тэге СИР (маппинг)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Источник SAP в тэге СИР (маппинг)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Приёмник SAP в тэге СИР (маппинг)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "Ед.изм. SAP в тэге СИР (маппинг)";
+                excelColNum++;
+
                 ws.Cell(excelRowNum, excelColNum).Value = "Код завода источника SAP (ErpPlantIdSource)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Код ресурса источника SAP (ErpIdSource)";
@@ -1532,6 +1542,16 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.Description == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.Description;
                     excelColNum++;
+
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapMaterialDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapMaterialDTOFK.ToStringCodeName;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentSourceDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentDestDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName;
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.MesParamDTOFK.SapUnitOfMeasureDTOFK == null ? "" : sapMovementsOUTDTO.MesParamDTOFK.SapUnitOfMeasureDTOFK.NameAndShortName;
+                    excelColNum++;
+
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpPlantIdSource == null ? "" : sapMovementsOUTDTO.ErpPlantIdSource;
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = sapMovementsOUTDTO.ErpIdSource == null ? "" : sapMovementsOUTDTO.ErpIdSource;
@@ -2196,13 +2216,19 @@ namespace DictionaryManagement_Business.Repository
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование причины корректировки (CorrectionReason.Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (CorrectionReason.IsArchive)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД типа шаблона отчёта (ReportTemplateTypeId)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование типа шаблона отчёта (ReportTemplateType.Name)";
                 excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (ReportTemplateType.IsArchive)";
+                excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "ИД типа данных (DataTypeId)";
                 excelColNum++;
                 ws.Cell(excelRowNum, excelColNum).Value = "Наименование типа данных (DataType.Name)";
+                excelColNum++;
+                ws.Cell(excelRowNum, excelColNum).Value = "В архиве (DataType.IsArchive)";
                 excelColNum++;
 
                 ws.Row(excelRowNum).Style.Font.SetBold(true);
@@ -2221,14 +2247,19 @@ namespace DictionaryManagement_Business.Repository
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.CorrectionReasonDTOFK.Name;
                     excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.CorrectionReasonDTOFK.IsArchive == true ? "Да" : "";
+                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeId.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeDTOFK.Name;
                     excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.ReportTemplateTypeDTOFK.IsArchive == true ? "Да" : "";
+                    excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeId.ToString();
                     excelColNum++;
                     ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeDTOFK.Name;
-
+                    excelColNum++;
+                    ws.Cell(excelRowNum, excelColNum).Value = objDTO.DataTypeDTOFK.IsArchive == true ? "Да" : "";
                     excelRowNum++;
                 }
 

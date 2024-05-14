@@ -5,14 +5,10 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyVersion>0.17.3.16</AssemblyVersion>
+    <AssemblyVersion>0.18.0.6</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Version>$(AssemblyVersion)</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <_WebToolingArtifacts Remove="Properties\PublishProfiles\FolderProfile.pubxml" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
@@ -67,6 +63,10 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
 </Project>

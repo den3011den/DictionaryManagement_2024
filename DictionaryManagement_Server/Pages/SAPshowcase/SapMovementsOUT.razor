@@ -4,6 +4,7 @@
 @using System.Text.Json;
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels;
+@using Microsoft.Data.SqlClient
 
 
 @inject IJSRuntime _jsRuntime
@@ -17,14 +18,14 @@
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
-    <div class="row">        
+    <div class="row">
         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/SAPshowcase">Витрины SAP</a> - <a href="/SAPshowcase/SapMovementsOUT">Движения - выход</a></h6>
         </div>
 
         @if (IsLoading != true)
-        {                           
-            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">                
+        {
+            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
                 <RadzenColumn Size="12" SizeMD="12">
                     <RadzenStack>
                         <RadzenStack Gap="0.5rem">
@@ -36,11 +37,22 @@
                                     </Items>
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                @* <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                <RadzenButton Size="ButtonSize.Small" title="Загрузка данных из Excel в Витрины SAP - Движения - выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <i class="bi bi-grip-vertical"></i>
+                                @if (@excelExportFlag)
+                                {
+                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                }
+                                else
+                                {
+                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                                    </RadzenButton>
+                                }
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в Витрины SAP - Движения - выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
+                                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+                                </RadzenButton>
                                 @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
                             </RadzenRow>
                         </RadzenStack>
@@ -82,12 +94,12 @@
                     </RadzenButton>
                 </HeaderTemplate>
                 <Columns>
-                    
+
                     <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="ToStringId" Title="Ид записи" TextAlign="TextAlign.Center"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="Id">
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
-                                @data1.ToStringId                                
+                                @data1.ToStringId
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
@@ -98,7 +110,7 @@
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data1.AddTime.ToString("dd.MM.yyyy HH:mm:ss.fff")
-                                </strong>                                
+                                </strong>
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
@@ -108,6 +120,43 @@
                         <Template Context="data1">
                             <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 @data1.MesParamDTOFK.ToStringCodeName
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+                    @*  ddd *@
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapMaterialDTOFK.ToStringCodeName" Title="Материал SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.SapMaterialDTOFK != null ? data1.MesParamDTOFK.SapMaterialDTOFK.ToStringCodeName : "")
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName" Title="Источник SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.SapEquipmentSourceDTOFK != null ? data1.MesParamDTOFK.SapEquipmentSourceDTOFK.ToStringErpPlantIdErpIdName : "")
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName" Title="Приёмник SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.SapEquipmentDestDTOFK != null ? data1.MesParamDTOFK.SapEquipmentDestDTOFK.ToStringErpPlantIdErpIdName : "")
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumnApp>
+
+                    <RadzenDataGridColumnApp TItem="SapMovementsOUTDTO" Property="MesParamDTOFK.SapUnitOfMeasureDTOFK.NameAndShortName" Title="Ед.изм.SAP в тэге СИР"
+                                             TextAlign="TextAlign.Center" Filterable="true" Sortable="true" FilterOperator="FilterOperator.Contains">
+                        <Template Context="data1">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
+                                @(data1.MesParamDTOFK.SapUnitOfMeasureDTOFK != null ? data1.MesParamDTOFK.SapUnitOfMeasureDTOFK.NameAndShortName : "")
                             </div>
                         </Template>
                     </RadzenDataGridColumnApp>
@@ -363,7 +412,7 @@
                     </RadzenDataGridColumnApp>
 
                 </Columns>
-            </RadzenDataGridApp>         
+            </RadzenDataGridApp>
         }
         else
         {
@@ -512,7 +561,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.TotalDays > 31)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60.0).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -543,7 +592,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.TotalDays > 31)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60.0).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -557,10 +606,19 @@
         await LoadStateAsync();
         await Task.Delay(100);
         await InvokeAsync(StateHasChanged);
-        if (applyRadioGroupValue == 1)
-            sapMovementsOUTDTOs = await _sapMovementsOUTRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
-        else
-            sapMovementsOUTDTOs = await _sapMovementsOUTRepository.GetAllByTimeInterval(startDate, endDate, "ADDTIME");
+
+        try
+        {
+            if (applyRadioGroupValue == 1)
+                sapMovementsOUTDTOs = await _sapMovementsOUTRepository.GetAllByTimeInterval(startDate, endDate, "VALUETIME");
+            else
+                sapMovementsOUTDTOs = await _sapMovementsOUTRepository.GetAllByTimeInterval(startDate, endDate, "ADDTIME");
+        }
+        catch (SqlException ex) when (ex.Number == -2)
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+            sapMovementsOUTDTOs = new List<SapMovementsOUTDTO>();
+        }
 
         List<string> distinctSapUnitOfMeasureInList = new List<string>();
         await GetDistincts();

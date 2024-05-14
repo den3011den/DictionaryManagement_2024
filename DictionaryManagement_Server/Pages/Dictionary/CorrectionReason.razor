@@ -28,7 +28,17 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую причину корректировки"
                               Click="@InsertRow" Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                @if (@excelExportFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                }
+                else
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                    </RadzenButton>
+                }
             </RadzenRow>
             <RadzenDataGridApp @ref="correctionReasonDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@CorrectionReasonGridSettings" SettingsName="CorrectionReasonGridSettings"
@@ -40,7 +50,7 @@
                                Style="height:calc(100vh - 155px)"
                                SelectionMode="DataGridSelectionMode.Single"
                                @bind-Value=@selectedTableCorrectionReason
-                               RowDoubleClick="() => EditRow(selectedTableCorrectionReason.FirstOrDefault())">                
+                               RowDoubleClick="() => EditRow(selectedTableCorrectionReason.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="CorrectionReasonDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="CorrectionReasonDTO" Property="Name" Title="Наименование" Width="320px">
@@ -63,7 +73,7 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonDTO" Context="correctionReasonDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
                         <Template Context="correctionReasonDTO">
-                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(correctionReasonDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!correctionReasonDTO.IsArchive)
@@ -87,8 +97,8 @@
                                           Click="@((args) => CancelEdit(correctionReasonDTO))">
                             </RadzenButton>
                             @* <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                          Click="@(args => DeleteRow(correctionReasonDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton> *@
+                    Click="@(args => DeleteRow(correctionReasonDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                    </RadzenButton> *@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>

@@ -4,6 +4,7 @@
 @using System.Text.Json;
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels;
+@using Microsoft.Data.SqlClient
 
 @inject IJSRuntime _jsRuntime
 @inject TooltipService tooltipService
@@ -31,8 +32,18 @@
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 @* <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" Min=minEndDate Max=@maxEndDate ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" /> *@
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
-                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <i class="bi bi-grip-vertical"></i>
+                                @if (@excelExportFlag)
+                                {
+                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                                }
+                                else
+                                {
+                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                                    </RadzenButton>
+                                }
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -345,7 +356,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.TotalDays > 14)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + ((SD.SqlCommandConnectionTimeout / 60.0)).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -376,7 +387,7 @@
             var duration = ((DateTime)endDate - (DateTime)startDate).Duration();
             if (duration.Days > 14)
             {
-                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60).ToString() + " минуты.");
+                await _jsRuntime.ToastrWarningLight("Интервал дат больше 2-х недель. Таймаут запроса к БД " + ((SD.SqlCommandConnectionTimeout / 60.0)).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
         }
@@ -388,13 +399,19 @@
         await LoadStateAsync();
         await Task.Delay(100);
         await InvokeAsync(StateHasChanged);
-        logEventDTOs = await _logEventRepository.GetAllByTimeInterval(startDate, endDate);
-
+        try
+        {
+            logEventDTOs = await _logEventRepository.GetAllByTimeInterval(startDate, endDate);
+        }
+        catch (SqlException ex) when (ex.Number == -2)
+        {
+            await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+            logEventDTOs = new List<LogEventDTO>();
+        }
         distinctLogEventTypesInList = (List<string>)logEventDTOs.OrderBy(u => u.LogEventTypeDTOFK.Name)
-            .Select(u => u.LogEventTypeDTOFK.Name).Distinct().ToList();
+                .Select(u => u.LogEventTypeDTOFK.Name).Distinct().ToList();
         distinctUsersInList = (List<string>)logEventDTOs.OrderBy(u => u.UserDTOFK.UserName)
             .Select(u => u.UserDTOFK.UserName).Distinct().ToList();
-
         ApplyButtonDisabled = false;
         IsLoading = false;
         await Task.Delay(100);

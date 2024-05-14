@@ -236,6 +236,23 @@ namespace DictionaryManagement_Models.IntDBModels
         }
 
         [NotMapped]
+        private string _toStringReportTemplateId;
+        [NotMapped]
+        [Display(Name = "Ид шаблона отчёта")]
+        public string ToStringReportTemplateId
+        {
+            get
+            {
+                _toStringReportTemplateId = ReportTemplateId.ToString();
+                return _toStringReportTemplateId;
+            }
+            set
+            {
+                _toStringReportTemplateId = value;
+            }
+        }
+
+        [NotMapped]
         private bool _isArchiveBool;
         [NotMapped]
         [Display(Name = "Архив")]

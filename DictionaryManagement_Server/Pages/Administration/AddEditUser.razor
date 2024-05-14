@@ -74,7 +74,7 @@
                     </RadzenRow>
 
                     <div class="form-group py-2">
-                        <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-primary" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
+                        <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-success" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
                 </EditForm>

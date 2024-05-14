@@ -62,6 +62,14 @@ else
 
 SD.ShowBackgroundText = builder.Configuration.GetValue<int>("ShowBackgroundText");
 
+try
+{
+    SD.SqlCommandConnectionTimeout = int.Parse(builder.Configuration.GetValue<string>("SqlCommandConnectionTimeout"));
+}
+catch
+{
+}
+
 builder.Services.AddDbContext<IntDBApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("IntDBConnection"),
     u => u.CommandTimeout(SD.SqlCommandConnectionTimeout))

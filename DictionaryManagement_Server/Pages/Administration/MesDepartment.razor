@@ -28,13 +28,21 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton title="Добавить новое производство" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
                               Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || ExpandInProgressFlag == true || CollapseInProgressFlag == true || SearchInProgressFlag==true)" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
-                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
-                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
-                @*                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="@(IsExpandModeOn ? "Свернуть всю иерархию производств" : "Развернуть всю иерархию производств")" Text="@(IsExpandModeOn ? "Свернуть" : "Развернуть")"
-        Icon="@(IsExpandModeOn ? "unfold_less" : "unfold_more")" Click="@(args => ToggleRowsExpand(!IsExpandModeOn))"
-        IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..." />
-        *@
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                @if (@excelExportFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств"
+                                  IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                                  Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
+                }
+                else
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                                  IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                                  Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)">
+                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                    </RadzenButton>
+                }
 
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
                               title="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString() + " иерархии производств" : "Достигнут максимальный уровень равный " + (MaxExpandLevel-1).ToString())"
@@ -55,18 +63,13 @@
                 <RadzenTextBox Trim="true" Placeholder="Поиск..." class="mt-1 col-2" @bind-Value=@searchString
                                @oninput=@(args => @searchString = args.Value.ToString())
                                @onkeypress=@(args => SearchInputKeyPressed(args))
-                               Style="font-size: 0.75rem; height: 80%; max-height: 80%;"/>
+                               Style="font-size: 0.75rem; height: 80%; max-height: 80%;" />
                 <RadzenButton Size="ButtonSize.Small" class="mt-1"
                               Text="Поиск"
                               title="Поиск по всем элементам справочника"
                               Icon="search" Click="@(() => SearchOnClick(@searchString))"
                               IsBusy=@SearchInProgressFlag BusyText="Поиск ..."
                               Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
-                @*                     <RadzenButton Size=ButtonSize.Small Style="text-transform:none" ButtonStyle=ButtonStyle.Primary Variant=Variant.Text
-        Text="@(String.Concat("Отображается ", mesDepartmentDTOGrid.View == null ? "0" : mesDepartmentDTOGrid.View.Count().ToString(),
-        " из ", mesDepartmentFullListDTOs == null ? "0" : mesDepartmentFullListDTOs.Count().ToString(), " записей"))" />
-        *@
-
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@MesDepartmentGridSettings" SettingsName="MesDepartmentGridSettings" @ref="mesDepartmentDTOGrid" ExpandMode="DataGridExpandMode.Multiple"
                                Data="@mesDepartmentDTOs" TItem="MesDepartmentDTO" RowRender="@RowRender" LoadChildData="@LoadChildData"
@@ -108,7 +111,7 @@
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="MesDepartmentDTO" Context="mesDepartmentDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="50px">
                         <Template Context="mesDepartmentDTO">
-                            <RadzenButton title="Редактировать производство" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
+                            <RadzenButton title="Редактировать производство" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat"
                                           Size="ButtonSize.Medium" Click="@(args => EditRow(mesDepartmentDTO))"
                                           @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin || CollapseInProgressFlag|| ExpandInProgressFlag || SearchInProgressFlag==true)" />
                             @if (!mesDepartmentDTO.IsArchive)
@@ -140,10 +143,10 @@
 
 <style>
     /*     .rz-textbox {
-            font-size: 0.75rem;
-            height: 80%;
-            max-height: 80%;
-        } */    
+                    font-size: 0.75rem;
+                    height: 80%;
+                    max-height: 80%;
+                } */
 </style>
 
 @code {
@@ -249,7 +252,7 @@
     }
 
     async Task EditRow(MesDepartmentDTO mesDepartmentDTO)
-    {        
+    {
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             MesDepartmentDTO dialogResult;
@@ -465,7 +468,7 @@
 
     async Task SearchOnClick(string searchStringPar)
     {
-        SearchInProgressFlag = true;        
+        SearchInProgressFlag = true;
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 
@@ -503,7 +506,7 @@
             , new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
 
         if (dialogResult != null)
-        {            
+        {
             MesDepartmentDTO? selectDepartment;
             var selectDepartments = mesDepartmentDTOGrid.View.Where(u => u.Id == dialogResult.Id);
             if (selectDepartments != null && selectDepartments.Count() > 0)
@@ -552,7 +555,7 @@
                 {
                     selectionResult = await _dialogs.ShowYesOrNoDialogBox("Поиск", "Из-за применённого фильтра не удастся увидеть выбранный элемент. Очистить фильтры?", "Очистить", "Отмена");
                     if (selectionResult == true)
-                    {                                                
+                    {
                         if (MesDepartmentGridSettings != null)
                         {
                             foreach (var c in MesDepartmentGridSettings.Columns)
@@ -567,7 +570,7 @@
                     }
                 }
                 await mesDepartmentDTOGrid.SelectRow(dialogResult, true);
-                 
+
                 if (isFilterApplied && selectionResult != true)
                 {
                     await _jsRuntime.ToastrWarningLight("Запись выделена. Очистите применённые фильтры, чтобы увидеть найденную запись");

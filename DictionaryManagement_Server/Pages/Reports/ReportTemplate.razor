@@ -6,6 +6,7 @@
 @using DictionaryManagement_Common;
 @using DictionaryManagement_Models.IntDBModels;
 @using System.Text.Json;
+@using Microsoft.Data.SqlClient
 
 @inject IJSRuntime _jsRuntime
 @inject IReportTemplateRepository _reportTemplateRepository
@@ -31,11 +32,22 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый шаблон отчёта"
                               Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || LoadTagsFromAllReportTemplatesFlag)" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
-                              Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=LoadTagsFromAllReportTemplatesFlag />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                @if (@excelExportFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=LoadTagsFromAllReportTemplatesFlag />
+                }
+                else
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
+                                  Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=LoadTagsFromAllReportTemplatesFlag>
+                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                    </RadzenButton>
+                }
                 @if (ShowLoadTagsFromAllReportTemplatesButtonFlag)
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка списков тэгов с листов файлов всех поддерживаемых шаблонов отчётов в таблицу ReportTemplateToMesParam"
+                    <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                    <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" class="mt-1 mb-1" title="Загрузка списков тэгов с листов файлов всех поддерживаемых шаблонов отчётов в таблицу ReportTemplateToMesParam"
                                   Text="Перезагрузить списки тэгов из файлов шаблонов отчётов" Click="@(args => LoadTagsFromAllReportTemplates())" IsBusy="@LoadTagsFromAllReportTemplatesFlag" BusyText="@LoadTagsFromAllReportTemplatesText"
                                   Disabled="@(IsAdmin != AdminMode.IsAdmin)"
                                   Image="/css/bootstrap-icons-1.10.5/bi--tags-fill.svg">
@@ -224,15 +236,17 @@
                         <Template Context="reportTemplateDTO">
                             <div class="row">
                                 <div class="col-3">
-                                    <RadzenButton title="Тэги шаблона отчёта" ButtonStyle="ButtonStyle.Light" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                    <RadzenButton title="Тэги шаблона отчёта" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
                                                   Click="@(args => ShowReportTemplateTags(reportTemplateDTO))" @onclick:stopPropagation="true"
+                                                  ButtonStyle="ButtonStyle.Light" 
                                                   Disabled="@(reportTemplateDTO.ReportTemplateToMesParamListDTO == null || !reportTemplateDTO.ReportTemplateToMesParamListDTO.Any() || LoadTagsFromAllReportTemplatesFlag)" class="my-1 ms-1 p-0">
                                         <i class="bi bi-tags-fill"></i>
                                     </RadzenButton>
                                 </div>
 
                                 <div class="col-3">
-                                    <RadzenButton title="@((reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || !reportTemplateDTO.ReportTemplateFileHistoryListDTO.Any()) ? "Нет истории изменения файла (появилась с версии 0.15.2.3)" : "История изменений файла шаблона")" Icon="history" ButtonStyle="ButtonStyle.Light" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                    <RadzenButton title="@((reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || !reportTemplateDTO.ReportTemplateFileHistoryListDTO.Any()) ? "Нет истории изменения файла (появилась с версии 0.15.2.3)" : "История изменений файла шаблона")" Icon="history"
+                                                  ButtonStyle="ButtonStyle.Light" Variant=" Variant.Flat" Size="ButtonSize.ExtraSmall"
                                                   Click="@(args => ShowFileHistory(reportTemplateDTO))" @onclick:stopPropagation="true"
                                                   Disabled="@(reportTemplateDTO.ReportTemplateFileHistoryListDTO == null || !reportTemplateDTO.ReportTemplateFileHistoryListDTO.Any() || LoadTagsFromAllReportTemplatesFlag)" class="my-1 ms-1 p-0">
                                     </RadzenButton>
@@ -247,7 +261,7 @@
                                 <div class="col-3">
                                 </div>
                                 <div class="col-3">
-                                    <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
+                                    <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall"
                                                   Click="@(args => EditRow(reportTemplateDTO))" @onclick:stopPropagation="true" Disabled="@LoadTagsFromAllReportTemplatesFlag" class="my-1 ms-1 p-0">
                                     </RadzenButton>
                                 </div>
@@ -333,7 +347,16 @@
                 IsLoading = true;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
-                reportTemplateDTOs = await _reportTemplateRepository.GetAll(SD.SelectDictionaryScope.All);
+                try
+                {
+                    reportTemplateDTOs = await _reportTemplateRepository.GetAll(SD.SelectDictionaryScope.All);
+                }
+                catch (SqlException ex) when (ex.Number == -2)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+                    reportTemplateDTOs = new List<ReportTemplateDTO>();
+                }
+
                 ShowLoadTagsFromAllReportTemplatesButtonFlag = false;
                 var settingsDTO = await _settingsRepository.GetByName(SD.ShowFillReportTemplateToMesParamTableForAllReportTemplatesButtonSettingName);
                 if (settingsDTO != null)

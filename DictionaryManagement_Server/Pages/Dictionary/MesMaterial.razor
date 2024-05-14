@@ -3,6 +3,7 @@
 
 @using DictionaryManagement_Business.Repository.IRepository;
 @using DictionaryManagement_Models.IntDBModels
+@using Microsoft.Data.SqlClient
 @using Microsoft.EntityFrameworkCore;
 @using System.Text.Json
 
@@ -28,8 +29,20 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый материал MES"
                               Click="@InsertRow" Disabled=@(mesMaterialDTOToInsert != null || mesMaterialDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Материалов MES" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())" />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                @if (@excelExportFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                }
+                else
+                {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+                }
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в справочник Материалов MES" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+                </RadzenButton>
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@MesMaterialGridSettings" SettingsName="MesMaterialGridSettings" @ref="mesMaterialDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@mesMaterialDTOs" TItem="MesMaterialDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
@@ -85,7 +98,7 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="MesMaterialDTO" Context="mesMaterialDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="86px">
                         <Template Context="mesMaterialDTO">
-                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                            <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(mesMaterialDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
                             </RadzenButton>
                             @if (!mesMaterialDTO.IsArchive)
@@ -202,7 +215,15 @@
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
-                mesMaterialDTOs = await _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.All);
+                try
+                {
+                    mesMaterialDTOs = await _mesMaterialRepository.GetAll(SD.SelectDictionaryScope.All);
+                }
+                catch (SqlException ex) when (ex.Number == -2)
+                {
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
+                    mesMaterialDTOs = new List<MesMaterialDTO>();
+                }                
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);

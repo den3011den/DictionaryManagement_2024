@@ -37,7 +37,17 @@
             <RadzenRow AlignItems="AlignItems.Start">
                 <RadzenButton title="Добавить новую роль" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую роль"
                               Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                @if (@excelExportFlag)
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                }
+                else
+                {
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                    </RadzenButton>
+                }
             </RadzenRow>
 
             <RadzenDataGridApp @bind-Settings="@RoleGridSettings" SettingsName="RoleGridSettings" @ref="roleVMDTOGrid" AllowAlternatingRows="true"
@@ -86,7 +96,7 @@
                         <Template Context="data">
                             <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
                                 <div class="text-center" style="width: 100%;font-size: 10px">
-                                    <button title=@($"Добавить пользователя к роли {data.Name}") class="btn btn-link" style="width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkUserToRole(data)"> + Добавить пользователя + </button>
+                                    <button title=@($"Добавить пользователя к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkUserToRole(data)"> + Добавить пользователя + </button>
                                 </div>
                             </div>
 
@@ -135,7 +145,7 @@
                         <Template Context="data">
                             <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
                                 <div class="text-center" style="width: 100%; font-size: 10px">
-                                    <button title=@($"Добавить шаблон отчёта к роли {data.Name}") class="btn btn-link" style="width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkReportTemplateTypeToRole(data)"> + Добавить шаблон отчёта + </button>
+                                    <button title=@($"Добавить шаблон отчёта к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkReportTemplateTypeToRole(data)"> + Добавить шаблон отчёта + </button>
                                 </div>
                             </div>
                             <RadzenDataList WrapItems="true" Density=Density.Compact AllowPaging="true" Data="data.ReportTemplateTypeTоRoleDTOs" PagerHorizontalAlign="HorizontalAlign.Left" TItem="ReportTemplateTypeTоRoleDTO" PageSize="4" ShowPagingSummary="false">
@@ -212,7 +222,7 @@
                         <Template Context="data">
                             <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
                                 <div class="text-center" style="width: 100%; font-size: 10px">
-                                    <button title=@($"Добавить группу AD к роли {data.Name}") class="btn btn-link" style="width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkADGroupToRole(data)"> + Добавить группу AD + </button>
+                                    <button title=@($"Добавить группу AD к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkADGroupToRole(data)"> + Добавить группу AD + </button>
                                 </div>
                             </div>
 
@@ -244,7 +254,7 @@
                         <Template Context="data">
                             <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
                                 <div class="text-center" style="width: 100%; font-size: 10px">
-                                    <button title=@($"Добавить производства к роли {data.Name}") class="btn btn-link" style="width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkDepartmentToRole(data)"> + Добавить производства + </button>
+                                    <button title=@($"Добавить производства к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkDepartmentToRole(data)"> + Добавить производства + </button>
                                 </div>
                             </div>
 
@@ -280,7 +290,7 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="RoleVMDTO" Context="roleVMDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="20px">
                         <Template Context="roleVMDTO">
-                            <RadzenButton title="Редактировать роль" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(roleVMDTO))" @onclick:stopPropagation="true">
+                            <RadzenButton title="Редактировать роль" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(roleVMDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
                             @if (!roleVMDTO.IsArchive)
                             {

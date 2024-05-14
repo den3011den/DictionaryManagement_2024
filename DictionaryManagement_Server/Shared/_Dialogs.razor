@@ -27,7 +27,14 @@
             <RadzenStack Orientation="Orientation.Horizontal">
                 @if(actionButtonText.Trim().ToUpper() != "HIDE")
                 {
-                    <RadzenButton Text="@actionButtonText" Click="() => ds.Close(true)" Style="width: 170px;" />
+                    @if(actionButtonText.ToUpper().Contains("УДАЛИТЬ"))
+                    {
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="@actionButtonText" Click="() => ds.Close(true)" Style="width: 170px;" />
+                    }
+                    else
+                    {
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Text="@actionButtonText" Click="() => ds.Close(true)" Style="width: 170px;" />
+                    }
                 }
                 @if(cancelButtonText.Trim().ToUpper() != "HIDE")
                 {

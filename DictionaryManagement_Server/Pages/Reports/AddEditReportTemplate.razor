@@ -88,7 +88,7 @@
                                                 <a href="/DownloadFileController/DownloadReportTemplateFile/@ReportTemplateId" target="_blank">Скачать файл шаблона</a>
                                             </div>
                                             <div class="col-4 float-right">
-                                                <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.CurrentFile, ActiveReportTemplateDTO))" class="btn btn-outline-success">Проверить действующий шаблон</NavLink>
+                                                <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.CurrentFile, ActiveReportTemplateDTO))" class="btn btn-outline-primary">Проверить действующий шаблон</NavLink>
                                             </div>
                                         </div>
                                     }
@@ -123,7 +123,7 @@
                                                         <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">@uploadFileWarning</RadzenText>
                                                     </div>
                                                     <div class="col-4 float-right">
-                                                        <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.LoadFile, ActiveReportTemplateDTO))" class="btn btn-outline-success">Проверить загружаемый шаблон</NavLink>
+                                                        <NavLink @onclick="(() => OnClickCheckCurrentReportTemplate(ReportTemplateFile.LoadFile, ActiveReportTemplateDTO))" class="btn btn-outline-primary">Проверить загружаемый шаблон</NavLink>
                                                     </div>
                                                 </div>
                                             }
@@ -224,7 +224,7 @@
                 </RadzenColumn>
             </RadzenRow>
             <div class="form-group py-2">
-                <button class="btn btn-primary" @onclick="(() => OnClickSave().GetAwaiter().GetResult())"
+                <button class="btn btn-success" @onclick="(() => OnClickSave().GetAwaiter().GetResult())"
                         disabled=@(IsSubmited || (IsAdmin != AdminMode.IsAdmin) || (isUploadFileError == true) || (showProgress == true))>
                     @Title
                 </button>

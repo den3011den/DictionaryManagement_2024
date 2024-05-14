@@ -94,6 +94,10 @@ namespace DictionaryManagement_Business.Repository
                             .Include("MesMovementsFK")
                             .Include("PreviousRecordFK")
                             .Include("MesParamFK")
+                            .Include("MesParamFK.SapEquipmentSourceFK")
+                            .Include("MesParamFK.SapEquipmentDestFK")
+                            .Include("MesParamFK.SapMaterialFK")
+                            .Include("MesParamFK.SapUnitOfMeasureFK")
                         .Where(u => u.AddTime >= startTime && u.AddTime <= endTime).AsNoTracking().ToListWithNoLock();
                     break;
                 case "VALUETIME":
@@ -101,6 +105,10 @@ namespace DictionaryManagement_Business.Repository
                         .Include("MesMovementsFK")
                         .Include("PreviousRecordFK")
                         .Include("MesParamFK")
+                        .Include("MesParamFK.SapEquipmentSourceFK")
+                        .Include("MesParamFK.SapEquipmentDestFK")
+                        .Include("MesParamFK.SapMaterialFK")
+                        .Include("MesParamFK.SapUnitOfMeasureFK")
                         .Where(u => u.ValueTime >= startTime && u.ValueTime <= endTime).AsNoTracking().ToListWithNoLock();
                     break;
                 default:
@@ -142,7 +150,6 @@ namespace DictionaryManagement_Business.Repository
                                                      draftDbSapMovementsOUTSelectionAlias.SapUnitOfMeasure.Trim().ToUpper() equals SUOM_prom1.ShortName.Trim().ToUpper()
                                               into SUOM_prom2
                                               from SUOM in SUOM_prom2.DefaultIfEmpty()
-
                                               select
                                                           new SapMovementsOUT
                                                           {
@@ -176,62 +183,6 @@ namespace DictionaryManagement_Business.Repository
                                                               PreviousRecordFK = draftDbSapMovementsOUTSelectionAlias.PreviousRecordFK
                                                           }).ToList();
 
-                //dbSapMovementsOUTSelection = (from draftDbSapMovementsOUTSelectionAlias in draftDbSapMovementsOUTSelection
-                //                              join SM in _db.SapMaterial.AsNoTracking().ToListWithNoLock() on
-                //                                  draftDbSapMovementsOUTSelectionAlias.SapMaterialCode equals SM.Code
-                //                              join SESource in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
-                //                              {
-                //                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdSource.ToString(),
-                //                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdSource.ToString()
-                //                              }
-                //                                  equals new
-                //                                  {
-                //                                      ErpPlantIdSource = SESource.ErpPlantId.ToString(),
-                //                                      ErpIdSource = SESource.ErpId.ToString()
-                //                                  }
-                //                              join SEDest in _db.SapEquipment.AsNoTracking().ToListWithNoLock() on new
-                //                              {
-                //                                  ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdDest.ToString(),
-                //                                  ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdDest.ToString()
-                //                              }
-                //                              equals new
-                //                              {
-                //                                  ErpPlantIdSource = SEDest.ErpPlantId.ToString(),
-                //                                  ErpIdSource = SEDest.ErpId.ToString()
-                //                              }
-
-                //                              select
-                //                                          new SapMovementsOUT
-                //                                          {
-                //                                              Id = draftDbSapMovementsOUTSelectionAlias.Id,
-                //                                              AddTime = draftDbSapMovementsOUTSelectionAlias.AddTime,
-                //                                              BatchNo = draftDbSapMovementsOUTSelectionAlias.BatchNo,
-                //                                              SapMaterialCode = draftDbSapMovementsOUTSelectionAlias.SapMaterialCode,
-                //                                              SapMaterialFK = SM,
-                //                                              ErpPlantIdSource = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdSource,
-                //                                              ErpIdSource = draftDbSapMovementsOUTSelectionAlias.ErpIdSource,
-                //                                              SapEquipmentSourceFK = SESource,
-                //                                              IsWarehouseSource = draftDbSapMovementsOUTSelectionAlias.IsWarehouseSource,
-                //                                              ErpPlantIdDest = draftDbSapMovementsOUTSelectionAlias.ErpPlantIdDest,
-                //                                              ErpIdDest = draftDbSapMovementsOUTSelectionAlias.ErpIdDest,
-                //                                              SapEquipmentDestFK = SEDest,
-                //                                              IsWarehouseDest = draftDbSapMovementsOUTSelectionAlias.IsWarehouseDest,
-                //                                              ValueTime = draftDbSapMovementsOUTSelectionAlias.ValueTime,
-                //                                              Value = draftDbSapMovementsOUTSelectionAlias.Value,
-                //                                              Correction2Previous = draftDbSapMovementsOUTSelectionAlias.Correction2Previous,
-                //                                              IsReconciled = draftDbSapMovementsOUTSelectionAlias.IsReconciled,
-                //                                              SapUnitOfMeasure = draftDbSapMovementsOUTSelectionAlias.SapUnitOfMeasure,
-                //                                              SapGone = draftDbSapMovementsOUTSelectionAlias.SapGone,
-                //                                              SapGoneTime = draftDbSapMovementsOUTSelectionAlias.SapGoneTime,
-                //                                              SapError = draftDbSapMovementsOUTSelectionAlias.SapError,
-                //                                              SapErrorMessage = draftDbSapMovementsOUTSelectionAlias.SapErrorMessage,
-                //                                              MesMovementId = draftDbSapMovementsOUTSelectionAlias.MesMovementId,
-                //                                              MesMovementsFK = draftDbSapMovementsOUTSelectionAlias.MesMovementsFK,
-                //                                              MesParamId = draftDbSapMovementsOUTSelectionAlias.MesParamId,
-                //                                              MesParamFK = draftDbSapMovementsOUTSelectionAlias.MesParamFK,
-                //                                              PreviousRecordId = draftDbSapMovementsOUTSelectionAlias.PreviousRecordId,
-                //                                              PreviousRecordFK = draftDbSapMovementsOUTSelectionAlias.PreviousRecordFK
-                //                                          }).ToList();
             }
             else
             {

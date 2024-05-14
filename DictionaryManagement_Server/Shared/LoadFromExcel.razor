@@ -137,7 +137,7 @@
 
                             <RadzenCard Style="width: 100%;">
                                 <RadzenButton Text="Загрузить данные из файла" title="Запуск загрузки данных из выбранного файла"
-                                              Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Info" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                              Icon="west" Disabled="@(String.IsNullOrEmpty(uploadFileWarning))" ButtonStyle="ButtonStyle.Success" Style="margin-top: 10px; width: 850px;" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                               Click=@(() => LoadExcelFile().GetAwaiter()) @onclick:stopPropagation="true"
                                               IsBusy=@loadExcelFileBusyFlag BusyText="Выполняется ...">
                                 </RadzenButton>
