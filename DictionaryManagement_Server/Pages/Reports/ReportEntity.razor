@@ -36,7 +36,7 @@
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="@(applyButtonStyle)" Icon="@(applyButtonIcon)" Disabled="@ApplyButtonDisabled" Text="@(applyButtonText)" Click="@(args => GetRows())" />
                                 <i class="bi bi-grip-vertical"></i>
                                 @if (@excelExportFlag)
                                 {
@@ -268,11 +268,19 @@
     DateTime? startDate = DateTime.Today.AddDays(-6);
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
+    DateTime? oldStartDate = DateTime.Today.AddDays(-6);
+    DateTime? oldEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
+    int oldApplyRadioGroupValue = 1;
 
     bool ApplyButtonDisabled = false;
+
+    string applyButtonText = "Обновить";
+    string applyButtonIcon = "refresh";
+    ButtonStyle applyButtonStyle = ButtonStyle.Primary;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
@@ -393,9 +401,10 @@
 
     private async Task ChangeStartDate()
     {
+        ApplyButtonDisabled = true;
         if (startDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            await _jsRuntime.ToastrWarningLight("Пустая дата начала интервала");
             ApplyButtonDisabled = true;
             return;
         }
@@ -414,19 +423,20 @@
             }
             ApplyButtonDisabled = false;
         }
-        // ApplyButtonDisabled = false;
-        // maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
-        // minEndDate = ((DateTime)startDate).AddDays(-1);
-        // if (endDate > maxEndDate)
-        //     endDate = maxEndDate;
-
+        if (oldStartDate != startDate)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
+        }
     }
 
     private async Task ChangeEndDate()
     {
+        ApplyButtonDisabled = true;
         if (endDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            await _jsRuntime.ToastrWarningLight("Пустая дата окончания");
             ApplyButtonDisabled = true;
             return;
         }
@@ -445,7 +455,18 @@
             }
             ApplyButtonDisabled = false;
         }
-        // ApplyButtonDisabled = false;
+        if (oldEndDate != endDate)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
+        }
+        if (oldApplyRadioGroupValue != applyRadioGroupValue)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
+        }
     }
 
 
@@ -468,6 +489,13 @@
             await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
             reportEntityDTOs = new List<ReportEntityDTO>();
         }
+
+        oldStartDate = startDate;
+        oldEndDate = endDate;
+        oldApplyRadioGroupValue = applyRadioGroupValue;
+        applyButtonText = "Обновить";
+        applyButtonIcon = "refresh";
+        applyButtonStyle = ButtonStyle.Primary;
 
         List<string> distinctDepartmentsInList = new List<string>();
         List<string> distinctReportTemplateTypesInList = new List<string>();
