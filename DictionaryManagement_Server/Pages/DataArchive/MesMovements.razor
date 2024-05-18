@@ -567,13 +567,12 @@
                 await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дня. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60.0).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
-
-            if (oldStartDate != startDate)
-            {
-                applyButtonIcon = "done";
-                applyButtonText = "Применить";
-                applyButtonStyle = ButtonStyle.Info;
-            }
+        }
+        if (oldStartDate != startDate)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
         }
     }
 
