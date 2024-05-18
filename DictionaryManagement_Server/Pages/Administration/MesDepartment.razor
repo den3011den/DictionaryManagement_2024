@@ -62,7 +62,7 @@
 
                 @*                 <div class="mt-1 mb-1 col-2" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
         <RadzenLabel Text="@("* фильтр действует только по \"развёрнутым\" записям")" />
-        </div> *@                
+        </div> *@
                 <i class="bi bi-grip-vertical mt-2 mb-1"></i>
                 <RadzenTextBox Trim="true" Placeholder="Поиск..." class="mt-1 col-2" @bind-Value=@searchString
                                @oninput=@(args => @searchString = args.Value.ToString())
@@ -73,7 +73,7 @@
                               title="Поиск по всем элементам справочника"
                               Icon="search" Click="@(() => SearchOnClick(@searchString))"
                               IsBusy=@SearchInProgressFlag BusyText="Поиск ..."
-                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />               
+                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
             </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@MesDepartmentGridSettings" SettingsName="MesDepartmentGridSettings" @ref="mesDepartmentDTOGrid" ExpandMode="DataGridExpandMode.Multiple"
                                Data="@mesDepartmentDTOs" TItem="MesDepartmentDTO" RowRender="@RowRender" LoadChildData="@LoadChildData"
@@ -147,10 +147,10 @@
 
 <style>
     /*     .rz-textbox {
-                        font-size: 0.75rem;
-                        height: 80%;
-                        max-height: 80%;
-                    } */
+                            font-size: 0.75rem;
+                            height: 80%;
+                            max-height: 80%;
+                        } */
 </style>
 
 @code {
