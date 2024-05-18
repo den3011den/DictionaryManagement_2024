@@ -32,13 +32,18 @@
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тип шаблонов отчётов"
                               Click="@InsertRow" Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                              Click="() => OnAfterRenderAsync(true)" Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
                 @if (@excelExportFlag)
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
+                        IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null) />
                 }
                 else
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null)>
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" 
+                            IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(reportTemplateTypeDTOToInsert != null || reportTemplateTypeDTOToUpdate != null)>
                         <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
                     </RadzenButton>
                 }
