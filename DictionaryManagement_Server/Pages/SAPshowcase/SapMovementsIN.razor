@@ -559,7 +559,7 @@
         ApplyButtonDisabled = true;
         if (startDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            await _jsRuntime.ToastrWarningLight("Пустая дата начала интервала");
             ApplyButtonDisabled = true;
             return;
         }
@@ -591,7 +591,7 @@
         ApplyButtonDisabled = true;
         if (endDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            await _jsRuntime.ToastrWarningLight("Пустая дата окончания");
             ApplyButtonDisabled = true;
             return;
         }

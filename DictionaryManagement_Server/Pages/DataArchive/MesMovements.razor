@@ -371,16 +371,6 @@
                             <RadzenCheckBox @bind-Value=data.NeedWriteToSapBool ReadOnly="true" TriState="false" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
-
-
-                    @*                     <RadzenDataGridColumnApp Title="Действия" TItem="MesMovementsDTO" Context="mesMovementsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right">
-            <Template Context="mesMovementsDTO">
-            <RadzenButton title="Редактировать запись" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(mesMovementsDTO))" @onclick:stopPropagation="true">
-            </RadzenButton>
-            <RadzenButton title="Удалить запись" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(mesMovementsDTO))" @onclick:stopPropagation="true">
-            </RadzenButton>
-            </Template>
-            </RadzenDataGridColumnApp> *@
                 </Columns>
             </RadzenDataGridApp>
         }
