@@ -44,13 +44,13 @@
                                 }
                                 else
                                 {
-                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
                                         <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                                </RadzenButton>
+                                    </RadzenButton>
                                 }
                                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel Архив данных СИР" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
                                     <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
-                                </RadzenButton>                                
+                                </RadzenButton>
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -546,9 +546,10 @@
 
     private async Task ChangeStartDate()
     {
+        ApplyButtonDisabled = true;
         if (startDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            await _jsRuntime.ToastrWarningLight("Пустая дата начала интервала");
             ApplyButtonDisabled = true;
             return;
         }
@@ -574,19 +575,14 @@
                 applyButtonStyle = ButtonStyle.Info;
             }
         }
-        // ApplyButtonDisabled = false;
-        // maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
-        // minEndDate = ((DateTime)startDate).AddDays(-1);
-        // if (endDate > maxEndDate)
-        //     endDate = maxEndDate;
     }
 
     private async Task ChangeEndDate()
     {
-
+        ApplyButtonDisabled = true;
         if (endDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            await _jsRuntime.ToastrWarningLight("Пустая дата окончания");
             ApplyButtonDisabled = true;
             return;
         }
@@ -604,19 +600,19 @@
                 await _jsRuntime.ToastrWarningLight("Интервал дат больше 31 дней. Таймаут запроса к БД " + (SD.SqlCommandConnectionTimeout / 60.0).ToString() + " минуты.");
             }
             ApplyButtonDisabled = false;
+        }
 
-            if (oldEndDate != endDate)
-            {
-                applyButtonIcon = "done";
-                applyButtonText = "Применить";
-                applyButtonStyle = ButtonStyle.Info;
-            }            
-            if (oldApplyRadioGroupValue != applyRadioGroupValue)
-            {
-                applyButtonIcon = "done";
-                applyButtonText = "Применить";
-                applyButtonStyle = ButtonStyle.Info;
-            }
+        if (oldEndDate != endDate)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
+        }
+        if (oldApplyRadioGroupValue != applyRadioGroupValue)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
         }
     }
 
