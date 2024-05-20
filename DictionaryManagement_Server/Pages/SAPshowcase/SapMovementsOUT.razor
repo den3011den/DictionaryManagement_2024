@@ -825,7 +825,7 @@
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-вход)", new Dictionary
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-выход)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{"DataList", (IEnumerable<SapMovementsOUTDTO>)sapMovementsOUTDTOGrid.View }}
