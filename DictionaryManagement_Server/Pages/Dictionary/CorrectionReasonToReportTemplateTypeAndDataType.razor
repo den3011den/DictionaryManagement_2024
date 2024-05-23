@@ -412,6 +412,7 @@
         if (IsAdmin == AdminMode.IsAdmin)
         {
             await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.UpdateRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+            correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
         }
     }
 

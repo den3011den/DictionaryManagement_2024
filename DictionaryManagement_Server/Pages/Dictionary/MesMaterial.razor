@@ -351,6 +351,7 @@
 
     void CancelEdit(MesMaterialDTO mesMaterialDTO)
     {
+        mesMaterialDTOGrid.ShowEmptyMessage = true;
         if (mesMaterialDTO == mesMaterialDTOToInsert)
         {
             mesMaterialDTOToInsert = null;
@@ -443,6 +444,7 @@
     {
         if (IsAdmin == AdminMode.IsAdmin)
         {
+            mesMaterialDTOGrid.ShowEmptyMessage = false;
             mesMaterialDTOToInsert = new MesMaterialDTO();
             await mesMaterialDTOGrid.InsertRow(mesMaterialDTOToInsert);
         }
@@ -518,6 +520,7 @@
             }
             var newDTO = await _mesMaterialRepository.Create(mesMaterialDTO);
             await _logEventRepository.ToLog<MesMaterialDTO>(oldObject: null, newObject: newDTO, "Добавление материала MES", "Материал MES: ", _authorizationRepository);
+            mesMaterialDTOGrid.ShowEmptyMessage = true;
             await OnAfterRenderAsync(true);
         }
     }

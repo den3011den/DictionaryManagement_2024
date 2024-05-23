@@ -233,8 +233,9 @@
                     mesUnitOfMeasureDTO.Name = objectForRestore.Name;
                     mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
                     await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+                    mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
                     await mesUnitOfMeasureDTOGrid.Reload();
-                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения MES \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения MES \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());                    
                     return;
                 }
             }
@@ -248,8 +249,9 @@
                     mesUnitOfMeasureDTO.Name = objectForRestore.Name;
                     mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
                     await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+                    mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
                     await mesUnitOfMeasureDTOGrid.Reload();
-                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения MES \"" + objectForCheckShortName.ShortName + "\" с ИД зависи = " + objectForCheckShortName.Id.ToString());
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения MES \"" + objectForCheckShortName.ShortName + "\" с ИД зависи = " + objectForCheckShortName.Id.ToString());                    
                     return;
                 }
             }
@@ -257,6 +259,7 @@
             MesUnitOfMeasureDTO oldMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Get(mesUnitOfMeasureDTO.Id);
             MesUnitOfMeasureDTO newMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Update(mesUnitOfMeasureDTO, SD.UpdateMode.Update);
             await _logEventRepository.ToLog<MesUnitOfMeasureDTO>(oldObject: oldMesUnitOfMeasureDTO, newObject: newMesUnitOfMeasureDTO, "Изменение ед.изм. MES", "Ед.изм. MES: ", _authorizationRepository);
+            mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
         }
     }
 
@@ -265,6 +268,7 @@
         if (IsAdmin == AdminMode.IsAdmin)
         {
             await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+            mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
         }
     }
 
@@ -286,6 +290,7 @@
             mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
             mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
         }
+        mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
         mesUnitOfMeasureDTOGrid.Reload();
 
     }
@@ -362,6 +367,7 @@
     {
         if (IsAdmin == AdminMode.IsAdmin)
         {
+            mesUnitOfMeasureDTOGrid.ShowEmptyMessage = false;
             mesUnitOfMeasureDTOToInsert = new MesUnitOfMeasureDTO();
             await mesUnitOfMeasureDTOGrid.InsertRow(mesUnitOfMeasureDTOToInsert);
         }
