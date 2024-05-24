@@ -198,8 +198,8 @@
             </RadzenRow>
 
             <div class="form-group py-2">
-                <button class="btn btn-success" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
-                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                <button class="btn btn-success" disabled=@((IsAdmin != AdminMode.IsAdmin) || (IsDisabledButtonsFlag))>@Title</button>
+                <NavLink @onclick="(() => OnClickCancel())" disabled=@(IsDisabledButtonsFlag) class="btn btn-secondary">Отмена</NavLink>
             </div>
         </EditForm>
     }
@@ -224,6 +224,8 @@
     public bool NeedWriteToSapDisabled { get; set; } = false;
     public bool NeedReadFromMesDisabled { get; set; } = false;
     public bool NeedWriteToMesDisabled { get; set; } = false;
+
+    public bool IsDisabledButtonsFlag { get; set; } = false;
 
     IEnumerable<MesDepartmentDTO>? MesDepartmentDTOList { get; set; } = new List<MesDepartmentDTO>();
     IEnumerable<MesParamSourceTypeDTO>? MesParamSourceTypeDTOList { get; set; } = new List<MesParamSourceTypeDTO>();
@@ -344,6 +346,12 @@
 
     private async Task AddEditMesParamProcedure()
     {
+        IsDisabledButtonsFlag = true;
+        string oldTitle = Title;
+        Title = "Выполняется ...";
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
+
         if (IsAdmin == AdminMode.IsAdmin)
         {
             if ((Mode == SD.EditMode.Create) || (Mode == SD.EditMode.CreateBasedOnRow))
@@ -352,6 +360,8 @@
                 if (foundByCode != null)
                 {
                     await _jsRuntime.ToastrError("Уже есть тэг СИР с кодом " + " ( КОД: " + foundByCode.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundByCode.Name + " ИД: " + foundByCode.Id.ToString() + ")");
+                    IsDisabledButtonsFlag = false;
+                    Title = oldTitle;                    
                     return;
                 }
 
@@ -363,12 +373,16 @@
                         if (foundBySapMapping != null)
                         {
                             await _jsRuntime.ToastrError("Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + ")");
+                            IsDisabledButtonsFlag = false;
+                            Title = oldTitle;
                             return;
                         }
                     }
                     else
                     {
                         await _jsRuntime.ToastrError("Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
+                        IsDisabledButtonsFlag = false;
+                        Title = oldTitle;
                         return;
                     }
                 }
@@ -383,6 +397,8 @@
                                     "   Всё равно добавить ?", "Добавить", "Отмена");
                         if (selectionResult == false)
                         {
+                            IsDisabledButtonsFlag = false;
+                            Title = oldTitle;
                             return;
                         }
                     }
@@ -391,6 +407,8 @@
                 if (ActiveMesParamDTO.MesParamSourceType != null && (ActiveMesParamDTO.MesParamSourceLink == null || ActiveMesParamDTO.MesParamSourceLink.Trim() == ""))
                 {
                     await _jsRuntime.ToastrError("Выбран \"Источник\", но не введён \"Тэг/ИД источника\"");
+                    IsDisabledButtonsFlag = false;
+                    Title = oldTitle;
                     return;
                 }
 
@@ -401,6 +419,8 @@
                                 "   Всё равно добавить ?", "Добавить", "Отмена");
                     if (selectionResult == false)
                     {
+                        IsDisabledButtonsFlag = false;
+                        Title = oldTitle;
                         return;
                     }
                 }
@@ -422,6 +442,8 @@
                 if ((foundByCode != null) && (foundByCode.Id != ActiveMesParamDTO.Id))
                 {
                     await _jsRuntime.ToastrError("Уже есть тэг СИР с кодом ( КОД: " + foundByCode.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundByCode.Name + " ИД: " + foundByCode.Id.ToString() + ")");
+                    IsDisabledButtonsFlag = false;
+                    Title = oldTitle;
                     return;
                 }
                 // if (ActiveMesParamDTO.MesParamSourceLink != null) //!!! Не понятно зачем это условие. Или вспомнить, или убрать
@@ -435,12 +457,16 @@
                         if (foundBySapMapping != null)
                         {
                             await _jsRuntime.ToastrError("Уже есть не архивный тэг СИР с таким же маппингом \"Источник SAP + Приёмник SAP + Материал SAP\" ( КОД: " + foundBySapMapping.Code.ToString() + " НАИМЕНОВАНИЕ: " + foundBySapMapping.Name + " ИД: " + foundBySapMapping.Id.ToString() + ")");
+                            IsDisabledButtonsFlag = false;
+                            Title = oldTitle;
                             return;
                         }
                     }
                     else
                     {
                         await _jsRuntime.ToastrError("Не полный мэппинг тэга СИР с SAP по связке параметров \"Источник SAP + Приёмник SAP + Материал SAP\". Должны быть выбраны или все 3 параметра, или ни одного.");
+                        IsDisabledButtonsFlag = false;
+                        Title = oldTitle;
                         return;
                     }
                 }
@@ -454,6 +480,8 @@
                                     "    Всё равно сохранить ?", "Сохранить", "Отмена");
                         if (selectionResult == false)
                         {
+                            IsDisabledButtonsFlag = false;
+                            Title = oldTitle;
                             return;
                         }
                     }
@@ -463,6 +491,8 @@
                 if (ActiveMesParamDTO.MesParamSourceType != null && (ActiveMesParamDTO.MesParamSourceLink == null || ActiveMesParamDTO.MesParamSourceLink.Trim() == ""))
                 {
                     await _jsRuntime.ToastrError("Выбран \"Источник\", но не введён \"Тэг/ИД источника\"");
+                    IsDisabledButtonsFlag = false;
+                    Title = oldTitle;
                     return;
                 }
 
@@ -473,6 +503,8 @@
                                 "   Всё равно добавить ?", "Добавить", "Отмена");
                     if (selectionResult == false)
                     {
+                        IsDisabledButtonsFlag = false;
+                        Title = oldTitle;
                         return;
                     }
                 }
@@ -502,7 +534,9 @@
                             
                         await _dialogs.ShowYesOrNoDialogBox("Редактирование тэга",
                                 "<strong><div style=\"color:red\">Нельзя менять код данного тэга.<br/> Код тэга " + oldMesParamDTO.Code + " встречается на листах файлов не архивных шаблонов отчётов</strong></div><br/>"
-                                , "OK", "HIDE", reportsStr2);                        
+                                , "OK", "HIDE", reportsStr2); 
+                        IsDisabledButtonsFlag = false;
+                        Title = oldTitle;
                         return;
                     }
                 }
@@ -519,7 +553,6 @@
                 await GetFKForActiveMesParamDTO();
 
                 await _logEventRepository.ToLog<MesParamDTO>(oldObject: oldMesParamDTO, newObject: newMesParamDTO, "Изменение тэга СИР", "Тэг: ", _authorizationRepository);
-
 
                 _dialogService.Close(ActiveMesParamDTO);
             }

@@ -32,13 +32,20 @@
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую привязку"
                               Click="@InsertRow" Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                              Click="() => OnAfterRenderAsync(true)" Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null) />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
                 @if (@excelExportFlag)
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
+                        Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null) 
+                        IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                 }
                 else
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" 
+                        Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null) 
+                        Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
                         <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
                     </RadzenButton>
                 }
@@ -322,6 +329,7 @@
             IsAdmin = await _authorizationRepository.CurrentUserIsInAdminRole(SD.MessageBoxMode.On);
             if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
             {
+                IsLoading = true;
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -404,6 +412,7 @@
         if (IsAdmin == AdminMode.IsAdmin)
         {
             await correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.UpdateRow(correctionReasonToReportTemplateTypeAndDataTypeDTO);
+            correctionReasonToReportTemplateTypeAndDataTypeDTOGrid.ShowEmptyMessage = true;
         }
     }
 

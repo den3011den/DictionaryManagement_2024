@@ -471,8 +471,8 @@ namespace DictionaryManagement_Business.Repository
                     }
                     else
                     {
-                        if (reportTemplateTypeName == SD.EmbReportTemplateTypeName.Trim().ToUpper()
-                            || reportTemplateTypeName == SD.TebReportTemplateTypeName.Trim().ToUpper())
+                        if (reportTemplateTypeNameToCompare == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                            || reportTemplateTypeNameToCompare == SD.TebReportTemplateTypeName.Trim().ToUpper())
                         {
                             var dto1 = await _reportTemplateTypeRepository.GetByName(SD.EmbReportTemplateTypeName);
                             if (dto1 != null) { findReportTemplateTypeId1 = dto1.Id; }

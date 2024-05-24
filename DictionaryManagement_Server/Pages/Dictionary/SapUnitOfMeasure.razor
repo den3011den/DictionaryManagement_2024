@@ -29,13 +29,18 @@
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения SAP"
                               Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                              Click="() => OnAfterRenderAsync(true)" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
                 @if (@excelExportFlag)
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                         Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                 }
                 else
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
+                         Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
                         <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
                     </RadzenButton>
                 }
@@ -97,9 +102,6 @@
                             </RadzenButton>
                             <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(sapUnitOfMeasureDTO))">
                             </RadzenButton>
-                            @* <RadzenButton title="Удалить в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                    Click="@(args => DeleteRow(sapUnitOfMeasureDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                    </RadzenButton> *@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>

@@ -228,7 +228,7 @@
                         disabled=@(IsSubmited || (IsAdmin != AdminMode.IsAdmin) || (isUploadFileError == true) || (showProgress == true))>
                     @Title
                 </button>
-                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary" disabled=@(IsSubmited)>Отмена</NavLink>
             </div>
         </EditForm>
     }
@@ -375,6 +375,10 @@
     private async Task AddEditReportTemplateProcedure()
     {
         IsSubmited = true;
+        string oldTitle = Title;
+        Title = "Выполняется ...";        
+        await Task.Delay(100);
+        await InvokeAsync(StateHasChanged);
         if (IsAdmin == AdminMode.IsAdmin)
         {
             ReportTemplatePath = (await _settingsRepository.GetByName(SD.ReportTemplatePathSettingName)).Value;
@@ -382,6 +386,7 @@
             {
                 await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найдена настройка с наименованием \"ReportTemplatePath\" либо значение настройки пусто");
                 IsSubmited = false;
+                Title = oldTitle;
                 return;
             }
 
@@ -389,6 +394,7 @@
             {
                 await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Путь \"" + ReportTemplatePath + "\", указанный в качестве значения настройки \"ReportTemplatePath\", не существует или не доступен!");
                 IsSubmited = false;
+                Title = oldTitle;
                 return;
             }
 
@@ -398,6 +404,7 @@
             {
                 await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Не найдена настройка с наименованием \"TempFilePath\" либо значение настройки пусто");
                 IsSubmited = false;
+                Title = oldTitle;
                 return;
             }
 
@@ -405,6 +412,7 @@
             {
                 await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Путь \"" + TempFilePath + "\", указанный в качестве значения настройки \"TempFilePath\", не существует или не доступен!");
                 IsSubmited = false;
+                Title = oldTitle;
                 return;
             }
             if (ReportTemplateId == null || ReportTemplateId == Guid.Empty)
@@ -414,6 +422,7 @@
                 {
                     await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Выбор файла шаблона отчёта является обязательным!");
                     IsSubmited = false;
+                    Title = oldTitle;
                     return;
                 }
 
@@ -424,6 +433,7 @@
                     await _jsRuntime.ToastrError("Уже есть шаблон отчёта с типом: '" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "' Типом вых данных: '"
                     + ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "' для производства: '" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "'");
                     IsSubmited = false;
+                    Title = oldTitle;
                     return;
                 }
 
@@ -439,6 +449,7 @@
                 if (reportTemplateFileSaveAbordedResult)
                 {
                     IsSubmited = false;
+                    Title = oldTitle;
                     return;
                 }
 
@@ -507,6 +518,7 @@
                     await _jsRuntime.ToastrError("Уже есть шаблон отчёта с типом: '" + ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name + "' Типом вых данных: '"
                     + ActiveReportTemplateDTO.DestDataTypeDTOFK.Name + "' для производства: '" + ActiveReportTemplateDTO.MesDepartmentDTOFK.Name + "'");
                     IsSubmited = false;
+                    Title = oldTitle;
                     return;
                 }
 
@@ -527,6 +539,7 @@
                 if (reportTemplateFileSaveAbordedResult)
                 {
                     IsSubmited = false;
+                    Title = oldTitle;
                     return;
                 }
 
@@ -584,6 +597,7 @@
                     _dialogService.Close(ActiveReportTemplateDTO);
             }
         }
+        Title = oldTitle;
         IsSubmited = false;
     }
 
@@ -695,7 +709,7 @@
 
     private async Task OnClickSave()
     {
-        IsSubmited = true;
+        IsSubmited = true;        
         if (IsAdmin == AdminMode.IsAdmin)
         {
             UserDTO? currentUserDTO = await _authorizationRepository.GetCurrentUserDTO(SD.MessageBoxMode.Off);
@@ -803,11 +817,16 @@
 
     private async Task<bool> CanCheckReportTemplateFile()
     {
-        if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.EmbReportTemplateTypeName.Trim().ToUpper()
-                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.TebReportTemplateTypeName.Trim().ToUpper()
-                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
-                                                                              || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.NdoReportTemplateTypeName.Trim().ToUpper())
-            return true;
+        if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK != null)
+        {
+            if (ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.EmbReportTemplateTypeName.Trim().ToUpper()
+                                                                                  || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.TebReportTemplateTypeName.Trim().ToUpper()
+                                                                                  || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.CorrectionReportTemplateTypeName.Trim().ToUpper()
+                                                                                  || ActiveReportTemplateDTO.ReportTemplateTypeDTOFK.Name.Trim().ToUpper() == SD.NdoReportTemplateTypeName.Trim().ToUpper())
+                return true;
+            else
+                return false;
+        }
         else
             return false;
     }

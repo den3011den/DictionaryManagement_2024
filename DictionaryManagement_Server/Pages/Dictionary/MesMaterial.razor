@@ -30,17 +30,23 @@
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый материал MES"
                               Click="@InsertRow" Disabled=@(mesMaterialDTOToInsert != null || mesMaterialDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
                 <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                              Click="() => OnAfterRenderAsync(true)" Disabled=@(mesMaterialDTOToInsert != null || mesMaterialDTOToUpdate != null) />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
                 @if (@excelExportFlag)
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
+                        Disabled=@(mesMaterialDTOToInsert != null || mesMaterialDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                 }
                 else
                 {
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" 
+                        Disabled=@(mesMaterialDTOToInsert != null || mesMaterialDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ...">
                         <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
                 </RadzenButton>
                 }
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в справочник Материалов MES" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в справочник Материалов MES"
+                    Disabled=@(mesMaterialDTOToInsert != null || mesMaterialDTOToUpdate != null) Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
                     <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
                 </RadzenButton>
             </RadzenRow>
@@ -345,6 +351,7 @@
 
     void CancelEdit(MesMaterialDTO mesMaterialDTO)
     {
+        mesMaterialDTOGrid.ShowEmptyMessage = true;
         if (mesMaterialDTO == mesMaterialDTOToInsert)
         {
             mesMaterialDTOToInsert = null;
@@ -437,6 +444,7 @@
     {
         if (IsAdmin == AdminMode.IsAdmin)
         {
+            mesMaterialDTOGrid.ShowEmptyMessage = false;
             mesMaterialDTOToInsert = new MesMaterialDTO();
             await mesMaterialDTOGrid.InsertRow(mesMaterialDTOToInsert);
         }
@@ -512,6 +520,7 @@
             }
             var newDTO = await _mesMaterialRepository.Create(mesMaterialDTO);
             await _logEventRepository.ToLog<MesMaterialDTO>(oldObject: null, newObject: newDTO, "Добавление материала MES", "Материал MES: ", _authorizationRepository);
+            mesMaterialDTOGrid.ShowEmptyMessage = true;
             await OnAfterRenderAsync(true);
         }
     }

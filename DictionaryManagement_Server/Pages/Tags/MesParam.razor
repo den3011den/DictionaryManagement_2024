@@ -35,6 +35,9 @@
                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тэг СИР"
                               Click="@(args => EditRow(null, SD.EditMode.Create))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
                 <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                              Click="() => OnAfterRenderAsync(true)" />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
                 @if (@excelExportFlag)
                 {
                     <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
@@ -889,7 +892,7 @@
                                 .ThenBy(u => u.ReportTemplateDTOFK.MesDepartmentDTOFK.ToStringHierarchyShortName)
                                 .ThenBy(u => u.SheetName)} }
                             , new DialogOptions() { Width = $"{85}vw", Left = "1vw" });
-                    IsLoading = false;
+                IsLoading = false;
             }
             IsLoading = false;
         }

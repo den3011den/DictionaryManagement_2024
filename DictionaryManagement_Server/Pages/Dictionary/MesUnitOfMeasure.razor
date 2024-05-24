@@ -25,14 +25,18 @@
             <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения MES"
                           Click="@InsertRow" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
             <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
             @if (@excelExportFlag)
             {
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                    Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
             }
             else
             {
                 <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
-                              Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                              Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null)>
                     <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
                 </RadzenButton>
             }
@@ -229,8 +233,9 @@
                     mesUnitOfMeasureDTO.Name = objectForRestore.Name;
                     mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
                     await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+                    mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
                     await mesUnitOfMeasureDTOGrid.Reload();
-                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения MES \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с наименованием единицы измерения MES \"" + objectForCheckName.Name + "\" с ИД записи = " + objectForCheckName.Id.ToString());                    
                     return;
                 }
             }
@@ -244,8 +249,9 @@
                     mesUnitOfMeasureDTO.Name = objectForRestore.Name;
                     mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
                     await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+                    mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
                     await mesUnitOfMeasureDTOGrid.Reload();
-                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения MES \"" + objectForCheckShortName.ShortName + "\" с ИД зависи = " + objectForCheckShortName.Id.ToString());
+                    await _jsRuntime.InvokeVoidAsync("ShowSwal", "error", "Уже есть запись с сокр. наименованием единицы измерения MES \"" + objectForCheckShortName.ShortName + "\" с ИД зависи = " + objectForCheckShortName.Id.ToString());                    
                     return;
                 }
             }
@@ -253,6 +259,7 @@
             MesUnitOfMeasureDTO oldMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Get(mesUnitOfMeasureDTO.Id);
             MesUnitOfMeasureDTO newMesUnitOfMeasureDTO = await _mesUnitOfMeasureRepository.Update(mesUnitOfMeasureDTO, SD.UpdateMode.Update);
             await _logEventRepository.ToLog<MesUnitOfMeasureDTO>(oldObject: oldMesUnitOfMeasureDTO, newObject: newMesUnitOfMeasureDTO, "Изменение ед.изм. MES", "Ед.изм. MES: ", _authorizationRepository);
+            mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
         }
     }
 
@@ -261,6 +268,7 @@
         if (IsAdmin == AdminMode.IsAdmin)
         {
             await mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
+            mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
         }
     }
 
@@ -282,6 +290,7 @@
             mesUnitOfMeasureDTO.ShortName = objectForRestore.ShortName;
             mesUnitOfMeasureDTOGrid.UpdateRow(mesUnitOfMeasureDTO);
         }
+        mesUnitOfMeasureDTOGrid.ShowEmptyMessage = true;
         mesUnitOfMeasureDTOGrid.Reload();
 
     }
@@ -358,6 +367,7 @@
     {
         if (IsAdmin == AdminMode.IsAdmin)
         {
+            mesUnitOfMeasureDTOGrid.ShowEmptyMessage = false;
             mesUnitOfMeasureDTOToInsert = new MesUnitOfMeasureDTO();
             await mesUnitOfMeasureDTOGrid.InsertRow(mesUnitOfMeasureDTOToInsert);
         }

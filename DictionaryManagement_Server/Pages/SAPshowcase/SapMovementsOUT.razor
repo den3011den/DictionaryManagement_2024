@@ -38,7 +38,7 @@
                                 </RadzenRadioButtonList>
                                 <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
                                 <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="done" Disabled="@ApplyButtonDisabled" Text="Применить" Click="@(args => GetRows())" />
+                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="@(applyButtonStyle)" Icon="@(applyButtonIcon)" Disabled="@ApplyButtonDisabled" Text="@(applyButtonText)" Click="@(args => GetRows())" />
                                 <i class="bi bi-grip-vertical"></i>
                                 @if (@excelExportFlag)
                                 {
@@ -52,8 +52,7 @@
                                 }
                                 <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в Витрины SAP - Движения - выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
                                     <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
-                                </RadzenButton>
-                                @* <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="Добавить запись" Click="@(args => EditRow(null))" /> *@
+                                </RadzenButton>                                
                             </RadzenRow>
                         </RadzenStack>
                     </RadzenStack>
@@ -451,11 +450,19 @@
     DateTime? startDate = DateTime.Today;
     DateTime? endDate = DateTime.Today.AddDays(1).AddSeconds(-1);
 
+    DateTime? oldStartDate = DateTime.Today;
+    DateTime? oldEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+
     bool excelExportFlag = false;
 
     int applyRadioGroupValue = 1;
+    int oldApplyRadioGroupValue = 1;
 
     bool ApplyButtonDisabled = false;
+
+    string applyButtonText = "Обновить";
+    string applyButtonIcon = "refresh";
+    ButtonStyle applyButtonStyle = ButtonStyle.Primary;
 
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
@@ -544,9 +551,10 @@
 
     private async Task ChangeStartDate()
     {
+        ApplyButtonDisabled = true;
         if (startDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата начала интервала");
+            await _jsRuntime.ToastrWarningLight("Пустая дата начала интервала");
             ApplyButtonDisabled = true;
             return;
         }
@@ -565,19 +573,20 @@
             }
             ApplyButtonDisabled = false;
         }
-        // ApplyButtonDisabled = false;
-        // maxEndDate = ((DateTime)startDate).AddMonths(1).AddSeconds(-1);
-        // minEndDate = ((DateTime)startDate).AddDays(-1);
-        // if (endDate > maxEndDate)
-        //     endDate = maxEndDate;
-
+        if (oldStartDate != startDate)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
+        }
     }
 
     private async Task ChangeEndDate()
     {
+        ApplyButtonDisabled = true;
         if (endDate == null)
         {
-            await _jsRuntime.ToastrWarning("Пустая дата окончания");
+            await _jsRuntime.ToastrWarningLight("Пустая дата окончания");
             ApplyButtonDisabled = true;
             return;
         }
@@ -596,7 +605,18 @@
             }
             ApplyButtonDisabled = false;
         }
-        // ApplyButtonDisabled = false;
+        if (oldEndDate != endDate)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
+        }
+        if (oldApplyRadioGroupValue != applyRadioGroupValue)
+        {
+            applyButtonIcon = "done";
+            applyButtonText = "Применить";
+            applyButtonStyle = ButtonStyle.Info;
+        }
     }
 
 
@@ -619,6 +639,13 @@
             await _jsRuntime.InvokeVoidAsync("ShowSwal", "warning", "Превышен интервал запроса к БД, равный " + SD.SqlCommandConnectionTimeout.ToString() + " сек.");
             sapMovementsOUTDTOs = new List<SapMovementsOUTDTO>();
         }
+
+        oldStartDate = startDate;
+        oldEndDate = endDate;
+        oldApplyRadioGroupValue = applyRadioGroupValue;
+        applyButtonText = "Обновить";
+        applyButtonIcon = "refresh";
+        applyButtonStyle = ButtonStyle.Primary;
 
         List<string> distinctSapUnitOfMeasureInList = new List<string>();
         await GetDistincts();
@@ -798,7 +825,7 @@
         {
             SapMaterialDTO dialogResult = null;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-вход)", new Dictionary
+            dialogResult = await _dialogService.OpenAsync<LoadFromExcel>("Загрузка данных из Excel (Витрина SAP - Движения-выход)", new Dictionary
                     <string, object>
                     () { { "LoadFromExcelReportTemplateTypeNameSettingName", SD.SapMovementsOUTLoadFromExcelReportTemplateTypeNameSettingName }
                     ,{"DataList", (IEnumerable<SapMovementsOUTDTO>)sapMovementsOUTDTOGrid.View }}
