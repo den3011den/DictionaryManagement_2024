@@ -19,8 +19,12 @@
 
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/User">Пользователи</a></h6>
+        </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Пользователи</font></strong></h6>
         </div>
 
         @if (IsLoading != true)
@@ -54,14 +58,14 @@
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedUser
                                RowDoubleClick="() => EditRow(selectedUser.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="ToStringId" Title="Ид пользователя" Width="30px"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data1.ToStringId
                             </div>
                         </Template>
@@ -69,7 +73,7 @@
 
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="Login" Title="Логин" Width="35px" FilterProperty="Login" SortProperty="Login" FilterOperator="FilterOperator.Contains">
                         <Template Context="data2">
-                            <div style="white-space:pre-wrap; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data2.Login
                                 </strong>
@@ -79,7 +83,7 @@
 
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="UserName" Title="ФИО" Width="35px" FilterProperty="UserName" SortProperty="UserName" FilterOperator="FilterOperator.Contains">
                         <Template Context="data2">
-                            <div style="white-space:pre-wrap; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data2.UserName
                                 </strong>
@@ -89,7 +93,7 @@
 
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="Description" Title="Описание" Width="33px" FilterProperty="Description" SortProperty="Description" FilterOperator="FilterOperator.Contains">
                         <Template Context="data3">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data3.Description
                             </div>
                         </Template>
