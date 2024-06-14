@@ -19,8 +19,12 @@
 
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/DataSource">Источники данных</a></h6>
+        </div>
+ *@
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Источники данных</font></strong></h6>
         </div>
 
 
@@ -92,7 +96,7 @@
                             <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="true" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp Title="Действия" TItem="DataSourceDTO" Context="dataSourceDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="DataSourceDTO" Context="dataSourceDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="80px">
                         <Template Context="dataSourceDTO">
                             <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(dataSourceDTO))" @onclick:stopPropagation="true"

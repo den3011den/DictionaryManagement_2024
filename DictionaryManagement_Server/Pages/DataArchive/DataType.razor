@@ -19,9 +19,14 @@
 
     <div class="row">
 
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/DataType">Виды данных</a></h6>
+        @*         <div class="col-6">
+    <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/DataType">Виды данных</a></h6>
+    </div>
+    *@
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Виды данных</font></strong></h6>
         </div>
+
         @if (IsLoading != true)
         {
             <RadzenRow AlignItems="AlignItems.Start">
@@ -33,13 +38,13 @@
                 <i class="bi bi-grip-vertical mt-2 mb-1"></i>
                 @if (@excelExportFlag)
                 {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
-                         Disabled=@(dataTypeDTOToInsert != null || dataTypeDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                                  Disabled=@(dataTypeDTOToInsert != null || dataTypeDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
                 }
                 else
                 {
                     <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
-                                  Click="@(args => ExcelExport())"  Disabled=@(dataTypeDTOToInsert != null || dataTypeDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                                  Click="@(args => ExcelExport())" Disabled=@(dataTypeDTOToInsert != null || dataTypeDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ...">
                         <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
                     </RadzenButton>
                 }
