@@ -2852,17 +2852,17 @@ namespace DictionaryManagement_Business.Repository
                         ExcelWorkBookProtectionPassword = settingsObject.Value;
                 }
 
-                if (workbook.IsProtected)
-                {
-                    try
-                    {
-                        workbook.Unprotect(ExcelWorkBookProtectionPassword);
-                    }
-                    catch (Exception exx1)
-                    {
-                        return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не удалось снять защиту с книги с помощью пароля: " + ExcelWorkBookProtectionPassword, workbook);
-                    }
-                }
+                //if (workbook.IsProtected)
+                //{
+                //    try
+                //    {
+                //        workbook.Unprotect(ExcelWorkBookProtectionPassword);
+                //    }
+                //    catch (Exception exx1)
+                //    {
+                //        return new Tuple<ExcelSheetWithSirTagsDTOList, string, XLWorkbook>(new ExcelSheetWithSirTagsDTOList(), "Не удалось снять защиту с книги с помощью пароля: " + ExcelWorkBookProtectionPassword, workbook);
+                //    }
+                //}
                 string? sheetName = (await _settingsRepository.GetByName(sheetSettingName)).Value;
 
                 if (sheetName.IsNullOrEmpty())

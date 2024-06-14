@@ -22,8 +22,8 @@
 
     <div class="row">
 
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/dictionary/CorrectionReasonToReportTemplateTypeAndDataType">Справочники</a> - <a href="/dictionary/MesMaterial">Причины корректировок - привязка к типам шаблонов отчётов и типам данных</a></h6>
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Причины корректировок - привязка к типам шаблонов отчётов и типам данных</font></strong></h6>
         </div>
 
         @if (IsLoading != true)
@@ -189,7 +189,7 @@
                             <RadzenRequiredValidator Text="Тип данных обязателен к выбору" Component="DatType" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="100px">
                         <Template Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenButton title="Редактировать" Icon="edit" Disabled="@(IsAdmin != AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>
