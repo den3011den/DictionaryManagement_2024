@@ -37,7 +37,7 @@
                                 </Items>
                             </RadzenRadioButtonList>
                             <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" Disabled="@(IsLoading)" />
-                            <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                            <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" Disabled="@(IsLoading)" />
                             <RadzenButton Size="ButtonSize.Small" ButtonStyle="@(applyButtonStyle)" Icon="@(applyButtonIcon)" Disabled="@(ApplyButtonDisabled || IsLoading)" Text="@(applyButtonText)"
                                           Click="@(args => GetRows())"/>
                             <i class="bi bi-grip-vertical"></i>
