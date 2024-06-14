@@ -172,12 +172,42 @@ namespace DictionaryManagement_Business.Repository
                         if (loginReturnMode == LoginReturnMode.LoginAndNameAndAccessMode)
                         {
                             AdminMode IsAdminMode = await CurrentUserIsInAdminRole(SD.MessageBoxMode.Off);
+                            UserDTO? userDTO = null;
+                            if (!String.IsNullOrEmpty(loginStr))
+                                userDTO = await _userRepository.GetByLogin(loginStr);
                             switch (IsAdminMode)
                             {
-                                case AdminMode.IsAdmin: returnString = returnString + " - полный доступ"; break;
-                                case AdminMode.IsAdminReadOnly: returnString = returnString + " - только чтение"; break;
-                                default: returnString = returnString + " - НЕТ ДОСТУПА"; break;
+                                case AdminMode.IsAdmin:
+                                    {
+                                        if (userDTO != null)
+                                            await _logEventRepository.AddRecord("Логин пользователя", userDTO.Id,
+                                                "", "", false,
+                                                "Пользователь: " + returnString + ". Вход в DictionaryManagement с правами: \"Полный доступ\"");
+                                        returnString = returnString + " - полный доступ";
+                                        break;
+                                    }
+                                case AdminMode.IsAdminReadOnly:
+                                    {
+                                        if (userDTO != null)
+                                            await _logEventRepository.AddRecord("Логин пользователя", userDTO.Id,
+                                                "", "", false,
+                                                "Пользователь: " + returnString + ". Вход в DictionaryManagement с правами: \"Только чтение\"");
+                                        returnString = returnString + " - только чтение";
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        if (userDTO != null)
+                                            await _logEventRepository.AddRecord("Логин пользователя", userDTO.Id,
+                                                "", "", false,
+                                                "Пользователь: " + returnString + ". Вход в DictionaryManagement с правами: \"НЕТ ДОСТУПА\"");
+                                        returnString = returnString + " - НЕТ ДОСТУПА";
+                                        break;
+                                    }
                             }
+                            /*!!!*/
+
+                            /*!!!*/
                         }
                     }
                 }

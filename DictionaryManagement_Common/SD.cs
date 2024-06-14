@@ -121,6 +121,7 @@ namespace DictionaryManagement_Common
             public bool NeedCheckIsInArchiveTags { get; set; }
             public bool NeedCheckSheetHeaders { get; set; }
             public bool NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName { get; set; }
+            public bool NeedProtect { get; set; }
         }
 
         public static List<SheetTemplate> EmbSheetsList = new List<SheetTemplate>
@@ -134,7 +135,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false,
             },
             new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -152,7 +154,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -166,7 +169,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = true
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = true,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "ReasonLibrary", SheetHeaderList = new List<SheetHeader>()
             {
@@ -177,14 +181,16 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "Отчет матрица", SheetHeaderList = new List<SheetHeader>(),
             NeedCheckIsDuplicateTags = false,
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = false,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = true
             },
             new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
             {
@@ -194,7 +200,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             }
         };
 
@@ -209,7 +216,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -227,7 +235,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -241,7 +250,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = true
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = true,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "ReasonLibrary", SheetHeaderList = new List<SheetHeader>()
             {
@@ -252,14 +262,16 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "Отчет матрица", SheetHeaderList = new List<SheetHeader>(),
             NeedCheckIsDuplicateTags = false,
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = false,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = true
             },
             new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
             {
@@ -269,7 +281,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             }
         };
 
@@ -284,7 +297,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -302,7 +316,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -316,7 +331,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = true
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = true,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "ReasonLibrary", SheetHeaderList = new List<SheetHeader>()
             {
@@ -327,14 +343,16 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "Форма корректировок", SheetHeaderList = new List<SheetHeader>(),
             NeedCheckIsDuplicateTags = false,
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = false,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = true
             },
             new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
             {
@@ -344,7 +362,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = true,
             NeedCheckIsInArchiveTags = true,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             }
         };
 
@@ -360,7 +379,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "InputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -373,7 +393,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "OutputData", SheetHeaderList = new List<SheetHeader>()
             {
@@ -385,7 +406,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = true,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             },
             new SheetTemplate {SheetName = "TagLibrary", SheetHeaderList = new List<SheetHeader>()
             {
@@ -395,7 +417,8 @@ namespace DictionaryManagement_Common
             NeedCheckIsNotInBaseTags = false,
             NeedCheckIsInArchiveTags = false,
             NeedCheckSheetHeaders = false,
-            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false
+            NeedCheckExistenceTagsInOtherNotArchiveReportTemplatesBySheetName = false,
+            NeedProtect = false
             }
         };
 
