@@ -65,7 +65,7 @@
 
                     <RadzenDataGridColumnApp TItem="SmenaDTO" Property="DepartmentDTOFK.ToStringHierarchyShortName" Title="Производство" Width="100px" FilterProperty="DepartmentDTOFK.ToStringHierarchyShortName" SortProperty="DepartmentDTOFK.ToStringHierarchyShortName">
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
                                 <strong>
                                     @data1.DepartmentDTOFK.ToStringHierarchyShortName
                                 </strong>

@@ -61,16 +61,21 @@
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Id" Title="Ид записи" Width="90px" />
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Name" Title="Наименование" Width="200px">
+                        <Template Context="settingsDTO">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
+                                @settingsDTO.Name
+                            </div>
+                        </Template>
                         <EditTemplate Context="settingsDTO">
                             <RadzenTextBox @bind-Value="settingsDTO.Name" Style="width:100%; display: block" Name="Name" />
                             <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=100 Text="Наименование не может быть больше 100 символов" Component="Name" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-
+                    
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Description" Title="Описание" Width="200px">
                         <Template Context="settingsDTO">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
                                 @settingsDTO.Description
                             </div>
                         </Template>
@@ -82,7 +87,7 @@
 
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Value" Title="Значение настройки" Width="220px">
                         <Template Context="settingsDTO">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
                                 @settingsDTO.Value
                             </div>
                         </Template>
@@ -91,7 +96,7 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="SettingsDTO" Context="SettingsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SettingsDTO" Context="SettingsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="80px">
                         <Template Context="SettingsDTO">
                             <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(SettingsDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
