@@ -330,8 +330,7 @@
     }
 
     async Task ExcelImport()
-    {
-        IsLoading = true;
+    {        
         await LoadStateAsync();
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);

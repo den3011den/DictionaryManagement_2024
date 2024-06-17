@@ -269,6 +269,34 @@
                     return;
                 }
             }
+
+            if (settingsDTO.Name.Trim().ToUpper().Contains("PATH") || settingsDTO.Name.Trim().ToUpper().Contains("FOLDER"))
+            {
+                if (!Directory.Exists(settingsDTO.Value))
+                {
+                    if (_dialogs != null)
+                    {
+                        bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение настройки",
+                            "На диске сервера приложения не найден путь: \"" + settingsDTO.Name + "\". Путь не существует или недостаточно прав." +
+                            " Всё равно сохранить изменения ?", "Сохранить", "Отмена");
+                        if (selectionResult == false)
+                        {
+                            var objectForRestore = await _settingsRepository.Get(settingsDTO.Id);
+                            settingsDTO.Name = objectForRestore.Name;
+                            settingsDTO.Description = objectForRestore.Description;
+                            settingsDTO.Value = objectForRestore.Value;
+                            await settingsDTOGrid.UpdateRow(settingsDTO);
+                            await settingsDTOGrid.Reload();
+
+                            await settingsDTOGrid.UpdateRow(settingsDTO);
+                            await _jsRuntime.ToastrSuccess("Отмена");
+                            
+                            return;
+                        }
+                    }
+                }
+            }
+
             SettingsDTO oldSettingsDTO = await _settingsRepository.Get(settingsDTO.Id);
             SettingsDTO newSettingsDTO = await _settingsRepository.Update(settingsDTO);
             await _logEventRepository.ToLog<SettingsDTO>(oldObject: oldSettingsDTO, newObject: newSettingsDTO, "Изменение настройки", "Настройка: ", _authorizationRepository);
@@ -378,6 +406,25 @@
                 settingsDTOGrid.CancelEditRow(settingsDTO);
                 await settingsDTOGrid.Reload();
                 return;
+            }
+
+            if (settingsDTO.Name.Trim().ToUpper().Contains("PATH") || settingsDTO.Name.Trim().ToUpper().Contains("FOLDER"))
+            {
+                if(!Directory.Exists(settingsDTO.Value))
+                {
+                    if (_dialogs != null)
+                    {                        
+                        bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Добавление настройки",
+                            "На диске сервера приложения не найден путь: \"" + settingsDTO.Name + "\". Путь не существует или недостаточно прав." +
+                            " Всё равно сохранить изменения ?", "Сохранить", "Отмена");
+                        if (selectionResult == false)
+                        {
+                            settingsDTOGrid.CancelEditRow(settingsDTO);
+                            await settingsDTOGrid.Reload();
+                            return;
+                        }
+                    }
+                }
             }
 
             var newDTO = await _settingsRepository.Create(settingsDTO);

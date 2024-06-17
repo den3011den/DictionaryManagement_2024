@@ -440,7 +440,7 @@
                 IXLWorkbook? xLWorkbook = null;
                 bool reportTemplateFileSaveAbordedResult = false;
                 IEnumerable<MesParamDTO> mesParamListDTO;
-                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, System.IO.Path.Combine(TempFilePath, ActiveReportTemplateDTO.Id + ".xlsx"));
 
                 xLWorkbook = tmpVar.Item1;
                 reportTemplateFileSaveAbordedResult = tmpVar.Item2;
@@ -481,7 +481,7 @@
                 bool fileSaveSuccess = false;
                 try
                 {
-                    File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                    File.Copy(System.IO.Path.Combine(TempFilePath, ActiveReportTemplateDTO.TemplateFileName), System.IO.Path.Combine(ReportTemplatePath , ActiveReportTemplateDTO.TemplateFileName), true);
                     fileSaveSuccess = true;
                 }
                 catch (Exception copyEx)
@@ -530,7 +530,7 @@
                 IXLWorkbook? xLWorkbook = null;
                 bool reportTemplateFileSaveAbordedResult = false;
                 IEnumerable<MesParamDTO> mesParamListDTO;
-                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, TempFilePath + ActiveReportTemplateDTO.Id + ".xlsx");
+                Tuple<IXLWorkbook?, bool, IEnumerable<MesParamDTO>> tmpVar = await ReportTemplateFileSaveAborded(ActiveReportTemplateDTO.Id, System.IO.Path.Combine(TempFilePath, ActiveReportTemplateDTO.Id + ".xlsx"));
 
                 xLWorkbook = tmpVar.Item1;
                 reportTemplateFileSaveAbordedResult = tmpVar.Item2;
@@ -560,8 +560,8 @@
 
                     try
                     {
-                        File.Copy(ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + oldTemplateFileName, true);
-                        File.Copy(TempFilePath + ActiveReportTemplateDTO.TemplateFileName, ReportTemplatePath + ActiveReportTemplateDTO.TemplateFileName, true);
+                        File.Copy(System.IO.Path.Combine(ReportTemplatePath, ActiveReportTemplateDTO.TemplateFileName), System.IO.Path.Combine(ReportTemplatePath, oldTemplateFileName), true);
+                        File.Copy(System.IO.Path.Combine(TempFilePath, ActiveReportTemplateDTO.TemplateFileName), System.IO.Path.Combine(ReportTemplatePath, ActiveReportTemplateDTO.TemplateFileName), true);
                         fileSaveSuccess = true;
                     }
                     catch (Exception copyEx)
@@ -682,8 +682,8 @@
                 await _jsRuntime.ToastrError("Не существует путь: " + reportTemplateFilePath);
                 return;
             }
-
-            string filepath = reportTemplateFilePath + reportTemplateDTO.Id.ToString() + ".xlsx";
+            
+            string filepath = System.IO.Path.Combine(reportTemplateFilePath, reportTemplateDTO.Id.ToString() + ".xlsx");
 
             if (!System.IO.File.Exists(filepath))
             {

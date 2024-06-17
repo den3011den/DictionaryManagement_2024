@@ -423,7 +423,8 @@
 
         if (ActiveReportTemplateDTO != null)
         {
-            fileTemplateFullPath = reportTemplatePath + ActiveReportTemplateDTO.TemplateFileName;
+            //fileTemplateFullPath = reportTemplatePath + ActiveReportTemplateDTO.TemplateFileName;
+            fileTemplateFullPath = System.IO.Path.Combine(reportTemplatePath, ActiveReportTemplateDTO.TemplateFileName);
         }
 
         if (System.IO.File.Exists(fileTemplateFullPath))
@@ -634,7 +635,7 @@
 
                 ReportEntityDTO createdReportEntityDTO = _reportEntityRepository.Create(reportEntityForCreateDTO).GetAwaiter().GetResult();
 
-                fileUploadFullPath = reportUploadPath + createdReportEntityDTO.UploadReportFileName;
+                fileUploadFullPath = System.IO.Path.Combine(reportUploadPath, createdReportEntityDTO.UploadReportFileName);
 
                 // if (!System.IO.File.Exists(fileUploadFullPath))
                 // {

@@ -891,7 +891,8 @@
                 await Task.Delay(20);
                 await InvokeAsync(StateHasChanged);
 
-                reportTemplateFilePath = reportTemplatePath + item.Id.ToString() + ".xlsx";
+                //reportTemplateFilePath = reportTemplatePath + item.Id.ToString() + ".xlsx";
+                reportTemplateFilePath = System.IO.Path.Combine(reportTemplatePath, item.Id.ToString() + ".xlsx");
 
                 if (!System.IO.File.Exists(reportTemplateFilePath))
                 {
