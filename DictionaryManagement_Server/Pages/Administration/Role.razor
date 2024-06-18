@@ -17,6 +17,7 @@
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
 @inject IRoleRepository _roleRepository
+@inject ISettingsRepository _settingsRepository
 
 @inject DialogService _dialogService
 
@@ -349,6 +350,7 @@
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
     Guid userDictionaryManagementGuid { get; set; }
+    public bool IsRoleModelChangeDisabled { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -366,6 +368,13 @@
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
+                IsRoleModelChangeDisabled = true;
+                SettingsDTO? settingsDTO = await _settingsRepository.GetByName(SD.RoleModelChangeDisabledSettingName);
+                if (settingsDTO != null)
+                {
+                    if (settingsDTO.Value.Trim() == "0")
+                        IsRoleModelChangeDisabled = false;
+                }
                 roleVMDTOs = await _roleVMRepository.GetAll(SD.SelectDictionaryScope.All);
                 userDictionaryManagementGuid = (await _authorizationRepository.GetCurrentUserDTO()).Id;
                 IsLoading = false;
@@ -418,7 +427,7 @@
 
     async Task EditRow(RoleVMDTO roleVMDTO)
     {
-        
+
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
@@ -857,7 +866,7 @@
             UserDTO dialogResult;
 
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+            dialogResult = await _dialogService.OpenAsync<AddEditUser>(IsRoleModelChangeDisabled ? "Просмотр данных пользователя" : "Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
@@ -876,7 +885,7 @@
             IsLoading = true;
             ADGroupDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>(IsRoleModelChangeDisabled ? "Просмотр данных группы AD" : "Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
