@@ -483,12 +483,12 @@
             if (roleVMDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>(IsRoleModelChangeDisabled ? "Просмотр данных роли" : "Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>(IsRoleModelChangeDisabled ? "Просмотр данных роли" : "Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             if (dialogResult != null)
             {

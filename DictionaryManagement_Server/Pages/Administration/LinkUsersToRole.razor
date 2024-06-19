@@ -62,7 +62,7 @@
 
                     <br />
                     <RadzenText class="text-warning" TextStyle="TextStyle.Body1" TagName="TagName.Span">
-                        * в списке только НЕ архивные и НЕ автоматические пользователи и не включённые в роль @ActiveRoleVMDTO.Name
+                        * в списке только НЕ архивные, НЕ автоматические, НЕ сервисные пользователи и НЕ включённые в роль @ActiveRoleVMDTO.Name
                     </RadzenText>
 
                     <div class="form-group py-2">
@@ -122,7 +122,7 @@
                 await InvokeAsync(StateHasChanged);
                 // ActiveRoleVMDTO = await _roleVMRepository.Get(RoleId);
                 // Title = "Добавить пользователей к роли";
-                UserDTOList = await _roleVMRepository.GetAllNotArchiveAndNotAutomaticUsersExceptAlreadyInRole(ActiveRoleVMDTO.Id);
+                UserDTOList = await _roleVMRepository.GetAllNotArchiveAndNotAutomaticAndNotServiceUsersExceptAlreadyInRole(ActiveRoleVMDTO.Id);
                 IsLoading = false;
                 await Task.Delay(10);
                 await InvokeAsync(StateHasChanged);

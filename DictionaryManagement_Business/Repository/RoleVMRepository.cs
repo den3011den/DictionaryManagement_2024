@@ -6,8 +6,6 @@ using DictionaryManagement_Models.IntDBModels;
 using DND.EFCoreWithNoLock.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Linq;
-using static DictionaryManagement_Common.SD;
 
 namespace DictionaryManagement_Business.Repository
 {
@@ -350,7 +348,7 @@ namespace DictionaryManagement_Business.Repository
         }
 
 
-        public async Task<IEnumerable<UserDTO>> GetAllNotArchiveAndNotAutomaticUsersExceptAlreadyInRole(Guid roleId)
+        public async Task<IEnumerable<UserDTO>> GetAllNotArchiveAndNotAutomaticAndNotServiceUsersExceptAlreadyInRole(Guid roleId)
         {
             IEnumerable<UserDTO> userListDTOs = null;
             IEnumerable<User> userInRoleDTOs = null;
@@ -359,7 +357,7 @@ namespace DictionaryManagement_Business.Repository
 
             userListDTOs = _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>
                 (
-                _db.User.Where(u => u.IsArchive != true && u.IsSyncWithAD != true)
+                _db.User.Where(u => u.IsArchive != true && u.IsSyncWithAD != true && u.IsServiceUser != true)
                     .Where(u => !userInRoleDTOs.Contains(u))
                     .OrderBy(u => u.UserName).AsNoTracking().ToListWithNoLock()
                 );
