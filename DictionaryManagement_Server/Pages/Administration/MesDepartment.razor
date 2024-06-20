@@ -19,62 +19,70 @@
 
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/MesDepartment">Производства</a></h6>
+        </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Производства</font></strong></h6>
         </div>
+
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton title="Добавить новое производство" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
+                          Click="@(args => EditRow(null))" 
+                          Disabled="@(IsAdmin != AdminMode.IsAdmin || ExpandInProgressFlag == true || CollapseInProgressFlag == true || SearchInProgressFlag==true || IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)" 
+                          Disabled="@(ExpandInProgressFlag == true || CollapseInProgressFlag == true || SearchInProgressFlag==true || IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true || IsLoading)" />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true || IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
+                          title="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString() + " иерархии производств" : "Достигнут максимальный уровень равный " + (MaxExpandLevel-1).ToString())"
+                          Text="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString():" Maкс уровень " + (MaxExpandLevel-1).ToString())"
+                          Icon="unfold_more" Click="@(args => ToggleRowsExpand(true))"
+                          IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..."
+                          Disabled="@(ExpandLevel >= MaxExpandLevel || CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true || IsLoading)" />
+            <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
+                          title="@(ExpandLevel > 2 ? "Свернуть до уровня " + (ExpandLevel-1).ToString() + " иерархии производств" : "Достигнут минимальный уровень равный " + (ExpandLevel-1).ToString())"
+                          Text="@(ExpandLevel > 2 ? "Свернуть уровень " + (ExpandLevel-1).ToString():" Мин уровень " + (ExpandLevel-1).ToString())"
+                          Icon="unfold_less" Click="@(args => ToggleRowsExpand(false))"
+                          IsBusy=@CollapseInProgressFlag BusyText="Выполняется ..."
+                          Disabled="@(ExpandLevel <= 2 || CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true || IsLoading)" />
+
+            @*                 <div class="mt-1 mb-1 col-2" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
+        <RadzenLabel Text="@("* фильтр действует только по \"развёрнутым\" записям")" />
+        </div> *@
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenTextBox Trim="true" Placeholder="Поиск..." class="mt-1 col-2" @bind-Value=@searchString
+                           @oninput=@(args => @searchString = args.Value.ToString())
+                           @onkeypress=@(args => SearchInputKeyPressed(args))
+                           Style="font-size: 0.75rem; height: 80%; max-height: 80%;" 
+                           Disabled ="@(IsLoading)"/>
+            <RadzenButton Size="ButtonSize.Small" class="mt-1"
+                          Text="Поиск"
+                          title="Поиск по всем элементам справочника"
+                          Icon="search" Click="@(() => SearchOnClick(@searchString))"
+                          IsBusy=@SearchInProgressFlag BusyText="Поиск ..."
+                          Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || IsLoading)" />
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton title="Добавить новое производство" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новое производство"
-                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || ExpandInProgressFlag == true || CollapseInProgressFlag == true || SearchInProgressFlag==true)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" Disabled="@(ExpandInProgressFlag == true || CollapseInProgressFlag == true || SearchInProgressFlag==true)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств"
-                                  IsBusy=@excelExportFlag BusyText="Выполняется ..."
-                                  Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel ВСЕХ производств" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
-                                  IsBusy=@excelExportFlag BusyText="Выполняется ..."
-                                  Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
-                              title="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString() + " иерархии производств" : "Достигнут максимальный уровень равный " + (MaxExpandLevel-1).ToString())"
-                              Text="@(ExpandLevel < MaxExpandLevel ? "Развернуть уровень " + ExpandLevel.ToString():" Maкс уровень " + (MaxExpandLevel-1).ToString())"
-                              Icon="unfold_more" Click="@(args => ToggleRowsExpand(true))"
-                              IsBusy=@ExpandInProgressFlag BusyText="Выполняется ..."
-                              Disabled="@(ExpandLevel >= MaxExpandLevel || CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1"
-                              title="@(ExpandLevel > 2 ? "Свернуть до уровня " + (ExpandLevel-1).ToString() + " иерархии производств" : "Достигнут минимальный уровень равный " + (ExpandLevel-1).ToString())"
-                              Text="@(ExpandLevel > 2 ? "Свернуть уровень " + (ExpandLevel-1).ToString():" Мин уровень " + (ExpandLevel-1).ToString())"
-                              Icon="unfold_less" Click="@(args => ToggleRowsExpand(false))"
-                              IsBusy=@CollapseInProgressFlag BusyText="Выполняется ..."
-                              Disabled="@(ExpandLevel <= 2 || CollapseInProgressFlag==true || ExpandInProgressFlag==true || SearchInProgressFlag==true)" />
-
-                @*                 <div class="mt-1 mb-1 col-2" style="white-space:pre-wrap; font-size: 10px; color:powderblue">
-        <RadzenLabel Text="@("* фильтр действует только по \"развёрнутым\" записям")" />
-        </div> *@
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenTextBox Trim="true" Placeholder="Поиск..." class="mt-1 col-2" @bind-Value=@searchString
-                               @oninput=@(args => @searchString = args.Value.ToString())
-                               @onkeypress=@(args => SearchInputKeyPressed(args))
-                               Style="font-size: 0.75rem; height: 80%; max-height: 80%;" />
-                <RadzenButton Size="ButtonSize.Small" class="mt-1"
-                              Text="Поиск"
-                              title="Поиск по всем элементам справочника"
-                              Icon="search" Click="@(() => SearchOnClick(@searchString))"
-                              IsBusy=@SearchInProgressFlag BusyText="Поиск ..."
-                              Disabled="@(CollapseInProgressFlag==true || ExpandInProgressFlag==true)" />
-            </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@MesDepartmentGridSettings" SettingsName="MesDepartmentGridSettings" @ref="mesDepartmentDTOGrid" ExpandMode="DataGridExpandMode.Multiple"
                                Data="@mesDepartmentDTOs" TItem="MesDepartmentDTO" RowRender="@RowRender" LoadChildData="@LoadChildData"
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true"

@@ -22,34 +22,38 @@
 
     <div class="row">
 
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/dictionary/CorrectionReasonToReportTemplateTypeAndDataType">Справочники</a> - <a href="/dictionary/MesMaterial">Причины корректировок - привязка к типам шаблонов отчётов и типам данных</a></h6>
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Причины корректировок - привязка к типам шаблонов отчётов и типам данных</font></strong></h6>
         </div>
+
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую привязку"
+                          Click="@InsertRow"
+                          Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)" 
+                          Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null || IsLoading)
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
+                              Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null || IsLoading)
+                              Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
+
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую привязку"
-                              Click="@InsertRow" Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
-                        Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null) 
-                        IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" 
-                        Disabled=@(correctionReasonToReportTemplateTypeAndDataTypeDTOToInsert != null || correctionReasonToReportTemplateTypeAndDataTypeDTOToUpdate != null) 
-                        Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-            </RadzenRow>
             <RadzenDataGridApp @ref="correctionReasonToReportTemplateTypeAndDataTypeDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings" SettingsName="CorrectionReasonToReportTemplateTypeAndDataTypeGridSettings"
                                Data="@correctionReasonToReportTemplateTypeAndDataTypeDTOs" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
@@ -57,7 +61,7 @@
                                FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                SelectionMode="DataGridSelectionMode.Single"
                                ShowCleanGridSettingsHeaderButton="false"
                                ShowCleanGridFiltersHeaderButton="false"
@@ -189,7 +193,7 @@
                             <RadzenRequiredValidator Text="Тип данных обязателен к выбору" Component="DatType" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="100px">
                         <Template Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenButton title="Редактировать" Icon="edit" Disabled="@(IsAdmin != AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(CorrectionReasonToReportTemplateTypeAndDataTypeDTO))" @onclick:stopPropagation="true">
                             </RadzenButton>

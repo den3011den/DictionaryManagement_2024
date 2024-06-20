@@ -17,33 +17,41 @@
 
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Settings">Настройки</a></h6>
+        </div> *@
 
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Настройки</font></strong></h6>
         </div>
+
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton title="Добавить новую настройку" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую настройку"
+                          Click="@InsertRow" Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)"
+                          Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null || IsLoading)
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
+                              Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null || IsLoading)
+                              Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton title="Добавить новую настройку" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую настройку"
-                              Click="@InsertRow" Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
-                        Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" 
-                        Disabled=@(settingsDTOToInsert != null || settingsDTOToUpdate != null) Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-            </RadzenRow>
+
             <RadzenDataGridApp @bind-Settings="@SettingsGridSettings" SettingsName="SettingsGridSettings" @ref="settingsDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@settingsDTOs" TItem="SettingsDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -52,22 +60,27 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedSettings
                                RowDoubleClick="() => EditRow(selectedSettings.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Id" Title="Ид записи" Width="90px" />
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Name" Title="Наименование" Width="200px">
+                        <Template Context="settingsDTO">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
+                                @settingsDTO.Name
+                            </div>
+                        </Template>
                         <EditTemplate Context="settingsDTO">
                             <RadzenTextBox @bind-Value="settingsDTO.Name" Style="width:100%; display: block" Name="Name" />
                             <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
                             <RadzenLengthValidator Max=100 Text="Наименование не может быть больше 100 символов" Component="Name" Popup="true" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-
+                    
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Description" Title="Описание" Width="200px">
                         <Template Context="settingsDTO">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
                                 @settingsDTO.Description
                             </div>
                         </Template>
@@ -79,7 +92,7 @@
 
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Value" Title="Значение настройки" Width="220px">
                         <Template Context="settingsDTO">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
                                 @settingsDTO.Value
                             </div>
                         </Template>
@@ -88,7 +101,7 @@
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
-                    <RadzenDataGridColumnApp Title="Действия" TItem="SettingsDTO" Context="SettingsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="SettingsDTO" Context="SettingsDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="80px">
                         <Template Context="SettingsDTO">
                             <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(SettingsDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
@@ -256,6 +269,34 @@
                     return;
                 }
             }
+
+            if (settingsDTO.Name.Trim().ToUpper().Contains("PATH") || settingsDTO.Name.Trim().ToUpper().Contains("FOLDER"))
+            {
+                if (!Directory.Exists(settingsDTO.Value))
+                {
+                    if (_dialogs != null)
+                    {
+                        bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Изменение настройки",
+                            "На диске сервера приложения не найден путь: \"" + settingsDTO.Name + "\". Путь не существует или недостаточно прав." +
+                            " Всё равно сохранить изменения ?", "Сохранить", "Отмена");
+                        if (selectionResult == false)
+                        {
+                            var objectForRestore = await _settingsRepository.Get(settingsDTO.Id);
+                            settingsDTO.Name = objectForRestore.Name;
+                            settingsDTO.Description = objectForRestore.Description;
+                            settingsDTO.Value = objectForRestore.Value;
+                            await settingsDTOGrid.UpdateRow(settingsDTO);
+                            await settingsDTOGrid.Reload();
+
+                            await settingsDTOGrid.UpdateRow(settingsDTO);
+                            await _jsRuntime.ToastrSuccess("Отмена");
+                            
+                            return;
+                        }
+                    }
+                }
+            }
+
             SettingsDTO oldSettingsDTO = await _settingsRepository.Get(settingsDTO.Id);
             SettingsDTO newSettingsDTO = await _settingsRepository.Update(settingsDTO);
             await _logEventRepository.ToLog<SettingsDTO>(oldObject: oldSettingsDTO, newObject: newSettingsDTO, "Изменение настройки", "Настройка: ", _authorizationRepository);
@@ -365,6 +406,25 @@
                 settingsDTOGrid.CancelEditRow(settingsDTO);
                 await settingsDTOGrid.Reload();
                 return;
+            }
+
+            if (settingsDTO.Name.Trim().ToUpper().Contains("PATH") || settingsDTO.Name.Trim().ToUpper().Contains("FOLDER"))
+            {
+                if(!Directory.Exists(settingsDTO.Value))
+                {
+                    if (_dialogs != null)
+                    {                        
+                        bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Добавление настройки",
+                            "На диске сервера приложения не найден путь: \"" + settingsDTO.Name + "\". Путь не существует или недостаточно прав." +
+                            " Всё равно сохранить изменения ?", "Сохранить", "Отмена");
+                        if (selectionResult == false)
+                        {
+                            settingsDTOGrid.CancelEditRow(settingsDTO);
+                            await settingsDTOGrid.Reload();
+                            return;
+                        }
+                    }
+                }
             }
 
             var newDTO = await _settingsRepository.Create(settingsDTO);

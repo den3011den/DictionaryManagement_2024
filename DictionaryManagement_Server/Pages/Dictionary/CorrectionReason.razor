@@ -19,32 +19,40 @@
 
     <div class="row">
 
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> - <a href="/dictionary/CorrectionReason">Причины корректировок</a></h6>
+        @*         <div class="col-6">
+    <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> - <a href="/dictionary/CorrectionReason">Причины корректировок</a></h6>
+    </div>
+    *@
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Причины корректировок</font></strong></h6>
         </div>
+
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую причину корректировки"
+                          Click="@InsertRow" 
+                          Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)" Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
+                              Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null || IsLoading) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                              Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null || IsLoading)
+                              IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую причину корректировки"
-                              Click="@InsertRow" Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
-                         Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
-                                  Disabled=@(correctionReasonDTOToInsert != null || correctionReasonDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-            </RadzenRow>
+
             <RadzenDataGridApp @ref="correctionReasonDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@CorrectionReasonGridSettings" SettingsName="CorrectionReasonGridSettings"
                                Data="@correctionReasonDTOs" TItem="CorrectionReasonDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
@@ -52,7 +60,7 @@
                                FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                SelectionMode="DataGridSelectionMode.Single"
                                @bind-Value=@selectedTableCorrectionReason
                                RowDoubleClick="() => EditRow(selectedTableCorrectionReason.FirstOrDefault())">

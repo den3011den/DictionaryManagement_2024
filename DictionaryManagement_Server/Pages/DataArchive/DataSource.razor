@@ -19,34 +19,42 @@
 
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/dataarchive">Архив данных</a> - <a href="/dataarchive/DataSource">Источники данных</a></h6>
         </div>
+ *@
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/dataarchive">Архив данных</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Источники данных</font></strong></h6>
+        </div>
+
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый источник данных"
+                          Click="@InsertRow"
+                          Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)"
+                          Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsLoading)
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
+                              Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsLoading) 
+                              Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
 
 
         @if (IsLoading != true)
         {
-
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый источник данных"
-                              Click="@InsertRow" Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
-                        Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
-                    Disabled=@(dataSourceDTOToInsert != null || dataSourceDTOToUpdate != null) Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                </RadzenButton>
-                }
-            </RadzenRow>
             <RadzenDataGridApp @ref="dataSourceDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@DataSourceGridSettings" SettingsName="DataSourceGridSettings"
                                Data="@dataSourceDTOs" TItem="DataSourceDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
@@ -56,7 +64,7 @@
                                AllowColumnResize="false"
                                AllowVirtualization="true"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedTableDataSource
                                RowDoubleClick="() => EditRow(selectedTableDataSource.FirstOrDefault())">
                 <Columns>
@@ -92,7 +100,7 @@
                             <RadzenCheckBox @bind-Value=data.IsArchive ReadOnly="true" TriState="true" TValue="bool" />
                         </Template>
                     </RadzenDataGridColumnApp>
-                    <RadzenDataGridColumnApp Title="Действия" TItem="DataSourceDTO" Context="dataSourceDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+                    <RadzenDataGridColumnApp Title="Действия" TItem="DataSourceDTO" Context="dataSourceDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="80px">
                         <Template Context="dataSourceDTO">
                             <RadzenButton title="Редактировать" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                           Click="@(args => EditRow(dataSourceDTO))" @onclick:stopPropagation="true"

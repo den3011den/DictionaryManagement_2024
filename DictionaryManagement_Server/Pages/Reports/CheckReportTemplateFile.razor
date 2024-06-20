@@ -16,6 +16,7 @@
 
 @inject IJSRuntime _jsRuntime
 @inject DictionaryManagement_Business.Repository.IAuthorizationRepository _authorizationRepository
+@inject DictionaryManagement_Business.Repository.IRepository.ISettingsRepository _settingsRepository
 @inject DialogService _dialogService
 @inject IMesParamRepository _mesParamRepository
 @inject ICheckReportTemplateRepository _checkReportTemplateRepository
@@ -212,6 +213,48 @@
             if (notExistSheetsList == null)
                 notExistSheetsList = new List<string>();
 
+            await LogConsole("Проверка защиты книги ...");
+
+            bool workbookProtectSuccess = true;
+            var settingsObject = await _settingsRepository.GetByName(SD.ExcelWorkBookProtectionPasswordName);
+            if (settingsObject == null)
+            {
+                await LogConsole("!!! Не найдена настройка \"" + SD.ExcelWorkBookProtectionPasswordName + "\" в настройках (Меню: Админ - Настройки)", AlertStyle.Danger);
+                workbookProtectSuccess = false;
+                retFlag = false;
+            }
+            if (!workbookInternal.IsProtected)
+            {
+                await LogConsole("!!! Книга не защищена паролем", AlertStyle.Danger);
+                workbookProtectSuccess = false;
+                retFlag = false;
+            }
+            else
+            {
+                if (settingsObject != null)
+                {
+                    try
+                    {
+                        workbookInternal.Unprotect(settingsObject.Value);
+                    }
+                    catch (Exception exx1)
+                    {
+                        await LogConsole("!!! Не удалось снять защиту с книги с помощью пароля \"" + settingsObject.Value + "\", указанного в настройке \"" + SD.ExcelWorkBookProtectionPasswordName + "\". Возможно при защите книги указан неверный пароль.", AlertStyle.Danger);
+                        workbookProtectSuccess = false;
+                        retFlag = false;
+                    }
+                }            
+            }
+
+            if (!workbookProtectSuccess)
+            {
+                await LogConsole("Проверка защиты книги: Обнаружены ошибки", AlertStyle.Danger);
+            }
+            else
+            {
+                await LogConsole("Проверка защиты книги: OK", AlertStyle.Success);
+            }
+
             List<string>? existSheets = sheets.Select(u => u.SheetName).ToList().Except(notExistSheetsList, StringComparer.OrdinalIgnoreCase).ToList();
             if (existSheets != null)
             {
@@ -243,6 +286,50 @@
                     List<SheetHeader>? sheetHeaderList = null;
                     if (sheetTemplate != null)
                     {
+                        if (sheetTemplate.NeedProtect)
+                        {
+                            await LogConsole($" Проверка защиты листа \"{sheetTemplate.SheetName}\" ...");
+
+                            bool sheetProtectSuccess = true;
+                            if (settingsObject == null)
+                            {
+                                await LogConsole("!!! Не найдена настройка \"" + SD.ExcelWorkBookProtectionPasswordName + "\" в настройках (Меню: Админ - Настройки)", AlertStyle.Danger);
+                                sheetProtectSuccess = false;
+                                retFlag = false;
+                            }
+                            if (!worksheet.IsPasswordProtected)
+                            {
+                                await LogConsole("!!! Лист \"" + sheetTemplate.SheetName + "\" не защищён либо защищён без пароля", AlertStyle.Danger);
+                                sheetProtectSuccess = false;
+                                retFlag = false;
+                            }
+                            else
+                            {
+                                if (settingsObject != null)
+                                {
+                                    try
+                                    {
+                                        worksheet.Unprotect(settingsObject.Value);
+                                    }
+                                    catch (Exception exx1)
+                                    {
+                                        await LogConsole("!!! Не удалось снять защиту с листа \"" + sheetTemplate.SheetName + "\" с помощью пароля \"" + settingsObject.Value + "\", указанного в настройке \"" + SD.ExcelWorkBookProtectionPasswordName + "\". Возможно указан неверный пароль для защиты листа.", AlertStyle.Danger);
+                                        sheetProtectSuccess = false;
+                                        retFlag = false;
+                                    }
+                                }
+                            }
+
+                            if (!sheetProtectSuccess)
+                            {
+                                await LogConsole("Проверка защиты листа \"" + sheetTemplate.SheetName + "\": Обнаружены ошибки.", AlertStyle.Danger);
+                            }
+                            else
+                            {
+                                await LogConsole("Проверка защиты листа \"" + sheetTemplate.SheetName + "\": OK", AlertStyle.Success);
+                            }
+                        }
+
                         sheetHeaderList = sheetTemplate.SheetHeaderList;
                         await LogConsole($" Проверка заголовков на листе \"{sheetTemplate.SheetName}\" ...");
 

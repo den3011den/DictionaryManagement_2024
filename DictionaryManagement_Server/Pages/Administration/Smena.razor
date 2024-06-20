@@ -17,30 +17,40 @@
 
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Smena">Смены</a></h6>
+        </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Смены</font></strong></h6>
         </div>
 
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton title="Добавить новую смену" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую смену" Click="@(args => EditRow(null))" 
+                    Disabled="@(IsAdmin != AdminMode.IsAdmin || IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)"
+                          Disabled="@(IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
+                IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(IsLoading)" />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" 
+                    IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton title="Добавить новую смену" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую смену" Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-            </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@SmenaGridSettings" SettingsName="SmenaGridSettings" @ref="smenaDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@smenaDTOs" TItem="SmenaDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -50,7 +60,7 @@
                                AllowVirtualization="true"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedSmena
                                RowDoubleClick="() => EditRow(selectedSmena.FirstOrDefault())">
                 <Columns>
@@ -62,7 +72,7 @@
 
                     <RadzenDataGridColumnApp TItem="SmenaDTO" Property="DepartmentDTOFK.ToStringHierarchyShortName" Title="Производство" Width="100px" FilterProperty="DepartmentDTOFK.ToStringHierarchyShortName" SortProperty="DepartmentDTOFK.ToStringHierarchyShortName">
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap">
+                            <div style="white-space:pre-line; word-wrap: break-word;">
                                 <strong>
                                     @data1.DepartmentDTOFK.ToStringHierarchyShortName
                                 </strong>

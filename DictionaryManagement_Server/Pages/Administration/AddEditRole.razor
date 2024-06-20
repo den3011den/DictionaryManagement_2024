@@ -34,17 +34,18 @@
                                 }
 
                                 <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 600px;">
-                                    <RadzenTextBox @bind-Value="@ActiveRoleDTO.Name" />
+                                    <RadzenTextBox @bind-Value="@ActiveRoleDTO.Name" ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveRoleDTO.Name"></ValidationMessage>
 
                                 <RadzenFormField Text="Описание" Variant="@variant" Style="width: 100%; max-width: 600px;">
-                                    <RadzenTextBox @bind-Value="@ActiveRoleDTO.Description" />
+                                    <RadzenTextBox @bind-Value="@ActiveRoleDTO.Description" ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveRoleDTO.Description"></ValidationMessage>
 
                                 <RadzenLabel Text="Использование Админки чтение/запись:" Component="CheckBox1" Style="margin-left: 8px; margin-top: 8px;" />
-                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdmin" TValue="bool" class="mb-4" Name="CheckBox1">
+                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdmin" TValue="bool" class="mb-4" Name="CheckBox1"
+                                                 Style="@(IsRoleModelChangeDisabled ? "pointer-events: none;" :"pointer-events:auto;")">
                                     <Items>
                                         <RadzenSelectBarItem Text="Да" Value="true" />
                                         <RadzenSelectBarItem Text="Нет" Value="false" />
@@ -52,7 +53,8 @@
                                 </RadzenSelectBar>
 
                                 <RadzenLabel Text="Использование Админки только чтение:" Component="CheckBox2" Style="margin-left: 8px; margin-top: 8px;" />
-                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdminReadOnly" TValue="bool" class="mb-4" Name="CheckBox2">
+                                <RadzenSelectBar @bind-Value="@ActiveRoleDTO.IsAdminReadOnly" TValue="bool" class="mb-4" Name="CheckBox2"
+                                                 Style="@(IsRoleModelChangeDisabled ? "pointer-events: none;" :"pointer-events:auto;")">
                                     <Items>
                                         <RadzenSelectBarItem Text="Да" Value="true" />
                                         <RadzenSelectBarItem Text="Нет" Value="false" />
@@ -61,10 +63,19 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
+                    @if (!IsRoleModelChangeDisabled)
+                    {
                     <div class="form-group py-2">
                         <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-success" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
                     </div>
+                    }
+                    else
+                    {
+                        <div class="form-group py-2">
+                            <NavLink @onclick="(() => OnClickCancel())" class="btn btn-info">Закрыть</NavLink>
+                        </div>
+                    }
                 </EditForm>
             }
         </div>
@@ -79,6 +90,8 @@
     [Parameter]
     public Guid RoleId { get; set; }
 
+    [Parameter]
+    public bool IsRoleModelChangeDisabled { get; set; }
 
     Variant variant = Variant.Outlined;
 
@@ -132,6 +145,11 @@
                 {
                     ActiveRoleDTO = await _roleRepository.GetById(RoleId);
                     Title = "Изменить роль СИР";
+                }
+
+                if(IsRoleModelChangeDisabled)
+                {
+                    Title = "Просмотр данных роли СИР";
                 }
                 RoleDTOList = await _roleRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly);
 

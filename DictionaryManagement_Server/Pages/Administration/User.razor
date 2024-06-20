@@ -11,6 +11,7 @@
 @inject IUserRepository _userRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
+@inject ISettingsRepository _settingsRepository
 @inject DialogService _dialogService
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -19,32 +20,51 @@
 
     <div class="row">
 
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/User">Пользователи</a></h6>
+        @*         <div class="col-6">
+    <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/User">Пользователи</a></h6>
+    </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Пользователи</font></strong></h6>
         </div>
+
+        <RadzenRow AlignItems="AlignItems.Start">
+            @if (!IsRoleModelChangeDisabled)
+            {
+                <RadzenButton title="Добавить нового пользователя" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить нового пользователя" Click="@(args => EditRow(null))"
+                              Disabled="@(IsAdmin != AdminMode.IsAdmin || IsLoading)" />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            }
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)"
+                          Disabled="@(IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(IsLoading)" />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+            @if (!IsRoleModelChangeDisabled)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в справочник Пользователей СИР" Text="Импорт из Excel <--"
+                              Icon="grid_on" Click="@(args => ExcelImport())"
+                              Disabled="@(IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton title="Добавить нового пользователя" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить нового пользователя" Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
-                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
-                </RadzenButton>
-            </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@UserGridSettings" SettingsName="UserGridSettings" @ref="userDTOGrid" AllowAlternatingRows="true"
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
                                Data="@userDTOs" TItem="UserDTO"
@@ -54,14 +74,14 @@
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedUser
                                RowDoubleClick="() => EditRow(selectedUser.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="ToStringId" Title="Ид пользователя" Width="30px"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data1.ToStringId
                             </div>
                         </Template>
@@ -69,7 +89,7 @@
 
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="Login" Title="Логин" Width="35px" FilterProperty="Login" SortProperty="Login" FilterOperator="FilterOperator.Contains">
                         <Template Context="data2">
-                            <div style="white-space:pre-wrap; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data2.Login
                                 </strong>
@@ -79,7 +99,7 @@
 
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="UserName" Title="ФИО" Width="35px" FilterProperty="UserName" SortProperty="UserName" FilterOperator="FilterOperator.Contains">
                         <Template Context="data2">
-                            <div style="white-space:pre-wrap; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data2.UserName
                                 </strong>
@@ -89,7 +109,7 @@
 
                     <RadzenDataGridColumnApp TItem="UserDTO" Property="Description" Title="Описание" Width="33px" FilterProperty="Description" SortProperty="Description" FilterOperator="FilterOperator.Contains">
                         <Template Context="data3">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data3.Description
                             </div>
                         </Template>
@@ -119,18 +139,26 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="UserDTO" Context="userDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="16px">
                         <Template Context="userDTO">
-                            <RadzenButton title="Редактировать пользователя" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(userDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            @if (!userDTO.IsArchive)
+                            @if (!IsRoleModelChangeDisabled)
                             {
-                                <RadzenButton title="Удалить пользователя в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Редактировать пользователя" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(userDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
+                                @if (!userDTO.IsArchive)
+                                {
+                                    <RadzenButton title="Удалить пользователя в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                    Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                    </RadzenButton>
+                                }
+                                else
+                                {
+                                    <RadzenButton title="Восстановить пользователя из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                    Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                    </RadzenButton>
+                                }
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить пользователя из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(userDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Просмотр данных пользователя" ButtonStyle="ButtonStyle.Info" Icon="info" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => EditRow(userDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
                             }
                         </Template>
@@ -160,6 +188,7 @@
     public bool IsLoading { get; set; } = true;
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
+    public bool IsRoleModelChangeDisabled { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,6 +207,15 @@
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
+
+                IsRoleModelChangeDisabled = true;
+                SettingsDTO? settingsDTO = await _settingsRepository.GetByName(SD.RoleModelChangeDisabledSettingName);
+                if (settingsDTO != null)
+                {
+                    if (settingsDTO.Value.Trim() == "0")
+                        IsRoleModelChangeDisabled = false;
+                }
+
                 userDTOs = await _userRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
                 await Task.Delay(100);
@@ -237,12 +275,14 @@
             if (userDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Создать пользователя", new Dictionary<string, object>() { { "UserId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditUser>(IsRoleModelChangeDisabled ? "Просмотр данных пользователя" : "Создать пользователя"
+                        , new Dictionary<string, object>() { { "UserId", Guid.Empty }, {"IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditUser>(IsRoleModelChangeDisabled ? "Просмотр данных пользователя" : "Изменить пользователя"
+                        , new Dictionary<string, object>() { { "UserId", userDTO.Id }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
 
             if (dialogResult != null)

@@ -23,41 +23,48 @@
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/reports">Отчёты</a> - <a href="/reports/ReportTemplate">Шаблоны отчётов</a></h6>
+        </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/reports">Отчёты</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Шаблоны отчётов</font></strong></h6>
         </div>
+
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый шаблон отчёта"
+                          Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || LoadTagsFromAllReportTemplatesFlag || IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)" Disabled="@(LoadTagsFromAllReportTemplatesFlag || IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
+                    IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(LoadTagsFromAllReportTemplatesFlag || IsLoading)" />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
+                              Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." 
+                              Disabled="@(LoadTagsFromAllReportTemplatesFlag || IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+            @if (ShowLoadTagsFromAllReportTemplatesButtonFlag)
+            {
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" class="mt-1 mb-1" title="Загрузка списков тэгов с листов файлов всех поддерживаемых шаблонов отчётов в таблицу ReportTemplateToMesParam"
+                              Text="Перезагрузить списки тэгов из файлов шаблонов отчётов" Click="@(args => LoadTagsFromAllReportTemplates())" IsBusy="@LoadTagsFromAllReportTemplatesFlag" BusyText="@LoadTagsFromAllReportTemplatesText"
+                              Disabled="@(IsAdmin != AdminMode.IsAdmin || IsLoading)"
+                              Image="/css/bootstrap-icons-1.10.5/bi--tags-fill.svg">
+                </RadzenButton>
+            }
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый шаблон отчёта"
-                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin || LoadTagsFromAllReportTemplatesFlag)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" Disabled="@(LoadTagsFromAllReportTemplatesFlag)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=LoadTagsFromAllReportTemplatesFlag />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on"
-                                  Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=LoadTagsFromAllReportTemplatesFlag>
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-                @if (ShowLoadTagsFromAllReportTemplatesButtonFlag)
-                {
-                    <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                    <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" class="mt-1 mb-1" title="Загрузка списков тэгов с листов файлов всех поддерживаемых шаблонов отчётов в таблицу ReportTemplateToMesParam"
-                                  Text="Перезагрузить списки тэгов из файлов шаблонов отчётов" Click="@(args => LoadTagsFromAllReportTemplates())" IsBusy="@LoadTagsFromAllReportTemplatesFlag" BusyText="@LoadTagsFromAllReportTemplatesText"
-                                  Disabled="@(IsAdmin != AdminMode.IsAdmin)"
-                                  Image="/css/bootstrap-icons-1.10.5/bi--tags-fill.svg">
-                    </RadzenButton>
-                }
-            </RadzenRow>
-
             <RadzenDataGridApp @bind-Settings="@ReportTemplateGridSettings" SettingsName="ReportTemplateGridSettings" @ref="reportTemplateDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@reportTemplateDTOs" TItem="ReportTemplateDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -884,7 +891,8 @@
                 await Task.Delay(20);
                 await InvokeAsync(StateHasChanged);
 
-                reportTemplateFilePath = reportTemplatePath + item.Id.ToString() + ".xlsx";
+                //reportTemplateFilePath = reportTemplatePath + item.Id.ToString() + ".xlsx";
+                reportTemplateFilePath = System.IO.Path.Combine(reportTemplatePath, item.Id.ToString() + ".xlsx");
 
                 if (!System.IO.File.Exists(reportTemplateFilePath))
                 {

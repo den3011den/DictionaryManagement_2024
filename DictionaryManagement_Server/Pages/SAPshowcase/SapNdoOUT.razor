@@ -18,48 +18,53 @@
     <_Dialogs @ref="_dialogs"></_Dialogs>
 
     <div class="row">
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/SAPshowcase">Витрины SAP</a> - <a href="/SAPshowcase/SapNdoOUT">НДО-выход</a></h6>
+        </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/SAPshowcase">Витрины SAP</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">НДО-выход</font></strong></h6>
         </div>
+
+        <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
+            <RadzenColumn Size="12" SizeMD="12">
+                <RadzenStack>
+                    <RadzenStack Gap="0.5rem">
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())" Disabled="@(IsLoading)">
+                                <Items>
+                                    <RadzenRadioButtonListItem Text="По времени значения" Value="1" Disabled="@(IsLoading)" />
+                                    <RadzenRadioButtonListItem Text="По времени добавления" Value="2" Disabled="@(IsLoading)" />
+                                </Items>
+                            </RadzenRadioButtonList>
+                            <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" Disabled="@(IsLoading)" />
+                            <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" Disabled="@(IsLoading)" />
+                            <RadzenButton Size="ButtonSize.Small" ButtonStyle="@(applyButtonStyle)" Icon="@(applyButtonIcon)" Disabled="@(ApplyButtonDisabled || IsLoading)" Text="@(applyButtonText)" Click="@(args => GetRows())" />
+                            <i class="bi bi-grip-vertical"></i>
+                            @if (@excelExportFlag)
+                            {
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled="@(IsLoading)" />
+                            }
+                            else
+                            {
+                                <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                                              IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled="@(IsLoading)">
+                                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                                </RadzenButton>
+                            }
+                            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в Витрины SAP - НДО-выход" 
+                                Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())"
+                                Disabled="@(IsLoading)">
+                                <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+                            </RadzenButton>
+                        </RadzenRow>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-
-            <RadzenRow Gap="0.5rem" Class="rz-p-0 rz-p-lg-0">
-                <RadzenColumn Size="12" SizeMD="12">
-                    <RadzenStack>
-                        <RadzenStack Gap="0.5rem">
-                            <RadzenRow AlignItems="AlignItems.Center">
-                                <RadzenRadioButtonList @bind-Value=@applyRadioGroupValue TValue="int" Change="@(args => ChangeEndDate())">
-                                    <Items>
-                                        <RadzenRadioButtonListItem Text="По времени значения" Value="1" />
-                                        <RadzenRadioButtonListItem Text="По времени добавления" Value="2" />
-                                    </Items>
-                                </RadzenRadioButtonList>
-                                <RadzenDatePicker @bind-Value=@startDate Change="@(args => ChangeStartDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenDatePicker @bind-Value=@endDate Change="@(args => ChangeEndDate())" ShowTime="true" ShowSeconds="true" DateFormat="dd.MM.yyyy HH:mm:ss" />
-                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="@(applyButtonStyle)" Icon="@(applyButtonIcon)" Disabled="@ApplyButtonDisabled" Text="@(applyButtonText)" Click="@(args => GetRows())" />
-                                <i class="bi bi-grip-vertical"></i>
-                                @if (@excelExportFlag)
-                                {
-                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                                }
-                                else
-                                {
-                                    <RadzenButton Size="ButtonSize.Small" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="--> в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                                    </RadzenButton>
-                                }
-                                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Загрузка данных из Excel в Витрины SAP - НДО-выход" Text="Из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
-                                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
-                                </RadzenButton>                                
-                            </RadzenRow>
-                        </RadzenStack>
-                    </RadzenStack>
-                </RadzenColumn>
-            </RadzenRow>
-
-
             <RadzenDataGridApp @bind-Settings="@SapNdoOUTGridSettings" SettingsName="SapNdoOUTGridSettings" @ref="sapNdoOUTDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@sapNdoOUTDTOs" TItem="SapNdoOUTDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"

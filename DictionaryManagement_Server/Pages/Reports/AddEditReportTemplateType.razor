@@ -38,18 +38,28 @@
                                 }
                                 <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 600px;">
                                     <RadzenTextBox @bind-Value="@ActiveReportTemplateTypeDTO.Name" 
-                                            Disabled="@(ControlReportTemplateTypeCantChangeName == true && ActiveReportTemplateTypeDTO.CantChangeName == true)"/>
+                                            Disabled="@(ControlReportTemplateTypeCantChangeName == true && ActiveReportTemplateTypeDTO.CantChangeName == true)"
+                                                   ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveReportTemplateTypeDTO.Name"></ValidationMessage>
 
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
+                    @if (!IsRoleModelChangeDisabled)
+                    {
                     <div class="form-group py-2">
                         <button class="btn btn-primary" 
                                 disabled=@(IsAdmin != AdminMode.IsAdmin || (ControlReportTemplateTypeCantChangeName == true && ActiveReportTemplateTypeDTO.CantChangeName == true))>@Title</button>
                         <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
-                    </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group py-2">
+                            <NavLink @onclick="(() => OnClickCancel())" class="btn btn-info">Закрыть</NavLink>
+                        </div>
+                    }
                 </EditForm>
             }
         </div>
@@ -64,6 +74,8 @@
     [Parameter]
     public int ReportTemplateTypeId { get; set; }
 
+    [Parameter]
+    public bool IsRoleModelChangeDisabled { get; set; } = false;
 
     Variant variant = Variant.Outlined;
 
@@ -92,6 +104,10 @@
         {
             ActiveReportTemplateTypeDTO = await _reportTemplateTypeRepository.Get(ReportTemplateTypeId);
             Title = "Изменить тип шаблона отчёта";
+        }
+        if (IsRoleModelChangeDisabled)
+        {
+            Title = "Просмотр данных типа шаблона отчёта";
         }
 
         var tmpSetting = await _settingsRepository.GetByName(SD.ControlReportTemplateTypeCantChangeNameSettingName);

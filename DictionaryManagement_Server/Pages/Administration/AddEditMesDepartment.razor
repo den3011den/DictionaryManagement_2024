@@ -32,32 +32,43 @@
                                 </RadzenFormField>
                             }
                             <RadzenFormField Text="Код производства" Variant="@variant" Style="width: 100%; max-width: 1100px;">
-                                <RadzenNumeric @bind-Value="@ActiveMesDepartmentDTO.MesCode" />
+                                <RadzenNumeric @bind-Value="@ActiveMesDepartmentDTO.MesCode" ReadOnly="@(IsRoleModelChangeDisabled)" />
                             </RadzenFormField>
                             <ValidationMessage For="()=>ActiveMesDepartmentDTO.MesCode"></ValidationMessage>
 
                             <RadzenFormField Text="Наименование" Variant="@variant" Style="width: 100%; max-width: 1100px;">
-                                <RadzenTextBox @bind-Value="@ActiveMesDepartmentDTO.Name" />
+                                <RadzenTextBox @bind-Value="@ActiveMesDepartmentDTO.Name" ReadOnly="@(IsRoleModelChangeDisabled)" />
                             </RadzenFormField>
                             <ValidationMessage For="()=>ActiveMesDepartmentDTO.Name"></ValidationMessage>
                             <RadzenFormField Text="Сокр. наименование" Variant="@variant" Style="width: 100%; max-width: 1100px;">
-                                <RadzenTextBox @bind-Value="@ActiveMesDepartmentDTO.ShortName" />
+                                <RadzenTextBox @bind-Value="@ActiveMesDepartmentDTO.ShortName" ReadOnly="@(IsRoleModelChangeDisabled)" />
                             </RadzenFormField>
                             <ValidationMessage For="()=>ActiveMesDepartmentDTO.ShortName"></ValidationMessage>
-
-                            <RadzenFormField Text="Родительское производство" Variant="@variant" Style="width: 100%; max-width: 1100px;">
+                            
+                            <RadzenFormField Text="Родительское производство" Variant="@variant"
+                                             Style="@(IsRoleModelChangeDisabled ? "width: 100%; max-width: 1100px;pointer-events: none;" :"width: 100%; max-width: 1100px; pointer-events:auto;")">
                                 <RadzenDropDown @ref=@mesDepartmentDropDown FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
-                                                Data=@MesDepartmentDTOList TextProperty="ToStringHierarchyShortName" ValueProperty="Id" AllowClear="true" @bind-Value="ActiveMesDepartmentDTO.ParentDepartmentId" Style="width: 100%; max-width: 1100px;" />
+                                                Data=@MesDepartmentDTOList TextProperty="ToStringHierarchyShortName" ValueProperty="Id" AllowClear="true"
+                                                @bind-Value="ActiveMesDepartmentDTO.ParentDepartmentId" Style="width: 100%; max-width: 1100px;"
+                                                ReadOnly="@(IsRoleModelChangeDisabled)" />
                             </RadzenFormField>
-                            <ValidationMessage For="()=>ActiveMesDepartmentDTO.ParentDepartmentId"></ValidationMessage>
-                            @* </div>*@
+                            <ValidationMessage For="()=>ActiveMesDepartmentDTO.ParentDepartmentId"></ValidationMessage>                            
                         </RadzenStack>
                     </RadzenColumn>
                 </RadzenRow>
-                <div class="form-group py-2">
-                    <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-success" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
+                @if (!IsRoleModelChangeDisabled)
+                {
+                    <div class="form-group py-2">
+                        <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-success" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
                     <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
-                </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group py-2">
+                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-info">Закрыть</NavLink>
+                    </div>
+                }
             </EditForm>
         }
     </div>
@@ -70,6 +81,8 @@
     [Parameter]
     public int MesDepartmentId { get; set; }
 
+    [Parameter]
+    public bool IsRoleModelChangeDisabled { get; set; } = false;
 
     Variant variant = Variant.Outlined;
 
@@ -105,6 +118,11 @@
             Title = "Изменить производство";
         }
 
+        @if(IsRoleModelChangeDisabled)
+        {
+            Title = "Просмотр данных производства";
+        }
+
         IsLoading = false;
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
@@ -130,6 +148,8 @@
                 ActiveMesDepartmentDTO = await _mesDepartmentRepository.GetById(MesDepartmentId);
                 Title = "Изменить производство";
             }
+
+
             MesDepartmentDTOList = (await _mesDepartmentRepository.GetAll(SD.SelectDictionaryScope.NotArchiveOnly)).OrderBy(u => u.ToStringHierarchyShortName);
 
             IsLoading = false;
@@ -150,7 +170,7 @@
             {
                 if (foundByCode.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
                 {
-                    await _jsRuntime.ToastrError("Уже есть производcтво с кодом " + foundByCode.MesCode.ToString() + " внутри родительского производства (наименование: " + foundByCode.ShortName + " ИД: " + foundByCode.Id.ToString() + ")");
+                    await _jsRuntime.ToastrError("Уже есть производство с кодом " + foundByCode.MesCode.ToString() + " внутри родительского производства (наименование: " + foundByCode.ShortName + " ИД: " + foundByCode.Id.ToString() + ")");
                     return;
                 }
             }
@@ -159,7 +179,7 @@
             {
                 if (foundByName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
                 {
-                    await _jsRuntime.ToastrError("Уже есть производcтво с наименованием " + foundByName.Name + " внутри родительского производства (Код: " + foundByName.MesCode.ToString() + " ИД: " + foundByName.Id.ToString() + ")");
+                    await _jsRuntime.ToastrError("Уже есть производство с наименованием " + foundByName.Name + " внутри родительского производства (Код: " + foundByName.MesCode.ToString() + " ИД: " + foundByName.Id.ToString() + ")");
                     return;
                 }
             }
@@ -169,7 +189,7 @@
             {
                 if (foundByShortName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
                 {
-                    await _jsRuntime.ToastrError("Уже есть производcтво с сокр. наименованием внутри родительского производства " + foundByShortName.ShortName + " (Код: " + foundByShortName.MesCode.ToString() + " ИД: " + foundByShortName.Id.ToString() + ")");
+                    await _jsRuntime.ToastrError("Уже есть производство с сокр. наименованием внутри родительского производства " + foundByShortName.ShortName + " (Код: " + foundByShortName.MesCode.ToString() + " ИД: " + foundByShortName.Id.ToString() + ")");
                     return;
                 }
             }
@@ -187,7 +207,7 @@
             {
                 if (foundByCode.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
                 {
-                    await _jsRuntime.ToastrError("Уже есть производcтво с кодом " + foundByCode.MesCode.ToString() + " внутри родительского производства (наименование: " + foundByCode.ShortName + " ИД: " + foundByCode.Id.ToString() + ")");
+                    await _jsRuntime.ToastrError("Уже есть производство с кодом " + foundByCode.MesCode.ToString() + " внутри родительского производства (наименование: " + foundByCode.ShortName + " ИД: " + foundByCode.Id.ToString() + ")");
                     return;
                 }
             }
@@ -196,7 +216,7 @@
             {
                 if (foundByName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
                 {
-                    await _jsRuntime.ToastrError("Уже есть производcтво с наименованием " + foundByName.Name + " внутри родительского производства (Код: " + foundByName.MesCode.ToString() + " ИД: " + foundByName.Id.ToString() + ")");
+                    await _jsRuntime.ToastrError("Уже есть производство с наименованием " + foundByName.Name + " внутри родительского производства (Код: " + foundByName.MesCode.ToString() + " ИД: " + foundByName.Id.ToString() + ")");
                     return;
                 }
             }
@@ -205,7 +225,7 @@
             {
                 if (foundByShortName.ParentDepartmentId == ActiveMesDepartmentDTO.ParentDepartmentId)
                 {
-                    await _jsRuntime.ToastrError("Уже есть производcтво с сокр. наименованием " + foundByShortName.ShortName + " внутри родительского производства (Код: " + foundByShortName.MesCode.ToString() + " ИД: " + foundByShortName.Id.ToString() + ")");
+                    await _jsRuntime.ToastrError("Уже есть производство с сокр. наименованием " + foundByShortName.ShortName + " внутри родительского производства (Код: " + foundByShortName.MesCode.ToString() + " ИД: " + foundByShortName.Id.ToString() + ")");
                     return;
                 }
             }

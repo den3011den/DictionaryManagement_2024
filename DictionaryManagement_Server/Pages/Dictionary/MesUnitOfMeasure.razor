@@ -14,34 +14,39 @@
 <_Dialogs @ref="_dialogs"></_Dialogs>
 
 <div class="row">
-    <div class="col-6">
+@*     <div class="col-6">
         <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> - <a href="/dictionary/MesUnitOfMeasure">Единицы измерения MES</a></h6>
     </div>
+ *@
+    <div class="col-12">
+        <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Единицы измерения MES</font></strong></h6>
+    </div>
 
+    <RadzenRow AlignItems="AlignItems.Start">
+        <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения MES"
+                      Click="@InsertRow" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin || IsLoading) />
+        <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+        <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                      Click="() => OnAfterRenderAsync(true)" 
+                      Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null || IsLoading) />
+        <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+        @if (@excelExportFlag)
+        {
+            <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                          Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null || (IsAdmin != AdminMode.IsAdmin && IsAdmin != AdminMode.IsAdminReadOnly) || IsLoading) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+        }
+        else
+        {
+            <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
+                          Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                          Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null || (IsAdmin != AdminMode.IsAdmin && IsAdmin != AdminMode.IsAdminReadOnly) || IsLoading)>
+                <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+            </RadzenButton>
+        }
+    </RadzenRow>
 
     @if ((IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly) && IsLoading != true)
     {
-        <RadzenRow AlignItems="AlignItems.Start">
-            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения MES"
-                          Click="@InsertRow" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                          Click="() => OnAfterRenderAsync(true)" Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null) />
-            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-            @if (@excelExportFlag)
-            {
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
-                    Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-            }
-            else
-            {
-                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel"
-                              Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled=@(mesUnitOfMeasureDTOToInsert != null || mesUnitOfMeasureDTOToUpdate != null)>
-                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                </RadzenButton>
-            }
-        </RadzenRow>
-
         <RadzenDataGridApp @ref="mesUnitOfMeasureDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                            @bind-Settings="@MesUnitOfMeasureGridSettings" SettingsName="MesUnitOfMeasureGridSettings"
                            Data="@mesUnitOfMeasureDTOs" TItem="MesUnitOfMeasureDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
@@ -49,7 +54,7 @@
                            AllowColumnResize="false"
                            FilterMode="FilterMode.Advanced"
                            GridLines="DataGridGridLines.Both"
-                           Style="height:calc(100vh - 155px)"
+                           Style="height:calc(100vh - 158px)"
                            @bind-Value=@selectedTableMesUnitOfMeasure
                            RowDoubleClick="() => EditRow(selectedTableMesUnitOfMeasure.FirstOrDefault())">
             <Columns>

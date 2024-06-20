@@ -12,6 +12,7 @@
 @inject IADGroupRepository _adGroupRepository
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
+@inject ISettingsRepository _settingsRepository
 @inject DialogService _dialogService
 
 @if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
@@ -20,33 +21,51 @@
 
     <div class="row">
 
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/ADGroup">Группы AD</a></h6>
+        @*         <div class="col-6">
+    <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/ADGroup">Группы AD</a></h6>
+    </div>
+    *@
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Группы AD</font></strong></h6>
         </div>
 
+        <RadzenRow AlignItems="AlignItems.Start">
+            @if (!IsRoleModelChangeDisabled)
+            {
+                <RadzenButton title="Добавить новую группу AD" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить группу AD" Click="@(args => EditRow(null))"
+                              Disabled="@(IsAdmin!=AdminMode.IsAdmin || IsLoading)" />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            }
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)"
+                          Disabled="@(IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(IsLoading)" />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+            @if (!IsRoleModelChangeDisabled)
+            {
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Группы AD"
+                              Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())"
+                              Disabled="@(IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
 
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton title="Добавить новую группу AD" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить группу AD" Click="@(args => EditRow(null))" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Группы AD" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
-                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
-                </RadzenButton>
-            </RadzenRow>
             <RadzenDataGridApp @bind-Settings="@ADGroupGridSettings" SettingsName="ADGroupGridSettings" @ref="adGroupDTOGrid" AllowAlternatingRows="true"
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
                                Data="@adGroupDTOs" TItem="ADGroupDTO"
@@ -55,14 +74,14 @@
                                Density=Density.Compact
                                ShowPagingSummary="true"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedTableADGroup
                                RowDoubleClick="() => EditRow(selectedTableADGroup.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="ADGroupDTO" Property="ToStringId" Title="Ид группы" Width="40px"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data1.ToStringId
                             </div>
                         </Template>
@@ -70,7 +89,7 @@
 
                     <RadzenDataGridColumnApp TItem="ADGroupDTO" Property="Name" Title="Наименование" Width="80px" FilterProperty="Name" SortProperty="Name" FilterOperator="FilterOperator.Contains">
                         <Template Context="data2">
-                            <div style="white-space:pre-wrap; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data2.Name
                                 </strong>
@@ -80,7 +99,7 @@
 
                     <RadzenDataGridColumnApp TItem="ADGroupDTO" Property="Description" Title="Описание" Width="70px" FilterProperty="Description" SortProperty="Description" FilterOperator="FilterOperator.Contains">
                         <Template Context="data3">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data3.Description
                             </div>
                         </Template>
@@ -94,24 +113,31 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="ADGroupDTO" Context="adGroupDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="16px">
                         <Template Context="adGroupDTO">
-                            <RadzenButton title="Редактировать группу AD" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(adGroupDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            @if (!adGroupDTO.IsArchive)
+                            @if (!IsRoleModelChangeDisabled)
                             {
-                                <RadzenButton title="Удалить группу AD в архив" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Редактировать группу AD" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(adGroupDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
+                                @if (!adGroupDTO.IsArchive)
+                                {
+                                    <RadzenButton title="Удалить группу AD в архив" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
+                                    </RadzenButton>
+                                }
+                                else
+                                {
+                                    <RadzenButton title="Восстановить группу AD из архива" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
+                                    </RadzenButton>
+                                }
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить группу AD из архива" Disabled="@(IsAdmin!=AdminMode.IsAdmin)" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => DeleteRow(adGroupDTO))" @onclick:stopPropagation="true">
+                                <RadzenButton title="Просмотр данных группы AD" ButtonStyle="ButtonStyle.Info" Icon="info" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => EditRow(adGroupDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
                             }
+
                         </Template>
                     </RadzenDataGridColumnApp>
-
                 </Columns>
             </RadzenDataGridApp>
-
         }
         else
         {
@@ -135,6 +161,8 @@
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
 
+    public bool IsRoleModelChangeDisabled { get; set; } = true;
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -151,6 +179,15 @@
                 await LoadStateAsync();
                 await Task.Delay(10);
                 await InvokeAsync(StateHasChanged);
+
+                IsRoleModelChangeDisabled = true;
+                SettingsDTO? settingsDTO = await _settingsRepository.GetByName(SD.RoleModelChangeDisabledSettingName);
+                if (settingsDTO != null)
+                {
+                    if (settingsDTO.Value.Trim() == "0")
+                        IsRoleModelChangeDisabled = false;
+                }
+
                 adGroupDTOs = await _adGroupRepository.GetAll(SD.SelectDictionaryScope.All);
                 IsLoading = false;
                 await Task.Delay(10);
@@ -217,12 +254,12 @@
             if (adGroupDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Создать группу AD", new Dictionary<string, object>() { { "ADGroupId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>(IsRoleModelChangeDisabled ? "Просмотр данных группы AD" : "Создать группу AD", new Dictionary<string, object>() { { "ADGroupId", Guid.Empty }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditADGroup>(IsRoleModelChangeDisabled ? "Просмотр данных группы AD" : "Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupDTO.Id }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
 
             if (dialogResult != null)
@@ -319,7 +356,6 @@
 
     async Task ExcelImport()
     {
-        IsLoading = true;
         await LoadStateAsync();
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);

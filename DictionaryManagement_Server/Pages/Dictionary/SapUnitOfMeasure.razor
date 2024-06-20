@@ -18,34 +18,38 @@
 
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="dictionary">Справочники</a> - <a href="/dictionary/SapUnitOfMeasure">Единицы измерения SAP</a></h6>
+        </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Единицы измерения SAP</font></strong></h6>
         </div>
 
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения SAP"
+                          Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)"
+                          Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null || IsLoading) />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null || IsLoading) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null || IsLoading) Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
 
-        @if (IsLoading != true)
+        @if (IsLoading != true)        
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую единицу измерения SAP"
-                              Click="@InsertRow" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null || IsAdmin != AdminMode.IsAdmin) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
-                         Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
-                         Disabled=@(sapUnitOfMeasureDTOToInsert != null || sapUnitOfMeasureDTOToUpdate != null) Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-            </RadzenRow>
-
             <RadzenDataGridApp @ref="sapUnitOfMeasureDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                @bind-Settings="@SapUnitOfMeasureGridSettings" SettingsName="SapUnitOfMeasureGridSettings"
                                Data="@sapUnitOfMeasureDTOs" TItem="SapUnitOfMeasureDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px"
@@ -53,7 +57,7 @@
                                FilterMode="FilterMode.Advanced"
                                AllowColumnResize="false"
                                GridLines="DataGridGridLines.Both"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedTableSapUnitOfMeasure
                                RowDoubleClick="() => EditRow(selectedTableSapUnitOfMeasure.FirstOrDefault())">
                 <Columns>

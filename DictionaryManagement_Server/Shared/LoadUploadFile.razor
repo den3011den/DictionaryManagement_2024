@@ -121,12 +121,12 @@
                     PathExistsFlag = true;
                 }
 
-                if (System.IO.File.Exists(FilePath.Trim().UnhideSlash() + FileName.Trim()))
+                if (System.IO.File.Exists(System.IO.Path.Combine(FilePath.Trim().UnhideSlash(),  FileName.Trim())))
                 {
                     FileExistsFlag = true;
                 }
 
-                DownloadFileName = FilePath.Trim() + FileName.Trim();
+                DownloadFileName = System.IO.Path.Combine(FilePath.Trim(), FileName.Trim());
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);

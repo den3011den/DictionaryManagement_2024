@@ -22,37 +22,47 @@
     <_Dialogs @ref="_dialogs"></_Dialogs>
     <div class="row">
 
-        <div class="col-6">
+@*         <div class="col-6">
             <h6 class="card-title text-primary"><a href="/tags">Тэги</a> - <a href="/tags/MesParam">Тэги СИР</a></h6>
         </div>
+ *@
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/tags">Тэги</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Тэги СИР</font></strong></h6>
+        </div>
 
-
-        @if (IsLoading != true)
-        {
-
-            @*<div style="word-wrap: normal">*@
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тэг СИР"
-                              Click="@(args => EditRow(null, SD.EditMode.Create))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
+        <RadzenRow AlignItems="AlignItems.Start">
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новый тэг СИР"
+                          Click="@(args => EditRow(null, SD.EditMode.Create))" Disabled="@(IsAdmin != AdminMode.IsAdmin || IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Disabled="@(IsLoading)"
+                          Click="() => OnAfterRenderAsync(true)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" 
+                   class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" 
+                   IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                   Disabled=@(IsLoading) />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" @ref="xlxButton" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                    Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" 
+                    IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                    Disabled=@(IsLoading)>
                         <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Тэгов СИР" Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())">
-                    <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
                 </RadzenButton>
-            </RadzenRow>
-
+            }
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" class="mt-1 mb-1" title="Загрузка данных из Excel в справочник Тэгов СИР" 
+                Text="Импорт из Excel <--" Icon="grid_on" Click="@(args => ExcelImport())"
+                Disabled=@(IsLoading)>
+                <i class="bi bi-database"></i><i class="bi bi-arrow-left"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Загрузить из Excel
+            </RadzenButton>
+        </RadzenRow>
+        
+        @if (IsLoading != true)
+        {            
             <RadzenDataGridApp @bind-Settings="@MesParamGridSettings" SettingsName="MesParamGridSettings" @ref="mesParamDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
                                Data="@mesParamDTOs" TItem="MesParamDTO"
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"

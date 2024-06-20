@@ -17,6 +17,7 @@
 @inject ISimpleExcelExportRepository _simpleExcelExportRepository
 @inject ILogEventRepository _logEventRepository
 @inject IRoleRepository _roleRepository
+@inject ISettingsRepository _settingsRepository
 
 @inject DialogService _dialogService
 
@@ -27,32 +28,44 @@
 
     <div class="row">
 
-        <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Role">Роли</a></h6>
+        @*         <div class="col-6">
+    <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Role">Роли</a></h6>
+    </div> *@
+
+        <div class="col-12">
+            <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Роли</font></strong></h6>
         </div>
 
 
+        <RadzenRow AlignItems="AlignItems.Start">
+            @if (!IsRoleModelChangeDisabled)
+            {
+                <RadzenButton title="Добавить новую роль" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую роль"
+                              Click="@(args => EditRow(null))"
+                              Disabled="@(IsAdmin != AdminMode.IsAdmin || IsLoading)" />
+                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            }
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
+                          Click="() => OnAfterRenderAsync(true)"
+                          Disabled="@(IsLoading)" />
+            <i class="bi bi-grip-vertical mt-2 mb-1"></i>
+            @if (@excelExportFlag)
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..."
+                              Disabled="@(IsLoading)" />
+            }
+            else
+            {
+                <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())"
+                              IsBusy=@excelExportFlag BusyText="Выполняется ..." Disabled="@(IsLoading)">
+                    <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
+                </RadzenButton>
+            }
+        </RadzenRow>
+
         @if (IsLoading != true)
         {
-            <RadzenRow AlignItems="AlignItems.Start">
-                <RadzenButton title="Добавить новую роль" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" class="mt-1 mb-1" Text="Добавить новую роль"
-                              Click="@(args => EditRow(null))" Disabled="@(IsAdmin != AdminMode.IsAdmin)" />
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Icon="refresh" class="mt-1 mb-1" Text="Обновить"
-                              Click="() => OnAfterRenderAsync(true)"/>
-                <i class="bi bi-grip-vertical mt-2 mb-1"></i>
-                @if (@excelExportFlag)
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" IsBusy=@excelExportFlag BusyText="Выполняется ..." />
-                }
-                else
-                {
-                    <RadzenButton Size="ButtonSize.Small" class="mt-1 mb-1" title="Простой экспорт в Excel с учётом применённых фильтров и упорядочивания" Text="Экспорт в Excel" Icon="grid_on" Click="@(args => ExcelExport())" IsBusy=@excelExportFlag BusyText="Выполняется ...">
-                        <i class="bi bi-database"></i><i class="bi bi-arrow-right"></i><i class="bi bi-grid-3x3"></i>&nbsp;&nbsp;Выгрузить в Excel
-                    </RadzenButton>
-                }
-            </RadzenRow>
-
             <RadzenDataGridApp @bind-Settings="@RoleGridSettings" SettingsName="RoleGridSettings" @ref="roleVMDTOGrid" AllowAlternatingRows="true"
                                AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single" GridLines="DataGridGridLines.Both"
                                Data="@roleVMDTOs" TItem="RoleVMDTO"
@@ -63,14 +76,14 @@
                                ShowPagingSummary="true"
                                EmptyText="Нет записей для отображения"
                                AllowVirtualization="true"
-                               Style="height:calc(100vh - 155px)"
+                               Style="height:calc(100vh - 158px)"
                                @bind-Value=@selectedTableRoleVM
                                RowDoubleClick="() => EditRow(selectedTableRoleVM.FirstOrDefault())">
                 <Columns>
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="ToStringId" Title="Ид роли" Width="10px"
                                              FilterProperty="ToStringId" FilterOperator="FilterOperator.Contains" SortProperty="ToStringId">
                         <Template Context="data1">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data1.ToStringId
                             </div>
                         </Template>
@@ -78,7 +91,7 @@
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="NameWithAdminString" Title="Наименование" Width="33px" FilterProperty="NameWithAdminString" SortProperty="NameWithAdminString" FilterOperator="FilterOperator.Contains">
                         <Template Context="data2">
-                            <div style="white-space:pre-wrap; font-size: 12px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 12px">
                                 <strong>
                                     @data2.Name
                                     <div style="color:red">@data2.AdminString</div>
@@ -89,7 +102,7 @@
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="Description" Title="Описание" Width="33px" FilterProperty="Description" SortProperty="Description" FilterOperator="FilterOperator.Contains">
                         <Template Context="data3">
-                            <div style="white-space:pre-wrap; font-size: 10px">
+                            <div style="white-space:pre-line; word-wrap: break-word; font-size: 10px">
                                 @data3.Description
                             </div>
                         </Template>
@@ -97,37 +110,46 @@
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="UserToRoleDTOs" FilterProperty="UsersLoginAndNameString" Title="Пользователи роли" Sortable="false" Filterable="true" Width="42px" FilterOperator="FilterOperator.Contains">
                         <Template Context="data">
-                            <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
-                                <div class="text-center" style="width: 100%;font-size: 10px">
-                                    <button title=@($"Добавить пользователя к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkUserToRole(data)"> + Добавить пользователя + </button>
+                            @if (!IsRoleModelChangeDisabled)
+                            {
+                                <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
+                                    <div class="text-center" style="width: 100%;font-size: 10px">
+                                        <button title=@($"Добавить пользователя к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkUserToRole(data)"> + Добавить пользователя + </button>
+                                    </div>
                                 </div>
-                            </div>
-
+                            }
                             <RadzenDataList WrapItems="true" Density=Density.Compact AllowPaging="true" Data="data.UserToRoleDTOs" PagerHorizontalAlign="HorizontalAlign.Left" TItem="UserToRoleDTO" PageSize="4" ShowPagingSummary="false">
                                 <Template Context="user">
                                     <RadzenCard Style="white-space:pre-wrap; width: 100%; padding: 1px 1px 1px 1px; overflow: hidden;font-size: 10px">
                                         <div class="row g-2" style="width: 100%; padding: 0">
                                             <div class="col-md-11 col-lg-0" style="width: 82%; font-size: 10px">
-                                                <b><a href="" title=@($"Редактировать пользователя {user.UserDTOFK?.UserName}") @onclick="@(()=>EditUser(data, user.UserDTOFK.Id))" @onclick:preventDefault>@user.UserDTOFK?.UserName (@(@user.UserDTOFK?.Login))</a></b>
+                                                <b>
+                                                    <a style="white-space:pre-line; word-wrap: break-word;" href=""
+                                                       title=@(IsRoleModelChangeDisabled ? $"Просмотр данных пользователя {user.UserDTOFK?.UserName}": $"Редактировать пользователя {user.UserDTOFK?.UserName}")
+                                                       @onclick="@(()=>EditUser(data, user.UserDTOFK.Id))" @onclick:preventDefault>@user.UserDTOFK?.UserName (@(@user.UserDTOFK?.Login))</a>
+                                                </b>
                                             </div>
                                             @if (@user.UserDTOFK?.IsSyncWithAD != true)
                                             {
                                                 <div class="col-md-1 col-lg-0" style="width: 10%; font-size: 10px;">
-                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    @if (!IsRoleModelChangeDisabled)
                                                     {
-                                                        <b>
-                                                            <a href="" title=@($"Отвязать пользователя {user.UserDTOFK?.UserName} от роли {data.Name}")
-                                                               @onclick="@(()=>DeleteUser(data, user.UserDTOFK))" style="text-decoration: none !important; color:#DC143C;  text-align: right !important"
-                                                            @onclick:preventDefault>X</a>
-                                                        </b>
-                                                    }
-                                                    else
-                                                    {
-                                                        <b>
-                                                            <a href="" title=@($"Отвязать пользователя {user.UserDTOFK?.UserName} от роли {data.Name}")
-                                                               style="text-decoration: none !important; color:#DC143C;  text-align: right !important;"
-                                                            @onclick:preventDefault>X</a>
-                                                        </b>
+                                                        @if (IsAdmin == AdminMode.IsAdmin)
+                                                        {
+                                                            <b>
+                                                                <a href="" title=@($"Отвязать пользователя {user.UserDTOFK?.UserName} от роли {data.Name}")
+                                                                @onclick="@(()=>DeleteUser(data, user.UserDTOFK))" style="text-decoration: none !important; color:#DC143C;  text-align: right !important"
+                                                                @onclick:preventDefault>X</a>
+                                                            </b>
+                                                        }
+                                                        else
+                                                        {
+                                                            <b>
+                                                                <a href="" title=@($"Отвязать пользователя {user.UserDTOFK?.UserName} от роли {data.Name}")
+                                                                style="text-decoration: none !important; color:#DC143C;  text-align: right !important;"
+                                                                @onclick:preventDefault>X</a>
+                                                            </b>
+                                                        }
                                                     }
                                                 </div>
                                             }
@@ -146,22 +168,29 @@
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="ReportTemplateTypeTоRoleDTOs" FilterProperty="ReportTemplateTypeString" Title="Шаблоны отчётов" Sortable="false" Filterable="true" Width="44px" FilterOperator="FilterOperator.Contains">
                         <Template Context="data">
-                            <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
-                                <div class="text-center" style="width: 100%; font-size: 10px">
-                                    <button title=@($"Добавить шаблон отчёта к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkReportTemplateTypeToRole(data)"> + Добавить шаблон отчёта + </button>
+                            @if (!IsRoleModelChangeDisabled)
+                            {
+                                <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
+                                    <div class="text-center" style="width: 100%; font-size: 10px">
+                                        <button title=@($"Добавить шаблон отчёта к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkReportTemplateTypeToRole(data)"> + Добавить шаблон отчёта + </button>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                             <RadzenDataList WrapItems="true" Density=Density.Compact AllowPaging="true" Data="data.ReportTemplateTypeTоRoleDTOs" PagerHorizontalAlign="HorizontalAlign.Left" TItem="ReportTemplateTypeTоRoleDTO" PageSize="4" ShowPagingSummary="false">
                                 <Template Context="reportTemplate">
                                     <RadzenCard Style="white-space:pre-wrap; width: 100%; padding: 1px 1px 1px 1px; overflow: hidden; font-size: 10px">
                                         <div class="row" style="width: 100%; padding: 0">
                                             <div class="col-md-12 col-lg-0" style="width: 50%; font-size: 10px">
-                                                <b><a href="" title=@($"Редактировать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name}") @onclick="@(()=>EditReportTemplateType(data, reportTemplate.ReportTemplateTypeDTOFK.Id))" @onclick:preventDefault>@reportTemplate.ReportTemplateTypeDTOFK?.Name</a></b>
+                                                <b>
+                                                    <a style="white-space:pre-line; word-wrap: break-word;" href=""
+                                                       title=@(IsRoleModelChangeDisabled ? $"Просмотр данных типа шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name}": $"Редактировать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name}")
+                                                       @onclick="@(()=>EditReportTemplateType(data, reportTemplate.ReportTemplateTypeDTOFK.Id))" @onclick:preventDefault>@reportTemplate.ReportTemplateTypeDTOFK?.Name</a>
+                                                </b>
                                             </div>
                                             <div class="col-md-1 col-lg-0" style="width: 48%; font-size: 10px;">
                                                 @if (@reportTemplate.CanDownload == true)
                                                 {
-                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    @if (IsAdmin == AdminMode.IsAdmin && !IsRoleModelChangeDisabled)
                                                     {
                                                         <b><a href="" title=@($"Есть право на чтение") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "READ"))" @onclick:preventDefault>Чтение </a></b>
                                                     }
@@ -172,7 +201,7 @@
                                                 }
                                                 else
                                                 {
-                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    @if (IsAdmin == AdminMode.IsAdmin && !IsRoleModelChangeDisabled)
                                                     {
                                                         <b><a href="" title=@($"Нет права на чтение") style="text-decoration: none !important; color:#CACFD2 ; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "READ"))" @onclick:preventDefault>Чтение </a></b>
                                                     }
@@ -183,7 +212,7 @@
                                                 }
                                                 @if (@reportTemplate.CanUpload == true)
                                                 {
-                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    @if (IsAdmin == AdminMode.IsAdmin && !IsRoleModelChangeDisabled)
                                                     {
                                                         <b><a href="" title=@($"Есть право на запись") style="text-decoration: none !important; color:#00FF00; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "WRITE"))" @onclick:preventDefault>Запись  </a></b>
                                                     }
@@ -194,7 +223,7 @@
                                                 }
                                                 else
                                                 {
-                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    @if (IsAdmin == AdminMode.IsAdmin && !IsRoleModelChangeDisabled)
                                                     {
                                                         <b><a href="" title=@($"Нет права на запись") style="text-decoration: none !important; color:#CACFD2; font-size: 9px !important;" @onclick="@(()=>ChangeReadWriteRights(data, reportTemplate.Id, "WRITE"))" @onclick:preventDefault>Запись  </a></b>
                                                     }
@@ -203,14 +232,17 @@
                                                         <b><a href="" title=@($"Нет права на запись") style="text-decoration: none !important; color:#CACFD2; font-size: 9px !important;" @onclick:preventDefault>Запись  </a></b>
                                                     }
                                                 }
-                                                @if (IsAdmin == AdminMode.IsAdmin)
+                                                @if (!IsRoleModelChangeDisabled)
                                                 {
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
 
-                                                    <b><a href="" title=@($"Отвязать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteReportTemplateType(data, reportTemplate.ReportTemplateTypeDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
-                                                }
-                                                else
-                                                {
-                                                    <b><a href="" title=@($"Отвязать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                        <b><a href="" title=@($"Отвязать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteReportTemplateType(data, reportTemplate.ReportTemplateTypeDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b><a href="" title=@($"Отвязать тип шаблона отчёта {reportTemplate.ReportTemplateTypeDTOFK?.Name} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    }
                                                 }
                                             </div>
                                         </div>
@@ -223,27 +255,36 @@
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="RoleToADGroupDTOs" FilterProperty="RoleToADGroupString" Title="Группы AD" Sortable="false" Filterable="true" Width="42px" FilterOperator="FilterOperator.Contains">
 
                         <Template Context="data">
-                            <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
-                                <div class="text-center" style="width: 100%; font-size: 10px">
-                                    <button title=@($"Добавить группу AD к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkADGroupToRole(data)"> + Добавить группу AD + </button>
+                            @if (!IsRoleModelChangeDisabled)
+                            {
+                                <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
+                                    <div class="text-center" style="width: 100%; font-size: 10px">
+                                        <button title=@($"Добавить группу AD к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkADGroupToRole(data)"> + Добавить группу AD + </button>
+                                    </div>
                                 </div>
-                            </div>
-
+                            }
                             <RadzenDataList WrapItems="true" Density=Density.Compact AllowPaging="true" Data="data.RoleToADGroupDTOs" PagerHorizontalAlign="HorizontalAlign.Left" TItem="RoleToADGroupDTO" PageSize="4" ShowPagingSummary="false">
                                 <Template Context="adGroup">
                                     <RadzenCard Style="white-space:pre-wrap; width: 100%; padding: 1px 1px 1px 1px; overflow: hidden; font-size: 10px">
                                         <div class="row" style="width: 100%; padding: 0">
                                             <div class="col-md-12 col-lg-0" style="width: 82%; font-size: 10px">
-                                                <b><a href="" title=@($"Редактировать группу AD {@adGroup.ADGroupDTOFK?.Name}") @onclick="@(()=>EditADGroup(data, adGroup.ADGroupDTOFK.Id))" @onclick:preventDefault>@adGroup.ADGroupDTOFK?.Name</a></b>
+                                                <b>
+                                                    <a style="white-space:pre-line; word-wrap: break-word;" href=""
+                                                       title=@(IsRoleModelChangeDisabled ? $"Просмотр данных группы AD {@adGroup.ADGroupDTOFK?.Name}": $"Редактировать группу AD {@adGroup.ADGroupDTOFK?.Name}")
+                                                       @onclick="@(()=>EditADGroup(data, adGroup.ADGroupDTOFK.Id))" @onclick:preventDefault>@adGroup.ADGroupDTOFK?.Name</a>
+                                                </b>
                                             </div>
                                             <div class="col-md-1 col-lg-0" style="width: 10%; font-size: 10px;">
-                                                @if (IsAdmin == AdminMode.IsAdmin)
+                                                @if (!IsRoleModelChangeDisabled)
                                                 {
-                                                    <b><a href="" title=@($"Отвязать группу AD {adGroup.ADGroupDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteADGroup(data, adGroup.ADGroupDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
-                                                }
-                                                else
-                                                {
-                                                    <b><a href="" title=@($"Отвязать группу AD {adGroup.ADGroupDTOFK?.Name} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
+                                                        <b><a href="" title=@($"Отвязать группу AD {adGroup.ADGroupDTOFK?.Name} от роли {data.Name}") @onclick="@(()=>DeleteADGroup(data, adGroup.ADGroupDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b><a href="" title=@($"Отвязать группу AD {adGroup.ADGroupDTOFK?.Name} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    }
                                                 }
                                             </div>
                                         </div>
@@ -255,27 +296,36 @@
 
                     <RadzenDataGridColumnApp TItem="RoleVMDTO" Property="RoleToDepartmentDTOs" FilterProperty="RoleToDepartmentString" Title="Производства" Sortable="false" Filterable="true" Width="42px" FilterOperator="FilterOperator.Contains">
                         <Template Context="data">
-                            <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
-                                <div class="text-center" style="width: 100%; font-size: 10px">
-                                    <button title=@($"Добавить производства к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkDepartmentToRole(data)"> + Добавить производства + </button>
+                            @if (!IsRoleModelChangeDisabled)
+                            {
+                                <div class="row" style="width: 100%; padding: 0; overflow: hidden;justify-content: center; font-size: 10px">
+                                    <div class="text-center" style="width: 100%; font-size: 10px">
+                                        <button title=@($"Добавить производства к роли {data.Name}") class="btn btn-link" style="color:forestgreen; width: 100%; padding: 0; overflow: hidden; font-size:10px;align-items: center; justify-content: center;" @onclick="()=>LinkDepartmentToRole(data)"> + Добавить производства + </button>
+                                    </div>
                                 </div>
-                            </div>
-
+                            }
                             <RadzenDataList WrapItems="true" Density=Density.Compact AllowPaging="true" Data="data.RoleToDepartmentDTOs" PagerHorizontalAlign="HorizontalAlign.Left" TItem="RoleToDepartmentDTO" PageSize="4" ShowPagingSummary="false">
                                 <Template Context="department">
                                     <RadzenCard Style="white-space:pre-wrap; width: 100%; padding: 1px 1px 1px 1px; overflow: hidden; font-size: 10px">
                                         <div class="row" style="width: 100%; padding: 0">
                                             <div class="col-md-12 col-lg-0" style="width: 82%; font-size: 10px">
-                                                <b><a href="" title=@($"Редактировать производство {@department.DepartmentDTOFK?.ShortName}") @onclick="@(()=>EditDepartment(data, department.DepartmentDTOFK.Id))" @onclick:preventDefault>@department.DepartmentDTOFK?.ShortName</a></b>
+                                                <b>
+                                                    <a style="white-space:pre-line; word-wrap: break-word;" href=""
+                                                       title=@(IsRoleModelChangeDisabled ? $"Просмотр данных производства {@department.DepartmentDTOFK?.ShortName}" : $"Редактировать производство {@department.DepartmentDTOFK?.ShortName}")
+                                                       @onclick="@(()=>EditDepartment(data, department.DepartmentDTOFK.Id))" @onclick:preventDefault>@department.DepartmentDTOFK?.ShortName</a>
+                                                </b>
                                             </div>
                                             <div class="col-md-1 col-lg-0" style="width: 10%; font-size: 10px;">
-                                                @if (IsAdmin == AdminMode.IsAdmin)
+                                                @if (!IsRoleModelChangeDisabled)
                                                 {
-                                                    <b><a href="" title=@($"Отвязать производство {department.DepartmentDTOFK?.ShortName} от роли {data.Name}") @onclick="@(()=>DeleteDepartment(data, department.DepartmentDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
-                                                }
-                                                else
-                                                {
-                                                    <b><a href="" title=@($"Отвязать производство {department.DepartmentDTOFK?.ShortName} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    @if (IsAdmin == AdminMode.IsAdmin)
+                                                    {
+                                                        <b><a href="" title=@($"Отвязать производство {department.DepartmentDTOFK?.ShortName} от роли {data.Name}") @onclick="@(()=>DeleteDepartment(data, department.DepartmentDTOFK))" style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    }
+                                                    else
+                                                    {
+                                                        <b><a href="" title=@($"Отвязать производство {department.DepartmentDTOFK?.ShortName} от роли {data.Name}") style="text-decoration: none !important; color:#DC143C;" @onclick:preventDefault>X</a></b>
+                                                    }
                                                 }
                                             </div>
                                         </div>
@@ -293,19 +343,27 @@
 
                     <RadzenDataGridColumnApp Title="Действия" TItem="RoleVMDTO" Context="roleVMDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="20px">
                         <Template Context="roleVMDTO">
-                            <RadzenButton title="Редактировать роль" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(roleVMDTO))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            @if (!roleVMDTO.IsArchive)
+                            @if (!IsRoleModelChangeDisabled)
                             {
-                                <RadzenButton title="Удалить роль в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium"
-                                              class="my-1 ms-1" Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Редактировать роль" Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(roleVMDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
+                                @if (!roleVMDTO.IsArchive)
+                                {
+                                    <RadzenButton title="Удалить роль в архив" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium"
+                                    class="my-1 ms-1" Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                    </RadzenButton>
+                                }
+                                else
+                                {
+                                    <RadzenButton title="Восстановить роль из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat"
+                                    Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
+                                    Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                    </RadzenButton>
+                                }
                             }
                             else
                             {
-                                <RadzenButton title="Восстановить роль из архива" ButtonStyle="ButtonStyle.Info" Icon="restore_from_trash" Variant="Variant.Flat"
-                                              Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                              Click="@(args => DeleteRow(roleVMDTO))" @onclick:stopPropagation="true" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
+                                <RadzenButton title="Просмотр данных роли" ButtonStyle="ButtonStyle.Info" Icon="info" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@(args => EditRow(roleVMDTO))" @onclick:stopPropagation="true">
                                 </RadzenButton>
                             }
                         </Template>
@@ -340,6 +398,7 @@
     public AdminMode IsAdmin { get; set; }
     public bool excelExportFlag { get; set; } = false;
     Guid userDictionaryManagementGuid { get; set; }
+    public bool IsRoleModelChangeDisabled { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -357,6 +416,13 @@
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
+                IsRoleModelChangeDisabled = true;
+                SettingsDTO? settingsDTO = await _settingsRepository.GetByName(SD.RoleModelChangeDisabledSettingName);
+                if (settingsDTO != null)
+                {
+                    if (settingsDTO.Value.Trim() == "0")
+                        IsRoleModelChangeDisabled = false;
+                }
                 roleVMDTOs = await _roleVMRepository.GetAll(SD.SelectDictionaryScope.All);
                 userDictionaryManagementGuid = (await _authorizationRepository.GetCurrentUserDTO()).Id;
                 IsLoading = false;
@@ -409,7 +475,7 @@
 
     async Task EditRow(RoleVMDTO roleVMDTO)
     {
-        
+
         if (IsAdmin == AdminMode.IsAdmin || IsAdmin == AdminMode.IsAdminReadOnly)
         {
             IsLoading = true;
@@ -417,12 +483,12 @@
             if (roleVMDTO == null)
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>(IsRoleModelChangeDisabled ? "Просмотр данных роли" : "Создать роль СИР", new Dictionary<string, object>() { { "RoleId", Guid.Empty }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             else
             {
                 IsLoading = false;
-                dialogResult = await _dialogService.OpenAsync<AddEditRole>("Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+                dialogResult = await _dialogService.OpenAsync<AddEditRole>(IsRoleModelChangeDisabled ? "Просмотр данных роли" : "Изменить роль СИР", new Dictionary<string, object>() { { "RoleId", roleVMDTO.Id }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
             }
             if (dialogResult != null)
             {
@@ -748,7 +814,7 @@
     }
 
     async Task ChangeReadWriteRights(RoleVMDTO roleVMDTO, int reportTemplateTypeToRoleId, string modeString)
-    {        
+    {
         if (!((modeString.Trim().ToUpper() == "READ") || (modeString.Trim().ToUpper() == "WRITE")))
         {
             await _jsRuntime.ToastrError("Не предусмотренный параметр modeString = \"" + modeString.Trim().ToUpper() + "\" передан в процедуру ChangeReadWriteRights!");
@@ -848,7 +914,7 @@
             UserDTO dialogResult;
 
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditUser>("Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+            dialogResult = await _dialogService.OpenAsync<AddEditUser>(IsRoleModelChangeDisabled ? "Просмотр данных пользователя" : "Изменить пользователя", new Dictionary<string, object>() { { "UserId", userId }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
@@ -867,7 +933,7 @@
             IsLoading = true;
             ADGroupDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>("Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
+            dialogResult = await _dialogService.OpenAsync<AddEditADGroup>(IsRoleModelChangeDisabled ? "Просмотр данных группы AD" : "Изменить группу AD", new Dictionary<string, object>() { { "ADGroupId", adGroupId }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 450px)" });
 
             if (dialogResult != null)
             {
@@ -886,7 +952,7 @@
             IsLoading = true;
             MesDepartmentDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>("Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", departmentId } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
+            dialogResult = await _dialogService.OpenAsync<AddEditMesDepartment>(IsRoleModelChangeDisabled ? "Просмотр данных производства" : "Изменить производство", new Dictionary<string, object>() { { "MesDepartmentId", departmentId }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{1100}px", Left = $"calc(50vw - 750px)" });
             if (dialogResult != null)
             {
                 roleVMDTO.RoleToDepartmentDTOs = await _roleVMRepository.GetDepartmentsLinkedToRoleByRoleId(roleVMDTO.Id);
@@ -904,7 +970,7 @@
             IsLoading = true;
             ReportTemplateTypeDTO dialogResult;
             IsLoading = false;
-            dialogResult = await _dialogService.OpenAsync<AddEditReportTemplateType>("Изменить тип шаблона отчёта", new Dictionary<string, object>() { { "ReportTemplateTypeId", reportTemplateTypeId } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 500px)" });
+            dialogResult = await _dialogService.OpenAsync<AddEditReportTemplateType>(IsRoleModelChangeDisabled ? "Просмотр данных типа шаблона отчёта" : "Изменить тип шаблона отчёта", new Dictionary<string, object>() { { "ReportTemplateTypeId", reportTemplateTypeId }, { "IsRoleModelChangeDisabled", IsRoleModelChangeDisabled } }, new DialogOptions() { Width = $"{700}px", Left = $"calc(50vw - 500px)" });
             if (dialogResult != null)
             {
                 roleVMDTO.ReportTemplateTypeTоRoleDTOs = await _roleVMRepository.GetReportTemplateTypesLinkedToRoleByRoleId(roleVMDTO.Id);
@@ -916,7 +982,7 @@
 
     async Task ExcelExport()
     {
-        excelExportFlag = true;        
+        excelExportFlag = true;
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
 

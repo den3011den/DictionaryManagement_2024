@@ -35,31 +35,31 @@
                                 }
 
                                 <RadzenFormField Text="Логин" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                                    <RadzenTextBox @bind-Value="@ActiveUserDTO.Login" />
+                                    <RadzenTextBox @bind-Value="@ActiveUserDTO.Login" ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveUserDTO.Login"></ValidationMessage>
 
 
                                 <RadzenFormField Text="ФИО" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                                    <RadzenTextBox @bind-Value="@ActiveUserDTO.UserName" />
+                                    <RadzenTextBox @bind-Value="@ActiveUserDTO.UserName" ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveUserDTO.UserName"></ValidationMessage>
 
                                 <RadzenFormField Text="Описание" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                                    <RadzenTextBox @bind-Value="@ActiveUserDTO.Description" />
+                                    <RadzenTextBox @bind-Value="@ActiveUserDTO.Description" ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveUserDTO.Description"></ValidationMessage>
 
                                 <RadzenLabel Text="Синхронизировать роли с группами AD (автоматический пользователь):" Component="CheckBox4" Style="margin-left: 8px; margin-top: 8px;" />
-                                <RadzenSelectBar @bind-Value="@ActiveUserDTO.IsSyncWithAD" TValue="bool" class="mb-4" Name="CheckBox4">
+                                <RadzenSelectBar @bind-Value="@ActiveUserDTO.IsSyncWithAD" TValue="bool" class="mb-4" Name="CheckBox4" Style="@(IsRoleModelChangeDisabled ? "pointer-events: none;" :"pointer-events:auto;")">
                                     <Items>
                                         <RadzenSelectBarItem Text="Да" Value="true" />
-                                        <RadzenSelectBarItem Text="Нет" Value="false" />
+                                        <RadzenSelectBarItem Text="Нет" Value="false"/>
                                     </Items>
                                 </RadzenSelectBar>
 
                                 <RadzenLabel Text="Сервисный пользователь:" Component="CheckBox5" Style="margin-left: 8px; margin-top: 8px;" />
-                                <RadzenSelectBar @bind-Value="@ActiveUserDTO.IsServiceUser" TValue="bool" class="mb-4" Name="CheckBox5">
+                                <RadzenSelectBar @bind-Value="@ActiveUserDTO.IsServiceUser" TValue="bool" class="mb-4" Name="CheckBox5" Style="@(IsRoleModelChangeDisabled ? "pointer-events: none;" :"pointer-events:auto;")">
                                     <Items>
                                         <RadzenSelectBarItem Text="Да" Value="true" />
                                         <RadzenSelectBarItem Text="Нет" Value="false" />
@@ -67,16 +67,26 @@
                                 </RadzenSelectBar>
 
                                 <RadzenLabel Text="Время последней синхронизации ролей с группами AD:" Style="margin-left: 8px; margin-top: 8px;" />
-                                <RadzenDatePicker TValue="DateTime" @bind-Value=@ActiveUserDTO.SyncWithADGroupsLastTime ShowSeconds="true" ShowTime="true" HourFormat="24" DateFormat="dd.MM.yyyy HH:mm:ss" />
+                                <RadzenDatePicker TValue="DateTime" @bind-Value=@ActiveUserDTO.SyncWithADGroupsLastTime
+                                                  ShowSeconds="true" ShowTime="true" HourFormat="24" DateFormat="dd.MM.yyyy HH:mm:ss" ReadOnly="@(IsRoleModelChangeDisabled)" />
 
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
 
-                    <div class="form-group py-2">
-                        <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-success" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
-                        <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
-                    </div>
+                    @if (!IsRoleModelChangeDisabled)
+                    {
+                        <div class="form-group py-2">
+                            <button title="Сохранить изменения" style="pointer-events: auto;" class="btn btn-success" disabled=@(IsAdmin != AdminMode.IsAdmin)>@Title</button>
+                            <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary">Отмена</NavLink>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group py-2">
+                            <NavLink @onclick="(() => OnClickCancel())" class="btn btn-info">Закрыть</NavLink>
+                        </div>
+                    }
                 </EditForm>
             }
         </div>
@@ -91,6 +101,8 @@
     [Parameter]
     public Guid UserId { get; set; }
 
+    [Parameter]
+    public bool IsRoleModelChangeDisabled { get; set; }
 
     Variant variant = Variant.Outlined;
 
@@ -124,6 +136,12 @@
 
             Title = "Изменить пользователя";
         }
+
+        if (IsRoleModelChangeDisabled)
+        {
+            Title = "Просмотр данных пользователя";
+        }
+
         IsLoading = false;
         await Task.Delay(10);
         await InvokeAsync(StateHasChanged);
@@ -150,6 +168,11 @@
                     Title = "Изменить пользователя";
                     // if (ActiveUserDTO.SyncWithADGroupsLastTime == null)
                     //     ActiveUserDTO.SyncWithADGroupsLastTime = DateTime.MinValue.AddSeconds(1);
+                }
+
+                if (IsRoleModelChangeDisabled)
+                {
+                    Title = "Просмотр данных пользователя";
                 }
 
                 IsLoading = false;
