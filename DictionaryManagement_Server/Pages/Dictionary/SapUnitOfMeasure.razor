@@ -18,10 +18,6 @@
 
     <div class="row">
 
-@*         <div class="col-6">
-            <h6 class="card-title text-primary"><a href="dictionary">Справочники</a> - <a href="/dictionary/SapUnitOfMeasure">Единицы измерения SAP</a></h6>
-        </div> *@
-
         <div class="col-12">
             <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Единицы измерения SAP</font></strong></h6>
         </div>
@@ -65,15 +61,15 @@
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="Name" Title="Наименование">
                         <EditTemplate Context="sapUnitOfMeasureDTO">
                             <RadzenTextBox @bind-Value="sapUnitOfMeasureDTO.Name" Style="width:100%; display: block" Name="Name" />
-                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
-                            <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязательно к заполнению" Component="Name"/>
+                            <RadzenLengthValidator Max=250 Text="Не больше 250 символов" Component="Name"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="SapUnitOfMeasureDTO" Property="ShortName" Title="Сокр. наименование">
                         <EditTemplate Context="sapUnitOfMeasureDTO">
                             <RadzenTextBox @bind-Value="sapUnitOfMeasureDTO.ShortName" Style="width:100%; display: block" Name="ShortName" />
-                            <RadzenRequiredValidator Text="Сокр. наименование обязателено к заполнению" Component="ShortName" Popup="true" />
-                            <RadzenLengthValidator Max=100 Text="Сокр. наименование не может быть больше 100 символов" Component="ShortName" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязательно к заполнению" Component="ShortName"/>
+                            <RadzenLengthValidator Max=100 Text="Не больше 100 символов" Component="ShortName"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 

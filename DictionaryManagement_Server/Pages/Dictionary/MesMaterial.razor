@@ -68,9 +68,9 @@
                     <RadzenDataGridColumnApp TItem="MesMaterialDTO" Property="Id" Title="Ид записи" Width="120px" />
                     <RadzenDataGridColumnApp TItem="MesMaterialDTO" Property="Code" Title="Код материала" Width="120px">
                         <EditTemplate Context="mesMaterialDTO">
-                            <RadzenTextBox @bind-Value="mesMaterialDTO.Code" Style="width:50%; display: block" Name="Code" />
-                            <RadzenRequiredValidator Text="Код материала обязателен к заполнению" Component="Code" Popup="true" />
-                            <RadzenLengthValidator Max=100 Text="Код материала не может быть больше 100 символов" Component="Code" Popup="true" />
+                            <RadzenTextBox @bind-Value="mesMaterialDTO.Code" Style="width:100%; display: block" Name="Code" />
+                            <RadzenRequiredValidator Text="Обязателен к заполнению" Component="Code"/>
+                            <RadzenLengthValidator Max=100 Text="Не больше 100 символов" Component="Code"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
@@ -82,9 +82,10 @@
                         </Template>
 
                         <EditTemplate Context="mesMaterialDTO">
-                            <RadzenTextBox @bind-Value="mesMaterialDTO.Name" Style="width:100%; display: block" Name="Name" />
-                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
-                            <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                            @* <RadzenTextBox @bind-Value="mesMaterialDTO.Name" Style="width:100%; display: block" Name="Name" /> *@
+                            <RadzenTextArea Name="Name" Style="width:100%; display: block;" @bind-Value=mesMaterialDTO.Name Rows="2" />
+                            <RadzenRequiredValidator Text="Обязательно к заполнению" Component="Name"/>
+                            <RadzenLengthValidator Max=250 Text="Не больше 250 символов" Component="Name"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
@@ -95,9 +96,10 @@
                             </div>
                         </Template>
                         <EditTemplate Context="mesMaterialDTO">
-                            <RadzenTextBox @bind-Value="mesMaterialDTO.ShortName" Style="width:100%; display: block" Name="ShortName" />
-                            <RadzenRequiredValidator Text="Сокр. наименование обязателено к заполнению" Component="ShortName" Popup="true" />
-                            <RadzenLengthValidator Max=100 Text="Сокр. наименование не может быть больше 100 символов" Component="ShortName" Popup="true" />
+                            @* <RadzenTextBox @bind-Value="mesMaterialDTO.ShortName" Style="width:100%; display: block" Name="ShortName" /> *@
+                            <RadzenTextArea Name="ShortName" Style="width:100%; display: block;" @bind-Value=mesMaterialDTO.Name Rows="2" />
+                            <RadzenRequiredValidator Text="Обязательно к заполнению" Component="ShortName"/>
+                            <RadzenLengthValidator Max=100 Text="Не больше 100 символов" Component="ShortName"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 

@@ -73,8 +73,8 @@
                         </Template>
                         <EditTemplate Context="settingsDTO">
                             <RadzenTextBox @bind-Value="settingsDTO.Name" Style="width:100%; display: block" Name="Name" />
-                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
-                            <RadzenLengthValidator Max=100 Text="Наименование не может быть больше 100 символов" Component="Name" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязательно к заполнению" Component="Name" />
+                            <RadzenLengthValidator Max=100 Text="Не больше 100 символов" Component="Name"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                     
@@ -85,8 +85,8 @@
                             </div>
                         </Template>
                         <EditTemplate Context="settingsDTO">
-                            <RadzenTextBox @bind-Value="settingsDTO.Description" Style="width:100%; display: block" Name="Description" />
-                            <RadzenLengthValidator Max=300 Text="Описание не может быть больше 300 символов" Component="Description" Popup="true" />
+                            <RadzenTextArea Name="Description" Style="width:100%; display: block;" @bind-Value=@settingsDTO.Description Rows="3" MaxLength="300" />
+                            <RadzenLengthValidator Max=300 Text="Не больше 300 символов" Component="Description"  />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
@@ -96,8 +96,8 @@
                                 @settingsDTO.Value
                             </div>
                         </Template>
-                        <EditTemplate Context="settingsDTO">
-                            <RadzenTextBox @bind-Value="settingsDTO.Value" Style="width:100%; display: block" Name="Value" />
+                        <EditTemplate Context="settingsDTO">                            
+                            <RadzenTextArea Style="width:100%; display: block;" @bind-Value=settingsDTO.Value Rows="3"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
