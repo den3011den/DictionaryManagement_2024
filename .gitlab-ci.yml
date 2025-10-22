@@ -1,0 +1,82 @@
+include:
+  - project: 'devops/svd/ci-templates'  #Подключаем проект, содержащий stages, ответственные за публикацию артефактов и проверку сонара
+    ref: '3.0.9'                        #Версия релиза используемого проекта
+    file: '/full_ci.yml'                #Название подключаемого файла в проекте  
+
+variables:
+  ARTIFACTORY_DEV_REPO: dpd-semrug-generic-dev     #Директория в репозитории артефактов для среды разработки   
+  ARTIFACTORY_RC_REPO: dpd-semrug-generic-rc       #Директория в репозитории артефактов для КСПД
+  PROJECT_NAME: DictionaryManagement               #Наименование проекта, совпадает с наименованием директории файла sonar-poject.properties 
+  ARTIFACT_TYPE: zip                               #Формат артефакта 
+  FILE_ARTIFACT_PATH: 'DictionaryManagement.zip'   #Наименование артефакта  
+  OWASP_DISABLE_EXPERIMENTAL: 'true'               #Отключаем проверку Open Web Application Security Project
+  ARTIFACTORY_KSPD_HOST: repo-test.sibur.local     #Наименование репозитория артефактов в КСПД  
+
+stages:
+  - build           #Этап сборки
+  - publishing      #Этап публикации артефакта в артефактори репозиторий
+  - sonar-check     #Этап проверки состоящий из artifact-scan, sonar-scan, validation
+
+"Trigger Sonar check on tag":   #Переопределяем условия для тригера запуска проверки сонара - тег содержит не дату, а версию релиза
+  stage:
+    sonar-check
+  rules:
+    - if: '$ARTIFACT_TYPE == "lib"'
+      when: never
+    - if:  '$CI_COMMIT_TAG =~ /^[v]?\d+.\d+.\d+-prerelease-sonar$/'       #Переопределение формата тэга
+      when: never
+    - if:  '$CI_COMMIT_TAG =~ /^[v]?\d+.\d+.\d+-prerelease-sonar-b\d+$/'  #Переопределение формата тэга
+      when: never
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+\.\d+[tp]$/'                 ##Переопределение формата тэга - новый формат v2.2.1.73p или v2.2.1.73t
+      when: on_success
+    - when: never
+
+"Publish ZIP Archive":    #Переопределяем условия для копирования ZIP артефакта в репозиторий артефактов, триггер только для веток dev и master, тем самым исключаем остальные
+  stage:
+    publishing
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      when: on_success
+    - when: never
+
+"Build":    #Этап компиляции проекта 
+  stage:
+    build
+  image: repo.dev002.local/devops-svd-infrastructure-docker-rc/ssh:1.0.0
+  tags:
+    - docker_fct_dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      when: on_success
+    - when: never 
+  before_script:
+    #Создаем закрытый ключ для подключения к Windows серверу (ВМ в dev) 
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo $SSH_DEV002_WINDOTNET_PRIVATEKEY | base64 -d > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+    #Выполняем скрипт, удаляющий старые экземпляры, оставляя только 10 свежих 
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no SenotrusovMS@172.21.12.103 "powershell.exe -File C:\\7RUG\\cleanup.ps1"
+    #Удаляем папку с проектом, если таковая существует
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no SenotrusovMS@172.21.12.103 "IF EXIST C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA ( rmdir /s /q C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA )"
+    #Cоздаем папку для копирования проекта
+    - echo "Create C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA"
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no SenotrusovMS@172.21.12.103 mkdir C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA
+    #Копируем во временную папку на ВМ в дев с DotNET все содержимое из git-репозитория 
+    - scp -r ./* SenotrusovMS@172.21.12.103:C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA
+  script:
+    #Выполняем сборку
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no SenotrusovMS@172.21.12.103 dotnet restore C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA\\DictionaryManagement_Server\\DictionaryManagement_Server.csproj --source https://repo.dev002.local/artifactory/api/nuget/v3/nuget
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no SenotrusovMS@172.21.12.103 dotnet publish -f net7.0 C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA\\DictionaryManagement_Server\\DictionaryManagement_Server.csproj -c Release --no-restore
+    #Архивируем сборку - это будет наш артефакт
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no SenotrusovMS@172.21.12.103 "\"C:\\Program Files\\7-Zip\\7z.exe\" a C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA\\$FILE_ARTIFACT_PATH C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA\\DictionaryManagement_Server\\bin\\Release\\net7.0\\publish\\." 
+    - echo "Downloading C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA\\$FILE_ARTIFACT_PATH"
+    #Копируем артефакт обратно на раннер
+    - scp -r SenotrusovMS@172.21.12.103:C:\\7RUG\\$PROJECT_NAME\\$CI_COMMIT_SHORT_SHA\\$FILE_ARTIFACT_PATH ./
+    - ls -la
+  artifacts:
+    when: always
+    paths:
+      - $FILE_ARTIFACT_PATH
+    expire_in: 2 days

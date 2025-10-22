@@ -39,7 +39,8 @@
                                 <ValidationMessage For="()=>ActiveRoleDTO.Name"></ValidationMessage>
 
                                 <RadzenFormField Text="Описание" Variant="@variant" Style="width: 100%; max-width: 600px;">
-                                    <RadzenTextBox @bind-Value="@ActiveRoleDTO.Description" ReadOnly="@(IsRoleModelChangeDisabled)" />
+                                    @* <RadzenTextBox @bind-Value="@ActiveRoleDTO.Description" ReadOnly="@(IsRoleModelChangeDisabled)" /> *@
+                                    <RadzenTextArea Name="Description" @bind-Value=@ActiveRoleDTO.Description Rows="3" MaxLength="300" ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveRoleDTO.Description"></ValidationMessage>
 

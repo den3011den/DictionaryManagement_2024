@@ -225,7 +225,8 @@
             </RadzenRow>
             <div class="form-group py-2">
                 <button class="btn btn-success" @onclick="(() => OnClickSave().GetAwaiter().GetResult())"
-                        disabled=@(IsSubmited || (IsAdmin != AdminMode.IsAdmin) || (isUploadFileError == true) || (showProgress == true))>
+                        disabled=@(IsSubmited || (IsAdmin != AdminMode.IsAdmin) || (showProgress == true))>
+                    @* || (isUploadFileError == true) *@
                     @Title
                 </button>
                 <NavLink @onclick="(() => OnClickCancel())" class="btn btn-secondary" disabled=@(IsSubmited)>Отмена</NavLink>
@@ -374,9 +375,10 @@
 
     private async Task AddEditReportTemplateProcedure()
     {
+        isUploadFileError = false;
         IsSubmited = true;
         string oldTitle = Title;
-        Title = "Выполняется ...";        
+        Title = "Выполняется ...";
         await Task.Delay(100);
         await InvokeAsync(StateHasChanged);
         if (IsAdmin == AdminMode.IsAdmin)
@@ -481,7 +483,7 @@
                 bool fileSaveSuccess = false;
                 try
                 {
-                    File.Copy(System.IO.Path.Combine(TempFilePath, ActiveReportTemplateDTO.TemplateFileName), System.IO.Path.Combine(ReportTemplatePath , ActiveReportTemplateDTO.TemplateFileName), true);
+                    File.Copy(System.IO.Path.Combine(TempFilePath, ActiveReportTemplateDTO.TemplateFileName), System.IO.Path.Combine(ReportTemplatePath, ActiveReportTemplateDTO.TemplateFileName), true);
                     fileSaveSuccess = true;
                 }
                 catch (Exception copyEx)
@@ -682,7 +684,7 @@
                 await _jsRuntime.ToastrError("Не существует путь: " + reportTemplateFilePath);
                 return;
             }
-            
+
             string filepath = System.IO.Path.Combine(reportTemplateFilePath, reportTemplateDTO.Id.ToString() + ".xlsx");
 
             if (!System.IO.File.Exists(filepath))
@@ -709,7 +711,7 @@
 
     private async Task OnClickSave()
     {
-        IsSubmited = true;        
+        IsSubmited = true;
         if (IsAdmin == AdminMode.IsAdmin)
         {
             UserDTO? currentUserDTO = await _authorizationRepository.GetCurrentUserDTO(SD.MessageBoxMode.Off);
@@ -812,7 +814,33 @@
     {
         isUploadFileError = true;
         uploadFileErrorString = args.Message;
-        var dialogResult = _dialogService.OpenAsync<CustomError>("", new Dictionary<string, object>() { { "ErrorString", uploadFileErrorString } }, new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
+
+        if (uploadFileErrorString.Contains("The process cannot access the file"))
+        {
+
+            string messStr = "<strong>Не удалось получить доступ к файлу, так как он занят другим процессом.</strong>"
+                                   + "<br/><br/><strong>Сообщение ошибки: </strong>" + uploadFileErrorString
+                                   + "<br/><br/><strong>Это может означать следующее:</strong> <br/>"
+                                   + "<li>Файл открыт в Excel Вами или другим пользователем</li>"
+                                   + "<li>Ваш коллега в данный момент работает с этим же шаблоном отчёта - пытается его заменить или проверить в карточке Шаблона отчёта в другой копии приложения</li>"
+                                   + "<li>Вы работаете с одним с и тем же шаблоном отчёта (карточкой шаблона отчёта) в разных вкладках браузера или в разных копиях браузера </li>"
+                                   + "<br/>"
+                                   + "<strong>Что можно предпринять:</strong> <br/>"
+                                   + "<li>Закрыть это окно и заново попробовать сохранить или проверить файл шаблона отчёта</li>"
+                                   + "<li>Закрыть все файлы, открытые Вами в Excel, закрыть это окно и попробовать сохранить или проверить файл заново в карточке Шаблона отчёта</li>"
+                                   + "<li>Выяснить не работают ли коллеги с этой карточкой Шаблона отчёта, попросить закрыть карточку шаблона отчёта, закрыть файлы открытые в Excel, закрыть это окно и попробовать сохранить или проверить файл заново в карточке Шаблона отчёта</li>"
+                                   + "<li>Перезапустить браузер и попробовать произвести процедуру заново</li>"
+                                   + "<br/>"
+                                   + "<br/>"
+                                   + "<strong>Если ничего не помогло</strong> - пожалуйста скопируйте текст ошибки или сделайте скриншот и отправьте по адресу <a href=\"mailto:bogomolovds@tnhk.sibur.ru\" target = \"_blank\">bogomolovds@tnhk.sibur.ru</a>"
+                                   + "<br/>";            
+            bool selectionResult2 = await _dialogs.ShowYesOrNoDialogBox("Ошибка работы с файлом шаблона отчёта",
+                    "<strong><div style=\"color:red\">Не удалось получить доступ к файлу.</div></strong>", "OK", "HIDE", messStr);
+        }
+        else
+        {
+            var dialogResult = _dialogService.OpenAsync<CustomError>("", new Dictionary<string, object>() { { "ErrorString", uploadFileErrorString } }, new DialogOptions() { Width = $"{90}rem", Left = $"calc(50vw - 55rem)" });
+        }
     }
 
     private async Task<bool> CanCheckReportTemplateFile()

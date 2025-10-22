@@ -117,7 +117,7 @@
                         </Template>
                         <EditTemplate Context="сorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenDropDown Data="@correctionReasonDTOs" @bind-Value="сorrectionReasonToReportTemplateTypeAndDataTypeDTO.CorrectionReasonDTOFK" Style="width:100%; display: block;" Name="CorReas" />
-                            <RadzenRequiredValidator Text="Причина корректировки обязательна к выбору" Component="CorReas" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязательна к выбору" Component="CorReas"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
@@ -154,7 +154,7 @@
                         </Template>
                         <EditTemplate Context="сorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenDropDown Data="@reportTemplateTypeDTOs" @bind-Value="сorrectionReasonToReportTemplateTypeAndDataTypeDTO.ReportTemplateTypeDTOFK" Style="width:100%; display: block;" Name="RepTempType" />
-                            <RadzenRequiredValidator Text="Тип шаблона отчёта обязателен к выбору" Component="RepTempType" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязателен к выбору" Component="RepTempType"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Title="Тип данных" Property="DataTypeDTOFK.Name" Type="typeof(IEnumerable<string>)" Width="150px" Filterable="true"
@@ -190,7 +190,7 @@
                         <EditTemplate Context="сorrectionReasonToReportTemplateTypeAndDataTypeDTO">
                             <RadzenDropDown Data="@dataTypeDTOs" @bind-Value="сorrectionReasonToReportTemplateTypeAndDataTypeDTO.DataTypeDTOFK"
                                             Style="width:100%; display: block;" Name="DatType" />
-                            <RadzenRequiredValidator Text="Тип данных обязателен к выбору" Component="DatType" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязателен к выбору" Component="DatType"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp Title="Действия" TItem="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Context="CorrectionReasonToReportTemplateTypeAndDataTypeDTO" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="100px">

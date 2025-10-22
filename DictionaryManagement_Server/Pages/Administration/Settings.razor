@@ -17,9 +17,9 @@
 
     <div class="row">
 
-@*         <div class="col-6">
-            <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Settings">Настройки</a></h6>
-        </div> *@
+        @*         <div class="col-6">
+    <h6 class="card-title text-primary"><a href="/administration">Администрирование</a> - <a href="/administration/Settings">Настройки</a></h6>
+    </div> *@
 
         <div class="col-12">
             <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/administration">Администрирование</a> - <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Настройки</font></strong></h6>
@@ -53,7 +53,7 @@
         {
 
             <RadzenDataGridApp @bind-Settings="@SettingsGridSettings" SettingsName="SettingsGridSettings" @ref="settingsDTOGrid" AllowAlternatingRows="true" AllowFiltering="true" AllowPaging="false" AllowSorting="true" AllowMultiColumnSorting="true" EditMode="DataGridEditMode.Single"
-                               Data="@settingsDTOs" TItem="SettingsDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"
+                               Data="@settingsDTOs" TItem="SettingsDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset"                                                        
                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                FilterMode="FilterMode.Advanced"
                                Density=Density.Compact
@@ -73,11 +73,11 @@
                         </Template>
                         <EditTemplate Context="settingsDTO">
                             <RadzenTextBox @bind-Value="settingsDTO.Name" Style="width:100%; display: block" Name="Name" />
-                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
-                            <RadzenLengthValidator Max=100 Text="Наименование не может быть больше 100 символов" Component="Name" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязательно к заполнению" Component="Name" />
+                            <RadzenLengthValidator Max=100 Text="Не больше 100 символов" Component="Name" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
-                    
+
                     <RadzenDataGridColumnApp TItem="SettingsDTO" Property="Description" Title="Описание" Width="200px">
                         <Template Context="settingsDTO">
                             <div style="white-space:pre-line; word-wrap: break-word;">
@@ -85,8 +85,8 @@
                             </div>
                         </Template>
                         <EditTemplate Context="settingsDTO">
-                            <RadzenTextBox @bind-Value="settingsDTO.Description" Style="width:100%; display: block" Name="Description" />
-                            <RadzenLengthValidator Max=300 Text="Описание не может быть больше 300 символов" Component="Description" Popup="true" />
+                            <RadzenTextArea Name="Description" Style="width:100%; display: block;" @bind-Value=@settingsDTO.Description Rows="3" MaxLength="300" />
+                            <RadzenLengthValidator Max=300 Text="Не больше 300 символов" Component="Description" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
@@ -97,7 +97,7 @@
                             </div>
                         </Template>
                         <EditTemplate Context="settingsDTO">
-                            <RadzenTextBox @bind-Value="settingsDTO.Value" Style="width:100%; display: block" Name="Value" />
+                            <RadzenTextArea Style="width:100%; display: block;" @bind-Value=settingsDTO.Value Rows="3" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 
@@ -117,10 +117,7 @@
                             <RadzenButton title="Отмена" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1"
                                           Click="@((args) => CancelEdit(SettingsDTO))">
                             </RadzenButton>
-@*                             <RadzenButton title="Удалить" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="my-1 ms-1"
-                                          Click="@(args => DeleteRow(SettingsDTO))" Disabled="@(IsAdmin != AdminMode.IsAdmin)">
-                            </RadzenButton>
- *@                        </EditTemplate>
+                        </EditTemplate>
                     </RadzenDataGridColumnApp>
                 </Columns>
             </RadzenDataGridApp>
@@ -205,7 +202,9 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
     }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -218,7 +217,7 @@
                 await LoadStateAsync();
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
-                settingsDTOs = _settingsRepository.GetAll().Result;
+                 settingsDTOs = _settingsRepository.GetAll().Result;
                 IsLoading = false;
                 await Task.Delay(100);
                 await InvokeAsync(StateHasChanged);
@@ -290,7 +289,7 @@
 
                             await settingsDTOGrid.UpdateRow(settingsDTO);
                             await _jsRuntime.ToastrSuccess("Отмена");
-                            
+
                             return;
                         }
                     }
@@ -410,10 +409,10 @@
 
             if (settingsDTO.Name.Trim().ToUpper().Contains("PATH") || settingsDTO.Name.Trim().ToUpper().Contains("FOLDER"))
             {
-                if(!Directory.Exists(settingsDTO.Value))
+                if (!Directory.Exists(settingsDTO.Value))
                 {
                     if (_dialogs != null)
-                    {                        
+                    {
                         bool selectionResult = await _dialogs.ShowYesOrNoDialogBox("Добавление настройки",
                             "На диске сервера приложения не найден путь: \"" + settingsDTO.Name + "\". Путь не существует или недостаточно прав." +
                             " Всё равно сохранить изменения ?", "Сохранить", "Отмена");

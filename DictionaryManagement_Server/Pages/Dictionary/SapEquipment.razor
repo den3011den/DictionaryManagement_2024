@@ -17,10 +17,6 @@
 {
     <_Dialogs @ref="_dialogs"></_Dialogs>
     <div class="row">
-        @*         <div class="col-6">
-    <h6 class="card-title text-primary"><a href="/dictionary">Справочники</a> - <a href="/dictionary/SapEquipment">Ресурсы SAP</a></h6>
-    </div> *@
-
         <div class="col-12">
             <h6 class="card-title text-primary"><a href="/">Главная</a> - <a href="/dictionary">Справочники</a> -  <strong><font style="font-size:1.1rem; color:cornflowerblue;text-decoration: cornflowerblue overline; text-underline-offset: 5px; text-decoration-thickness: 4px;">Ресурсы SAP</font></strong></h6>
         </div>
@@ -73,8 +69,8 @@
                         </Template>
                         <EditTemplate Context="sapEquipmentDTO">
                             <RadzenTextBox @bind-Value="sapEquipmentDTO.ErpPlantId" Style="width:100%; display: block" Name="ErpPlantId" />
-                            <RadzenRequiredValidator Text="Код завода обязателен к заполнению" Component="ErpPlantId" Popup="true" />
-                            <RadzenLengthValidator Max=100 Text="Код завода не может быть больше 100 символов" Component="ErpPlantId" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязателен к заполнению" Component="ErpPlantId"/>
+                            <RadzenLengthValidator Max=100 Text="Не больше 100 символов" Component="ErpPlantId"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="ErpId" Title="Код ресурса/склада SAP" Width="155px">
@@ -85,8 +81,8 @@
                         </Template>
                         <EditTemplate Context="sapEquipmentDTO">
                             <RadzenTextBox @bind-Value="sapEquipmentDTO.ErpId" Style="width:100%; display: block" Name="ErpId" />
-                            <RadzenRequiredValidator Text="Код ресурса/склада обязателен к заполнению" Component="ErpId" Popup="true" />
-                            <RadzenLengthValidator Max=100 Text="Код ресурса/склада не может быть больше 100 символов" Component="ErpId" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязателен к заполнению" Component="ErpId"/>
+                            <RadzenLengthValidator Max=100 Text="Не больше 100 символов" Component="ErpId"/>
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
                     <RadzenDataGridColumnApp TItem="SapEquipmentDTO" Property="Name" Title="Наименование" Width="400px">
@@ -97,8 +93,8 @@
                         </Template>
                         <EditTemplate Context="sapEquipmentDTO">
                             <RadzenTextBox @bind-Value="sapEquipmentDTO.Name" Style="width:100%; display: block" Name="Name" />
-                            <RadzenRequiredValidator Text="Наименование обязателено к заполнению" Component="Name" Popup="true" />
-                            <RadzenLengthValidator Max=250 Text="Наименование не может быть больше 250 символов" Component="Name" Popup="true" />
+                            <RadzenRequiredValidator Text="Обязательно к заполнению" Component="Name"/>
+                            <RadzenLengthValidator Max=250 Text="Не больше 250 символов" Component="Name" />
                         </EditTemplate>
                     </RadzenDataGridColumnApp>
 

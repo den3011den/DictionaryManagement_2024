@@ -8,6 +8,7 @@ namespace DictionaryManagement_Server.Controllers
 {
     public class DownloadFileController : Controller
     {
+
         private readonly ISettingsRepository _settingsRepository;
         private readonly IReportTemplateRepository _reportTemplateRepository;
         private readonly IReportEntityRepository _reportEntityRepository;

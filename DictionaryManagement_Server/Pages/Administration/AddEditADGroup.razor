@@ -40,7 +40,8 @@
                                 <ValidationMessage For="()=>ActiveADGroupDTO.Name"></ValidationMessage>
 
                                 <RadzenFormField Text="Описание" Variant="@variant" Style="width: 100%; max-width: 900px;">
-                                    <RadzenTextBox @bind-Value="@ActiveADGroupDTO.Description" ReadOnly="@(IsRoleModelChangeDisabled)" />
+                                    @* <RadzenTextBox @bind-Value="@ActiveADGroupDTO.Description" ReadOnly="@(IsRoleModelChangeDisabled)" /> *@
+                                    <RadzenTextArea Name="Description" @bind-Value=@ActiveADGroupDTO.Description Rows="3" MaxLength="300" ReadOnly="@(IsRoleModelChangeDisabled)" />
                                 </RadzenFormField>
                                 <ValidationMessage For="()=>ActiveADGroupDTO.Description"></ValidationMessage>
                             </RadzenStack>
